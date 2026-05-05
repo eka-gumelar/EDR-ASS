@@ -8,6 +8,8 @@
             scanDataTmp: null, activeTaskTmpId: null, resumePendingId: null, 
             batchItemsValid: [], isIstirahatGlobal: false, adminTab: 'overview',
             
+            unsubQueue: null, unsubHistory: null, adminHistoryReports: null, unsubAdminHistories: [],
+            
             chartInstCCT: null, chartInstQTY: null,
             activeChartHighlight: null,
             
@@ -25,7 +27,7 @@
                         try { await this.db.enablePersistence({ synchronizeTabs: true }); } catch (e) {}
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await this.auth.signInWithCustomToken(__initial_auth_token);
                         else await this.auth.signInAnonymously();
-                        this.auth.onAuthStateChanged(user => { if(user){ this.user = user; this.setupRealtimeListeners(); } });
+                        this.auth.onAuthStateChanged(user => { if(user){ this.user = user; } });
                     } else { this.useLocalFallback(); }
                     
                     this.setupUIBindings(); this.startClock(); this.monitorNetwork();
@@ -34,15 +36,27 @@
             },
 
             setupRealtimeListeners: function() {
-                if(!this.db || !this.user) return;
-                this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('active_queue').onSnapshot(snap => {
+                if(!this.leader) return;
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+
+                if(!this.db || !this.user) {
+                    this.activeQueue = JSON.parse(localStorage.getItem(`activeQueue_${lineKey}`) || '[]');
+                    this.historyReports = JSON.parse(localStorage.getItem(`history_${lineKey}`) || '[]');
+                    this.renderQueue();
+                    return;
+                }
+
+                if(this.unsubQueue) this.unsubQueue();
+                this.unsubQueue = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).onSnapshot(snap => {
                     this.activeQueue = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); this.renderQueue();
-                }, err => {});
-                this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('history').onSnapshot(snap => {
+                }, err => { this.showToast("Gagal menyinkronisasi antrian", "error"); });
+                
+                if(this.unsubHistory) this.unsubHistory();
+                this.unsubHistory = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).onSnapshot(snap => {
                     let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     allData.sort((a,b) => b.finishedAt - a.finishedAt);
                     this.historyReports = allData.slice(0, 2000); 
-                    if(!document.getElementById('admin-dashboard').classList.contains('hide')) this.applyAdminFilter(); 
+                    if(!document.getElementById('admin-dashboard').classList.contains('hide') && !this.adminHistoryReports) this.applyAdminFilter(); 
                 }, err => {});
             },
 
@@ -51,10 +65,7 @@
                 let lm = JSON.parse(localStorage.getItem('masterMP')); if(lm) this.masterMP = lm;
                 let ll = JSON.parse(localStorage.getItem('masterLeader')); if(ll) this.masterLeader = ll;
                 
-                this.activeQueue = JSON.parse(localStorage.getItem('activeQueue') || '[]');
-                this.historyReports = JSON.parse(localStorage.getItem('historyReports') || '[]');
                 this.isIstirahatGlobal = JSON.parse(localStorage.getItem('isIstirahatGlobal') || 'false');
-                this.renderQueue();
             },
             persistLocal: function(k, d) { localStorage.setItem(k, JSON.stringify(d)); },
 
@@ -97,11 +108,17 @@
                     document.getElementById('header-shift').innerText = validLeader.shift;
                     document.getElementById('header-leader').innerText = validLeader.nama;
                     document.getElementById('login-screen').classList.add('hide'); document.getElementById('main-dashboard').classList.remove('hide');
-                    this.showToast(`Welcome, ${validLeader.nama}`, 'success');
+                    this.showToast(`Welcome, ${validLeader.nama} - Ruang: ${validLeader.line}`, 'success');
+                    this.setupRealtimeListeners();
                     setTimeout(() => document.getElementById('main-scan-input').focus(), 500);
                 } else this.showToast('Lisensi / Pass Salah', 'error');
             },
             logout: function() {
+                if(this.unsubQueue) { this.unsubQueue(); this.unsubQueue = null; }
+                if(this.unsubHistory) { this.unsubHistory(); this.unsubHistory = null; }
+                if(this.unsubAdminHistories) { this.unsubAdminHistories.forEach(u => u()); this.unsubAdminHistories = []; }
+                this.activeQueue = []; this.historyReports = []; this.adminHistoryReports = null;
+
                 this.shift = null; this.leader = null;
                 document.getElementById('login-screen').classList.remove('hide'); document.getElementById('main-dashboard').classList.add('hide');
                 document.getElementById('admin-dashboard').classList.add('hide'); document.getElementById('login-lisensi').value=''; document.getElementById('login-pass').value='';
@@ -286,8 +303,9 @@
 
             saveToQueue: async function(data) {
                 let docId = data.id || data.sn; 
-                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('active_queue').doc(docId).set(data);
-                else { this.activeQueue.push({ ...data, id: docId }); this.persistLocal('activeQueue', this.activeQueue); this.renderQueue(); }
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(docId).set(data);
+                else { this.activeQueue.push({ ...data, id: docId }); this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); this.renderQueue(); }
             },
 
             renderQueue: function(filterText = '') {
@@ -565,15 +583,19 @@
                     item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
                 } else { historyDataArray.push(baseH); }
 
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+
                 if(this.db) {
                     const batch = this.db.batch();
-                    batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('active_queue').doc(item.id));
-                    historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('history').doc(hData.sn), hData); });
+                    batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
+                    historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
                     await batch.commit();
                 } else {
                     this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
                     historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
-                    this.persistLocal('activeQueue', this.activeQueue); this.persistLocal('historyReports', this.historyReports); this.renderQueue();
+                    this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); 
+                    this.persistLocal(`history_${lineKey}`, this.historyReports); 
+                    this.renderQueue();
                 }
 
                 this.closeModal('modal-qc'); this.showToast(`Finish: +${(cctPerMp * batchMultiplier).toFixed(1)} CCT/MP`, "success");
@@ -595,7 +617,9 @@
                 let shiftInput = document.getElementById('flt-shift').value;
                 let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
                 
-                let filtered = this.historyReports;
+                let sourceData = this.adminHistoryReports || this.historyReports;
+                let filtered = sourceData;
+                
                 if(startInput) { let startMs = new Date(startInput).setHours(0,0,0,0); filtered = filtered.filter(h => h.finishedAt >= startMs); }
                 if(endInput) { let endMs = new Date(endInput).setHours(23,59,59,999); filtered = filtered.filter(h => h.finishedAt <= endMs); }
                 if(shiftInput !== 'ALL') { filtered = filtered.filter(h => h.shift === shiftInput); }
@@ -1019,10 +1043,14 @@
             },
 
             openReportModal: function() {
-                let uniqueLines = new Set(); this.historyReports.forEach(h => uniqueLines.add(h.targetLine));
-                let filterHtml = `<option value="ALL">Semua Line</option>`;
-                uniqueLines.forEach(line => { filterHtml += `<option value="${line}">${line}</option>`; });
-                document.getElementById('report-line-filter').innerHTML = filterHtml;
+                // UX Poka-Yoke: Kunci filter hanya untuk area Leader yang sedang aktif.
+                // Karena arsitektur Data Sharding, data line lain memang tidak ditarik ke memori lokal.
+                let filterHtml = `<option value="${this.leader.line}">${this.leader.line} (Area Anda)</option>`;
+                let filterEl = document.getElementById('report-line-filter');
+                filterEl.innerHTML = filterHtml;
+                filterEl.disabled = true; // Kunci dropdown
+                filterEl.classList.add('cursor-not-allowed', 'text-teal-700', 'bg-teal-50'); // Beri indikator visual bahwa ini ruang eksklusifnya
+                
                 document.getElementById('modal-report').classList.remove('hide');
                 this.renderReportModal();
             },
@@ -1139,10 +1167,34 @@
                 const pass = document.getElementById('admin-pass-input').value;
                 if(this.leader && pass === this.leader.pass) { 
                     this.closeModal('modal-password'); document.getElementById('main-dashboard').classList.add('hide'); document.getElementById('admin-dashboard').classList.remove('hide');
+                    this.loadAdminData();
                     this.switchAdminTab('overview'); 
                 } else this.showToast("Password Leader salah!", "error");
             },
-            closeAdmin: function() { document.getElementById('admin-dashboard').classList.add('hide'); document.getElementById('main-dashboard').classList.remove('hide'); },
+
+            loadAdminData: function() {
+                if(!this.db) { this.adminHistoryReports = this.historyReports; return; }
+                const lines = ['Line_1', 'Line_2', 'Line_3', 'Line_4'];
+                this.adminHistoryReports = [];
+                if(this.unsubAdminHistories) this.unsubAdminHistories.forEach(u => u());
+                this.unsubAdminHistories = [];
+                
+                lines.forEach(lineKey => {
+                    let u = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).onSnapshot(snap => {
+                        let data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        // Hindari duplikasi saat line terupdate
+                        this.adminHistoryReports = this.adminHistoryReports.filter(h => h.targetLine && h.targetLine.replace(/\s+/g, '_') !== lineKey);
+                        this.adminHistoryReports.push(...data);
+                        if(!document.getElementById('admin-dashboard').classList.contains('hide')) this.applyAdminFilter();
+                    });
+                    this.unsubAdminHistories.push(u);
+                });
+            },
+
+            closeAdmin: function() { 
+                document.getElementById('admin-dashboard').classList.add('hide'); 
+                document.getElementById('main-dashboard').classList.remove('hide'); 
+            },
             closeModal: function(id) { document.getElementById(id).classList.add('hide'); },
             
             handleExcelUpload: function(event, type) {
@@ -1215,7 +1267,11 @@
                 let bData = { id:`BCH-${Date.now()}`, sn:this.batchItemsValid[0].sn, batchSNs:this.batchItemsValid.map(v=>v.sn), isBatch:true, batchSize:this.batchItemsValid.length, noAssy:this.batchItemsValid[0].noAssy, cct:parseInt(document.getElementById('batch-cct').innerText), baseUmh:parseInt(document.getElementById('batch-umh').innerText), wp:w, mps:mps, targetLine:document.getElementById('b-line-select').value, startTime:Date.now(), status:'running', totalDowntime:0, downtimes:[], lastDowntimeStart:null, isGlobalPause:false, shift:this.shift, leaderName:this.leader.nama };
                 this.closeModal('modal-confirm-start'); this.closeModal('modal-batch'); this.showToast(`Batch Started`,"success"); this.saveToQueue(bData);
             },
-            updateQueueDoc: async function(id, data) { if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('active_queue').doc(id).update(data); else { let idx=this.activeQueue.findIndex(q=>q.id===id); if(idx>-1){this.activeQueue[idx]={...this.activeQueue[idx],...data}; this.persistLocal('activeQueue',this.activeQueue); this.renderQueue();} } }
+            updateQueueDoc: async function(id, data) { 
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).update(data); 
+                else { let idx=this.activeQueue.findIndex(q=>q.id===id); if(idx>-1){this.activeQueue[idx]={...this.activeQueue[idx],...data}; this.persistLocal(`activeQueue_${lineKey}`,this.activeQueue); this.renderQueue();} } 
+            }
         };
 
         window.onload = () => app.init();
