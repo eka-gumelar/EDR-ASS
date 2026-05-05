@@ -20,7 +20,20 @@
 
             init: async function() {
                 try {
-                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                    // 1. Ubah nama ini menjadi myRealFirebaseConfig
+                    const myRealFirebaseConfig = {
+                        apiKey: "AIzaSyDfWp9DMuoDDr7M7LIfgQfok8xKmn4yOe0",
+                        authDomain: "edr-assembling.firebaseapp.com",
+                        databaseURL: "https://edr-assembling-default-rtdb.asia-southeast1.firebasedatabase.app",
+                        projectId: "edr-assembling",
+                        storageBucket: "edr-assembling.firebasestorage.app",
+                        messagingSenderId: "156144912420",
+                        appId: "1:156144912420:web:f5c04f476a902dae1c70b1"
+                    };
+
+                    // 2. Di ujung baris ini, ganti 'null' menjadi 'myRealFirebaseConfig'
+                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myRealFirebaseConfig;
+                    
                     if(firebaseConfig && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
                     if(firebase.apps.length) {
                         this.auth = firebase.auth(); this.db = firebase.firestore();
@@ -32,7 +45,7 @@
                     
                     this.setupUIBindings(); this.startClock(); this.monitorNetwork();
                     Chart.defaults.animation = false;
-                } catch(e) { this.showToast("System Init Error", "error"); }
+                } catch(e) { this.showToast("System Init Error", "error"); console.error(e); }
             },
 
             setupRealtimeListeners: function() {
