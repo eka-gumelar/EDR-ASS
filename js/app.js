@@ -356,7 +356,7 @@
                     let targetStr = this.formatMs(targetMs);
 
                     let html = `
-                    <div class="queue-item flex justify-between items-center p-3 rounded-lg border ${bgClass} shadow-sm" id="q-${q.id}">
+                    <div class="queue-item flex justify-between items-center p-3 rounded-lg border ${bgClass} shadow-sm hover:border-blue-300 transition-colors cursor-context-menu" id="q-${q.id}" oncontextmenu="app.handleRightClickQueue(event, '${q.id}')" title="Klik Kanan untuk membatalkan (Cancel) proses">
                         <div class="flex-1 flex items-center gap-4">
                             <div class="w-8 h-8 rounded-full flex items-center justify-center ${isDT?'bg-amber-200 text-amber-700':'bg-blue-100 text-blue-600'} font-bold text-sm border shrink-0">${i + 1}</div>
                             <div>
@@ -549,6 +549,50 @@
                 
                 document.getElementById('init-form-container').classList.remove('hide'); document.getElementById('init-mp-input').focus();
                 this.showToast("Silakan periksa atau tambah Manpower.", "info");
+            },
+
+            handleRightClickQueue: function(event, id) {
+                // Faktual UX: event.preventDefault() digunakan agar menu bawaan OS/Browser (seperti 'Inspect', 'Save As') tidak muncul.
+                event.preventDefault(); 
+                this.cancelProcess(id);
+            },
+
+            cancelProcess: function(id) {
+                this.activeTaskTmpId = id;
+                const item = this.activeQueue.find(q => q.id === id);
+                if(!item) return;
+                
+                let snDisplay = item.isBatch ? `BATCH (x${item.batchSize}) - ${item.sn}` : item.sn;
+                document.getElementById('cc-sn').innerText = snDisplay;
+                document.getElementById('cc-assy').innerText = item.noAssy;
+                
+                // Menampilkan Modal Kustom alih-alih menggunakan confirm() browser yang kaku
+                document.getElementById('modal-cancel-process').classList.remove('hide');
+                setTimeout(() => document.getElementById('btn-confirm-cancel').focus(), 100);
+            },
+
+            executeCancelProcess: async function() {
+                let id = this.activeTaskTmpId;
+                const item = this.activeQueue.find(q => q.id === id);
+                if(!item) return;
+                
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                let snDisplay = item.isBatch ? `BATCH (x${item.batchSize}) - ${item.sn}` : item.sn;
+
+                if(this.db) {
+                    try {
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).delete();
+                    } catch(e) {
+                        this.showToast("Gagal membatalkan proses", "error");
+                    }
+                } else {
+                    this.activeQueue = this.activeQueue.filter(q => q.id !== id);
+                    this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue);
+                    this.renderQueue();
+                }
+                
+                this.closeModal('modal-cancel-process');
+                this.showToast(`Proses ${snDisplay} dibatalkan.`, "info");
             },
 
             finishProcess: function(id) {
