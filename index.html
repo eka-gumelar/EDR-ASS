@@ -33,7 +33,7 @@
             <h2 class="text-xl font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
                 PROSES ASSEMBLING<br>DAILY REPORT
             </h2>
-            <p class="text-[12px] text-slate-500 mb-8 font-medium tracking-wide">v.0.5.05</p>
+            <p class="text-[12px] text-slate-500 mb-8 font-medium tracking-wide">v.2.5.3 (Stable UI Engine)</p>
             
             <div class="w-full space-y-5">
                 <div class="text-left">
@@ -94,10 +94,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0 relative">
                 <div class="flex flex-col lg:flex-row gap-4 items-center w-full">
                     <div class="flex-1 w-full min-w-[250px]">
-                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-sign-in"></i> SCAN IN</label>
+                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-sign-in-alt"></i> SCAN IN </label>
                         <div class="relative">
                             <i class="fas fa-qrcode absolute left-3 top-3 text-slate-400"></i>
-                            <input type="text" id="main-scan-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
+                            <input type="text" id="main-scan-input" placeholder="Scan QR Code" class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0 mt-4 lg:mt-5">
@@ -105,10 +105,10 @@
                         <button onclick="app.openBatchMode()" title="Batch Mode" class="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl border border-indigo-200 shadow-sm cursor-pointer"><i class="fas fa-layer-group text-lg"></i></button>
                     </div>
                     <div class="flex-1 w-full min-w-[250px]">
-                        <label class="block text-xs font-bold text-teal-600 mb-1 tracking-wide"><i class="fas fa-sign-out-alt mr-1"></i> SCAN OUT (FINISH)</label>
+                        <label class="block text-xs font-bold text-teal-600 mb-1 tracking-wide"><i class="fas fa-sign-out-alt mr-1"></i> SCAN OUT </label>
                         <div class="relative">
                             <i class="fas fa-qrcode absolute left-3 top-3 text-teal-400"></i>
-                            <input type="text" id="scan-out-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
+                            <input type="text" id="scan-out-input" placeholder="Scan QR Code" class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                 </div>
@@ -407,7 +407,7 @@
     <!-- Manual Input Modal (Bypass) -->
     <div id="modal-manual" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96">
-            <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-slate-800"><i class="fas fa-keyboard text-blue-500 mr-1"></i> Manual Input (Bypass DB)</h3><button onclick="app.closeModal('modal-manual')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button></div>
+            <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-slate-800"><i class="fas fa-keyboard text-blue-500 mr-1"></i> Manual Input </h3><button onclick="app.closeModal('modal-manual')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button></div>
             <div class="space-y-4 mb-5">
                 <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
                     <label class="text-[10px] font-bold text-blue-600 block mb-1 tracking-wide"><i class="fas fa-qrcode mr-1"></i> SCAN BARCODE (AUTOFILL)</label>
