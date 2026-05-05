@@ -6,6 +6,7 @@
     <title>EDR-ASSEMBLING</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/><line x1='10' y1='9' x2='8' y2='9'/></svg>">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -33,7 +34,7 @@
             <h2 class="text-xl font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
                 PROSES ASSEMBLING<br>DAILY REPORT
             </h2>
-            <p class="text-[12px] text-slate-500 mb-8 font-medium tracking-wide">v.2.5.3 (Stable UI Engine)</p>
+            <p class="text-[12px] text-slate-500 mb-8 font-medium tracking-wide">v.0.5.5</p>
             
             <div class="w-full space-y-5">
                 <div class="text-left">
@@ -94,10 +95,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0 relative">
                 <div class="flex flex-col lg:flex-row gap-4 items-center w-full">
                     <div class="flex-1 w-full min-w-[250px]">
-                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-barcode"></i> SCAN IN AREA (INISIASI)</label>
+                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-sign-in-alt"></i> SCAN IN </label>
                         <div class="relative">
                             <i class="fas fa-qrcode absolute left-3 top-3 text-slate-400"></i>
-                            <input type="text" id="main-scan-input" placeholder="Scan Barcode mulai..." class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
+                            <input type="text" id="main-scan-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0 mt-4 lg:mt-5">
@@ -107,8 +108,8 @@
                     <div class="flex-1 w-full min-w-[250px]">
                         <label class="block text-xs font-bold text-teal-600 mb-1 tracking-wide"><i class="fas fa-sign-out-alt mr-1"></i> SCAN OUT (FINISH)</label>
                         <div class="relative">
-                            <i class="fas fa-barcode absolute left-3 top-3 text-teal-400"></i>
-                            <input type="text" id="scan-out-input" placeholder="Scan Barcode finish..." class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
+                            <i class="fas fa-qrcode absolute left-3 top-3 text-teal-400"></i>
+                            <input type="text" id="scan-out-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                 </div>
