@@ -7,5 +7,5 @@
         { lisensi: "200226", pass: "200226", nama: "Suryani", line: "Line 3", shift: "NS", last_edited: "2024-05-06" },
         { lisensi: "200227", pass: "200227", nama: "Diki Supriyatna", line: "Line 4", shift: "B", last_edited: "2024-05-07" },
         { lisensi: "200228", pass: "200228", nama: "Purwaningsih", line: "Line 4", shift: "NS", last_edited: "2024-05-08" },
-        { lisensi: "111", pass: "111", nama: "DEMO", line: "Line 1", shift: "NS", last_edited: "2024-05-09" }
+        { lisensi: "111", pass: "111", nama: "DEMO", line: "Line 2", shift: "NS", last_edited: "2024-05-09" }
     ];
