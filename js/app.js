@@ -2,7 +2,7 @@
             db: null, auth: null, appId: typeof __app_id !== 'undefined' ? __app_id : 'default-app-id',
             user: null, shift: null, leader: null,
             
-            masterAssy: masterDataAssy, masterMP: masterDataMP, masterLeader: masterDataLeader,
+            masterAssy: masterDataAssy, masterMP: masterDataMP, masterLeader: masterDataLeader, masterLine: masterDataLine,
             activeQueue: [], historyReports: [], validWpList: [], 
             
             scanDataTmp: null, activeTaskTmpId: null, resumePendingId: null, 
@@ -47,7 +47,7 @@
                     Chart.defaults.animation = false;
                 } catch(e) { this.showToast("System Init Error", "error"); console.error(e); }
             },
-
+            
             setupRealtimeListeners: function() {
                 if(!this.leader) return;
                 let lineKey = this.leader.line.replace(/\s+/g, '_');
@@ -77,6 +77,7 @@
                 let la = JSON.parse(localStorage.getItem('masterAssy')); if(la) this.masterAssy = la;
                 let lm = JSON.parse(localStorage.getItem('masterMP')); if(lm) this.masterMP = lm;
                 let ll = JSON.parse(localStorage.getItem('masterLeader')); if(ll) this.masterLeader = ll;
+                let ln = JSON.parse(localStorage.getItem('masterLine')); if(ln) this.masterLine = ln;
                 
                 this.isIstirahatGlobal = JSON.parse(localStorage.getItem('isIstirahatGlobal') || 'false');
             },
@@ -110,6 +111,16 @@
             formatDateShort: function(dateObj) {
                 const m = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
                 return `${dateObj.getDate().toString().padStart(2,'0')}-${m[dateObj.getMonth()]}`;
+            },
+
+            // Faktual: Mental Model pergantian hari pabrik di jam 07:30 pagi
+            getProductionDay: function(timestamp) {
+                let d = new Date(timestamp);
+                let h = d.getHours(); let m = d.getMinutes();
+                if (h < 7 || (h === 7 && m < 30)) {
+                    d.setDate(d.getDate() - 1);
+                }
+                return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
             },
 
             login: function() {
@@ -368,14 +379,14 @@
                             <div class="text-right flex gap-3">
                                 <div>
                                     <div class="flex items-end gap-1.5 justify-end">
-                                        <div class="font-timer font-bold text-blue-600 text-[15px] timer-duration" data-id="${q.id}">00:00:00</div>
+                                        <div class="font-timer font-bold text-blue-600 text-[15px] timer-duration">00:00:00</div>
                                         <div class="font-timer font-bold text-slate-400 text-[11px] mb-[2px]">/ ${targetStr}</div>
                                     </div>
                                     <div class="text-[8px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Aktual / Target</div>
                                 </div>
-                                <div class="${isDT ? '' : 'hide'} border-l border-amber-200 pl-3">
-                                    <div class="font-timer font-bold text-amber-600 text-[15px] timer-downtime" data-id="${q.id}">00:00:00</div>
-                                    <div class="text-[8px] text-amber-500 font-bold uppercase">${q.isGlobalPause ? 'ISTIRAHAT' : 'DOWNTIME'}</div>
+                                <div class="dt-container border-l border-amber-200 pl-3 hide">
+                                    <div class="font-timer font-bold text-amber-600 text-[15px] timer-downtime">00:00:00</div>
+                                    <div class="text-[8px] text-amber-500 font-bold uppercase dt-label">LOSS TIME</div>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-1 shrink-0 w-24">
@@ -410,19 +421,55 @@
 
             updateTimers: function() {
                 const now = Date.now();
-                document.querySelectorAll('.timer-duration').forEach(el => {
-                    const id = el.getAttribute('data-id'); const item = this.activeQueue.find(q => q.id === id);
+                document.querySelectorAll('.queue-item').forEach(el => {
+                    const id = el.id.replace('q-', '');
+                    const item = this.activeQueue.find(q => q.id === id);
                     if(item) {
-                        let activeMs = now - item.startTime - item.totalDowntime;
-                        if(item.status !== 'running') activeMs -= (now - item.lastDowntimeStart); 
-                        el.innerText = this.formatMs(activeMs);
-                    }
-                });
-                document.querySelectorAll('.timer-downtime').forEach(el => {
-                    const id = el.getAttribute('data-id'); const item = this.activeQueue.find(q => q.id === id);
-                    if(item && item.status === 'downtime') {
-                        let currentDtMs = now - item.lastDowntimeStart;
-                        el.innerText = this.formatMs(currentDtMs);
+                        // Menghitung akumulasi downtime dan pending secara live
+                        let tDt = 0; let tPd = 0;
+                        if(item.downtimes) {
+                            item.downtimes.forEach(dt => {
+                                let dur = dt.end ? dt.duration : (now - dt.start);
+                                if(dt.reason.startsWith('PENDING:')) tPd += dur;
+                                else tDt += dur;
+                            });
+                        }
+                        
+                        // Kalkulasi Durasi Aktif yang mutlak akurat
+                        let activeMs = (now - item.startTime) - tDt - tPd;
+
+                        // Perbarui UI Waktu Aktif
+                        let durEl = el.querySelector('.timer-duration');
+                        if (durEl) durEl.innerText = this.formatMs(activeMs);
+
+                        // Perbarui UI Waktu Loss (Downtime + Pending yang diakumulasikan)
+                        let dtContainer = el.querySelector('.dt-container');
+                        if (dtContainer) {
+                            let totalLoss = tDt + tPd;
+                            
+                            // Jika punya historis loss time, TAMPILKAN PERMANEN sebagai bukti ke operator
+                            if (totalLoss > 0 || item.status === 'downtime') {
+                                dtContainer.classList.remove('hide');
+                                let dtEl = dtContainer.querySelector('.timer-downtime');
+                                if (dtEl) dtEl.innerText = this.formatMs(totalLoss);
+
+                                let dtLabel = dtContainer.querySelector('.dt-label');
+                                if (dtLabel) {
+                                    if (item.status === 'downtime') {
+                                        dtLabel.innerText = item.isGlobalPause ? 'ISTIRAHAT' : 'DOWNTIME';
+                                        dtLabel.classList.add('text-red-500', 'animate-pulse');
+                                        if(dtEl) dtEl.classList.replace('text-amber-600', 'text-red-600');
+                                    } else {
+                                        // Proses sudah running lagi, tapi kita tunjukkan akumulasi loss time-nya
+                                        dtLabel.innerText = 'TOTAL LOSS TIME';
+                                        dtLabel.classList.remove('text-red-500', 'animate-pulse');
+                                        if(dtEl) dtEl.classList.replace('text-red-600', 'text-amber-600');
+                                    }
+                                }
+                            } else {
+                                dtContainer.classList.add('hide');
+                            }
+                        }
                     }
                 });
             },
@@ -603,7 +650,15 @@
                     let snDisplay = item.isBatch ? `BATCH (x${item.batchSize})<br><span class="text-[10px] font-normal">${item.sn}</span>` : item.sn;
                     let mps = item.mps || [];
                     let mpStr = mps.map(m => `<div class="truncate"><i class="fas fa-user text-slate-400 mr-1"></i> <strong>${m ? (m.nama || String(m)) : '-'}</strong></div>`).join('');
-                    let activeMs = Date.now() - item.startTime - item.totalDowntime;
+                    
+                    let tDt = 0; let tPd = 0;
+                    if(item.downtimes) {
+                        item.downtimes.forEach(dt => {
+                            if(dt.reason.startsWith('PENDING:')) tPd += dt.duration;
+                            else tDt += dt.duration;
+                        });
+                    }
+                    let activeMs = (Date.now() - item.startTime) - tDt - tPd;
                     
                     document.getElementById('qc-detail-sn').innerHTML = snDisplay; 
                     document.getElementById('qc-detail-line').innerText = `Target Output: ${item.targetLine}`;
@@ -622,8 +677,20 @@
                 const item = this.activeQueue.find(q => q.id === this.activeTaskTmpId); if(!item) return;
 
                 const now = Date.now();
-                let activeMs = now - item.startTime - item.totalDowntime; let activeMin = activeMs / 60000;
-                let dtMin = item.totalDowntime / 60000;
+                
+                // Pemisahan Tanggung Jawab Metrik (Separation of Concerns)
+                let totalDt = 0; let totalPd = 0;
+                if(item.downtimes) {
+                    item.downtimes.forEach(dt => {
+                        if(dt.reason.startsWith('PENDING:')) totalPd += dt.duration;
+                        else totalDt += dt.duration;
+                    });
+                }
+
+                let activeMs = (now - item.startTime) - totalDt - totalPd; 
+                let activeMin = activeMs / 60000;
+                let dtMin = totalDt / 60000;
+                let pdMin = totalPd / 60000;
                 
                 let batchMultiplier = item.isBatch ? item.batchSize : 1;
                 let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
@@ -632,10 +699,12 @@
                 let isOK = activeMin <= targetUmh; 
                 
                 let cctPerMp = item.cct / mpsLength; 
-                let durationPerUnit = activeMin / batchMultiplier; let dtPerUnit = dtMin / batchMultiplier;
+                let durationPerUnit = activeMin / batchMultiplier; 
+                let dtPerUnit = dtMin / batchMultiplier;
+                let pdPerUnit = pdMin / batchMultiplier;
 
                 let historyDataArray = [];
-                let baseH = { ...item, finishedAt: now, durationMin: durationPerUnit, downtimeMin: dtPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
+                let baseH = { ...item, finishedAt: now, durationMin: durationPerUnit, downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
                 if(item.isBatch) {
                     item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
                 } else { historyDataArray.push(baseH); }
@@ -677,8 +746,10 @@
                 let sourceData = this.adminHistoryReports || this.historyReports;
                 let filtered = sourceData;
                 
-                if(startInput) { let startMs = new Date(startInput).setHours(0,0,0,0); filtered = filtered.filter(h => h.finishedAt >= startMs); }
-                if(endInput) { let endMs = new Date(endInput).setHours(23,59,59,999); filtered = filtered.filter(h => h.finishedAt <= endMs); }
+                // Admin Filter menggunakan logika Hari Produksi, bukan kalender biasa
+                if(startInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) >= startInput); }
+                if(endInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) <= endInput); }
+                
                 if(shiftInput !== 'ALL') { filtered = filtered.filter(h => h.shift === shiftInput); }
                 filtered = filtered.filter(h => checkedLines.includes(h.targetLine));
                 
@@ -746,15 +817,28 @@
 
                 checkedLines.sort().forEach(line => {
                     let stats = lineStats[line];
+                    let lineTargetDay = app.masterLine.find(x => x.id === line)?.target || 0;
+                    
+                    // Admin: Jika shift spesifik dipilih, target dibagi 2. Jika "Semua Shift", target penuh 1 hari.
+                    let shiftInput = document.getElementById('flt-shift').value;
+                    let lineTarget = shiftInput === 'ALL' ? lineTargetDay : (lineTargetDay / 2);
+                    
+                    let percentage = lineTarget > 0 ? ((stats.cct / lineTarget) * 100).toFixed(1) : 0;
+                    let progressColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-500';
+
                     let html = `
                         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-blue-500 flex flex-col transition-all hover:shadow-md">
                             <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 text-sm uppercase tracking-wider">
                                 <i class="fas fa-industry text-blue-500 mr-2"></i> ${line}
                             </h3>
                             <div class="space-y-4 flex-1">
-                                <div class="flex justify-between items-center bg-indigo-50/50 px-3 py-2 rounded-lg border border-indigo-100">
-                                    <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Total Output CCT</span>
-                                    <span class="text-xl font-black text-indigo-700">${stats.cct.toLocaleString()}</span>
+                                <div class="flex justify-between items-center bg-indigo-50/50 px-3 py-2 rounded-lg border border-indigo-100 relative overflow-hidden">
+                                    <div class="absolute bottom-0 left-0 h-1.5 bg-indigo-200 w-full"><div class="h-full ${progressColor}" style="width: ${Math.min(percentage, 100)}%"></div></div>
+                                    <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide z-10">Output CCT</span>
+                                    <div class="text-right z-10">
+                                        <span class="text-xl font-black text-indigo-700">${stats.cct.toLocaleString()}</span>
+                                        <span class="text-[10px] text-slate-500 font-bold">/ ${lineTarget}</span>
+                                    </div>
                                 </div>
                                 <div class="flex justify-between items-center bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100">
                                     <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Unit (QTY)</span>
@@ -769,6 +853,23 @@
                     `;
                     container.insertAdjacentHTML('beforeend', html);
                 });
+            },
+
+            switchAdminTab: function(tabName) {
+                this.adminTab = tabName;
+                ['overview', 'leaderboard', 'rekapline', 'rekapmp', 'transactions', 'master'].forEach(t => {
+                    document.getElementById('tab-btn-' + t).classList.remove('admin-tab-active'); document.getElementById('admin-tab-' + t).classList.add('hide');
+                });
+                document.getElementById('tab-btn-' + tabName).classList.add('admin-tab-active'); document.getElementById('admin-tab-' + tabName).classList.remove('hide');
+
+                if(tabName === 'overview' || tabName === 'leaderboard') document.getElementById('filter-line-checkboxes').classList.remove('hide');
+                else document.getElementById('filter-line-checkboxes').classList.add('hide');
+
+                if(tabName === 'master') document.getElementById('admin-global-filter').classList.add('hide');
+                else document.getElementById('admin-global-filter').classList.remove('hide');
+
+                this.applyAdminFilter();
+                if(tabName === 'master') { this.renderMasterAssy(); this.renderMasterMP(); this.renderMasterLeader(); this.renderMasterLine(); }
             },
 
             renderAdminLeaderboard: function() {
@@ -967,11 +1068,20 @@
                         return `<b>${nama}</b> <span class="text-[9px]">(${id})</span>`;
                     }).join('<br>');
 
-                    let dtHtml = '';
+                    let dtHtml = ''; let pdHtml = '';
                     if(h.downtimes && h.downtimes.length > 0) {
-                        h.downtimes.forEach(dt => { if(dt.duration > 0) dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`; });
+                        h.downtimes.forEach(dt => { 
+                            if(dt.duration > 0) {
+                                if(dt.reason.startsWith('PENDING:')) {
+                                    pdHtml += `<div class="text-[9px] border-b border-dashed border-red-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason.replace('PENDING: ','')}</span>: ${this.formatMs(dt.duration)}</div>`;
+                                } else {
+                                    dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`;
+                                }
+                            }
+                        });
                     }
                     if(!dtHtml) dtHtml = '<span class="text-slate-300">-</span>';
+                    if(!pdHtml) pdHtml = '<span class="text-slate-300">-</span>';
                     
                     let statClass = h.finalStatus === 'OK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
                     let tr = `<tr class="hover:bg-indigo-50 transition">
@@ -983,7 +1093,8 @@
                         <td class="px-3 py-2 border-r leading-tight">${mpStr}</td>
                         <td class="px-3 py-2 border-r font-bold text-slate-600 text-center">${h.targetLine}</td>
                         <td class="px-3 py-2 border-r font-timer text-center">${h.durationMin.toFixed(2)}</td>
-                        <td class="px-3 py-2 border-r font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-200 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 border-r font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-100 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 border-r font-mono text-red-600">${pdHtml}<div class="font-bold text-red-700 mt-1 pt-1 border-t border-red-100 text-right">Tot: ${(h.pendingMin || 0).toFixed(2)}m</div></td>
                         <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statClass}">${h.finalStatus}</span></td>
                     </tr>`;
                     tbody.insertAdjacentHTML('beforeend', tr);
@@ -1034,11 +1145,21 @@
                 let html = '';
                 
                 displayData.forEach(l => {
-                    html += `<tr id="row-ld-${l.lisensi}"><td class="px-4 py-2 font-mono font-bold text-purple-600">${l.lisensi}</td><td class="px-4 py-2 editable-cell font-mono text-[10px] text-slate-400" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','pass',this.innerText)">${l.pass}</td><td class="px-4 py-2 editable-cell font-bold" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','nama',this.innerText)">${l.nama}</td><td class="px-4 py-2 editable-cell text-xs" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','line',this.innerText)">${l.line}</td><td class="px-4 py-2 editable-cell font-bold text-center" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','shift',this.innerText)">${l.shift}</td><td class="px-4 py-2 editable-cell font-mono" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','target',this.innerText)">${l.target}</td><td class="px-4 py-2 text-[10px] text-slate-400">${l.last_edited||'-'}</td><td class="px-4 py-2"><button onclick="app.delMaster('LEADER','${l.lisensi}')" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash"></i></button></td></tr>`;
+                    html += `<tr id="row-ld-${l.lisensi}"><td class="px-4 py-2 font-mono font-bold text-purple-600">${l.lisensi}</td><td class="px-4 py-2 editable-cell font-mono text-[10px] text-slate-400" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','pass',this.innerText)">${l.pass}</td><td class="px-4 py-2 editable-cell font-bold" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','nama',this.innerText)">${l.nama}</td><td class="px-4 py-2 editable-cell text-xs" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','line',this.innerText)">${l.line}</td><td class="px-4 py-2 editable-cell font-bold text-center" contenteditable="true" onblur="app.saveInline('LEADER','${l.lisensi}','shift',this.innerText)">${l.shift}</td><td class="px-4 py-2 text-[10px] text-slate-400">${l.last_edited||'-'}</td><td class="px-4 py-2"><button onclick="app.delMaster('LEADER','${l.lisensi}')" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
                 
-                if (filtered.length > 150) html += `<tr><td colspan="8" class="px-4 py-3 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Menampilkan 150 dari ${filtered.length} data. Gunakan fitur pencarian untuk menemukan data spesifik.</td></tr>`;
-                else if (filtered.length === 0) html = `<tr><td colspan="8" class="px-4 py-3 text-center text-xs text-slate-500 italic">Data tidak ditemukan.</td></tr>`;
+                if (filtered.length > 150) html += `<tr><td colspan="7" class="px-4 py-3 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Menampilkan 150 dari ${filtered.length} data. Gunakan fitur pencarian untuk menemukan data spesifik.</td></tr>`;
+                else if (filtered.length === 0) html = `<tr><td colspan="7" class="px-4 py-3 text-center text-xs text-slate-500 italic">Data tidak ditemukan.</td></tr>`;
+                
+                tb.innerHTML = html;
+            },
+            renderMasterLine: function() {
+                const tb = document.getElementById('master-line-tbody'); 
+                let html = '';
+                
+                this.masterLine.forEach(l => {
+                    html += `<tr id="row-line-${l.id}"><td class="px-4 py-2 font-bold text-slate-700">${l.id}</td><td class="px-4 py-2 editable-cell font-mono font-bold text-orange-600" contenteditable="true" onblur="app.saveInline('LINE','${l.id}','target',this.innerText)">${l.target}</td><td class="px-4 py-2 text-[10px] text-slate-400">${l.last_edited||'-'}</td></tr>`;
+                });
                 
                 tb.innerHTML = html;
             },
@@ -1049,13 +1170,15 @@
                 let obj;
                 if(type==='ASSY') { obj = this.masterAssy.find(x=>x.no_assy===id); if(field==='cct'||field==='umh') val = Number(val); }
                 if(type==='MP') obj = this.masterMP.find(x=>x.id===id);
-                if(type==='LEADER') { obj = this.masterLeader.find(x=>x.lisensi===id); if(field==='target') val = Number(val); }
+                if(type==='LEADER') { obj = this.masterLeader.find(x=>x.lisensi===id); }
+                if(type==='LINE') { obj = this.masterLine.find(x=>x.id===id); if(field==='target') val = Number(val); }
                 
                 if(obj && obj[field] !== val) {
                     obj[field] = val; obj.last_edited = dateStr;
                     this.showToast("Data tersimpan otomatis.", "success");
                     this.persistMasterData();
-                    if(type==='ASSY') this.renderMasterAssy(); if(type==='MP') this.renderMasterMP(); if(type==='LEADER') this.renderMasterLeader();
+                    if(type==='ASSY') this.renderMasterAssy(); if(type==='MP') this.renderMasterMP(); 
+                    if(type==='LEADER') this.renderMasterLeader(); if(type==='LINE') this.renderMasterLine();
                 }
             },
             
@@ -1079,7 +1202,7 @@
             saveNewMasterLeader: function() {
                 let id = document.getElementById('m-add-ld-id').value.trim().toUpperCase(); let pass = document.getElementById('m-add-ld-pass').value; let nama = document.getElementById('m-add-ld-nama').value; let line = document.getElementById('m-add-ld-line').value; let shift = document.getElementById('m-add-ld-shift').value;
                 if(!id || !pass || !nama || !line) { this.showToast("Semua kolom wajib diisi!", "warning"); return; }
-                this.masterLeader.unshift({ lisensi: id, pass: pass, nama: nama, line: line, shift: shift, target: 5000, last_edited: new Date().toISOString().split('T')[0] });
+                this.masterLeader.unshift({ lisensi: id, pass: pass, nama: nama, line: line, shift: shift, last_edited: new Date().toISOString().split('T')[0] });
                 this.persistMasterData(); this.renderMasterLeader(); this.closeModal('modal-add-leader'); this.showToast("Otorisasi Leader ditambahkan.", "success");
             },
 
@@ -1095,7 +1218,7 @@
                 if(this.db) {
                     // Placeholder for Firestore commit
                 } else {
-                    this.persistLocal('masterAssy', this.masterAssy); this.persistLocal('masterMP', this.masterMP); this.persistLocal('masterLeader', this.masterLeader);
+                    this.persistLocal('masterAssy', this.masterAssy); this.persistLocal('masterMP', this.masterMP); this.persistLocal('masterLeader', this.masterLeader); this.persistLocal('masterLine', this.masterLine);
                 }
             },
 
@@ -1117,8 +1240,10 @@
                 const filterLine = document.getElementById('report-line-filter').value;
                 tbody.innerHTML = '';
                 
-                let todayMs = new Date().setHours(0,0,0,0);
-                let todayData = this.historyReports.filter(h => h.finishedAt >= todayMs);
+                let currentProdDay = this.getProductionDay(Date.now());
+                
+                // Isolasi data: Hanya munculkan data untuk HARI PRODUKSI ini dan SHIFT milik LEADER ini saja
+                let todayData = this.historyReports.filter(h => this.getProductionDay(h.finishedAt) === currentProdDay && h.shift === this.shift);
                 
                 let lineOutputAgg = {}; 
                 todayData.forEach(h => {
@@ -1133,13 +1258,8 @@
                             return m.nama || String(m);
                         }).join(', ');
                         
-                        let dtHtml = '';
-                        if(h.downtimes && h.downtimes.length > 0) {
-                            h.downtimes.forEach(dt => { if(dt.duration > 0) dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`; });
-                        }
-                        if(!dtHtml) dtHtml = '<span class="text-slate-300">-</span>';
-                        
                         let statClass = h.finalStatus === 'OK' ? 'text-emerald-600' : 'text-red-600';
+                        // Hanya menampilkan angka mentah untuk Real-time view, tanpa detail reason
                         tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 border-b border-slate-100">
                             <td class="px-4 py-2 font-bold text-slate-700">${h.leaderName || '-'}</td>
@@ -1148,8 +1268,9 @@
                             <td class="px-4 py-2 font-bold text-indigo-600 text-center">${h.cct}</td>
                             <td class="px-4 py-2 font-bold text-slate-700">${h.targetLine}</td>
                             <td class="px-4 py-2 truncate max-w-[150px]" title="${mpStr}">${mpStr}</td>
-                            <td class="px-4 py-2 font-timer">${h.durationMin.toFixed(1)}</td>
-                            <td class="px-4 py-2 font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-200 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
+                            <td class="px-4 py-2 font-timer">${h.durationMin.toFixed(2)}</td>
+                            <td class="px-4 py-2 font-mono text-amber-600 font-bold">${(h.downtimeMin || 0).toFixed(2)}</td>
+                            <td class="px-4 py-2 font-mono text-red-600 font-bold">${(h.pendingMin || 0).toFixed(2)}</td>
                             <td class="px-4 py-2 font-bold ${statClass}">${h.finalStatus}</td>
                         </tr>`;
                     }
@@ -1157,17 +1278,28 @@
 
                 let summaryHtml = '';
                 for (const [line, data] of Object.entries(lineOutputAgg)) {
-                    let hl = (filterLine === line || filterLine === 'ALL') ? 'bg-white border-indigo-200' : 'bg-slate-100 opacity-50';
+                    let hl = (filterLine === line || filterLine === 'ALL') ? 'bg-white border-indigo-200 shadow-md' : 'bg-slate-50 border-slate-200 opacity-75';
+                    
+                    let lineTargetDay = app.masterLine.find(x => x.id === line)?.target || 0;
+                    // Target yang ditampilkan di Realtime Report adalah target/shift (karena difilter per shift leader)
+                    let lineTargetShift = lineTargetDay / 2;
+                    
+                    let percentage = lineTargetShift > 0 ? ((data.cct / lineTargetShift) * 100).toFixed(1) : 0;
+                    let barColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-indigo-500';
+
                     summaryHtml += `
-                    <div class="${hl} border rounded-xl p-3 flex flex-col transition-all">
-                        <span class="text-[10px] text-slate-500 font-bold uppercase border-b pb-1 mb-2">${line}</span>
-                        <div class="flex justify-between items-end"><span class="text-[9px] text-slate-400">Total CCT</span><span class="text-xl font-bold text-indigo-700 leading-none">${data.cct.toFixed(0)}</span></div>
-                        <div class="flex justify-between items-end mt-1"><span class="text-[9px] text-slate-400">Qty Unit</span><span class="text-sm font-bold text-slate-700 leading-none">${data.qty}</span></div>
+                    <div class="${hl} border rounded-xl p-3 flex flex-col transition-all relative overflow-hidden">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase border-b border-slate-100 pb-1 mb-2">${line}</span>
+                        <div class="flex justify-between items-end"><span class="text-[9px] text-slate-400">Pencapaian CCT</span><span class="text-sm font-bold text-indigo-700 leading-none">${data.cct.toFixed(0)} <span class="text-[9px] text-slate-400 font-medium">/ ${lineTargetShift}</span></span></div>
+                        <div class="w-full bg-slate-200 h-1.5 mt-1.5 rounded-full overflow-hidden"><div class="${barColor} h-full" style="width: ${Math.min(percentage, 100)}%"></div></div>
+                        <div class="flex justify-between items-center mt-1 mb-2"><span class="text-[8px] text-slate-400 uppercase font-bold">Persentase</span><span class="text-[10px] text-indigo-600 font-black">${percentage}%</span></div>
+                        
+                        <div class="flex justify-between items-end mt-auto pt-2 border-t border-slate-100"><span class="text-[9px] text-slate-400">Qty Unit</span><span class="text-sm font-bold text-slate-700 leading-none">${data.qty}</span></div>
                         <div class="flex justify-between items-end mt-1"><span class="text-[9px] text-slate-400">Var. Assy</span><span class="text-sm font-bold text-slate-700 leading-none">${data.assys.size}</span></div>
                     </div>`;
                 }
-                summaryContainer.innerHTML = summaryHtml || '<div class="col-span-full text-xs text-slate-400 italic">Belum ada output hari ini.</div>';
-                if(tbody.innerHTML === '') tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 text-sm italic">Data kosong.</td></tr>`;
+                summaryContainer.innerHTML = summaryHtml || '<div class="col-span-full text-xs text-slate-400 italic">Belum ada output di shift ini.</div>';
+                if(tbody.innerHTML === '') tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 text-sm italic">Data kosong.</td></tr>`;
             },
             
             exportDailyReport: function() {
@@ -1231,7 +1363,7 @@
 
             loadAdminData: function() {
                 if(!this.db) { this.adminHistoryReports = this.historyReports; return; }
-                const lines = ['Line_1', 'Line_2', 'Line_3', 'Line_4'];
+                const lines = ['Line_1', 'Line_2', 'Line_3', 'Line_4', 'Line_5'];
                 this.adminHistoryReports = [];
                 if(this.unsubAdminHistories) this.unsubAdminHistories.forEach(u => u());
                 this.unsubAdminHistories = [];
