@@ -65,7 +65,7 @@
         {id: "0172", nama: "Dadan Nurohmat", join_date: "2026-02-16", shift: "A", last_edited: "2024-05-01" },
         {id: "0173", nama: "Reza Kamil Koswara", join_date: "2021-12-27", shift: "A", last_edited: "2024-05-01" },
         {id: "0171", nama: "Supriatna", join_date: "2021-07-14", shift: "A", last_edited: "2024-05-01" },
-        {id: "0223", nama: "Abdul Azis", join_date: "2021-12-27", shift: "A", last_edited: "2024-05-01" },
+        {id: "0174", nama: "Abdul Azis", join_date: "2021-12-27", shift: "A", last_edited: "2024-05-01" },
         {id: "0131", nama: "Syamsul Marif", join_date: "2023-01-25", shift: "B", last_edited: "2024-05-01" },
         {id: "0811", nama: "Gugun Gunawan.", join_date: "2025-06-02", shift: "A", last_edited: "2024-05-01" },
         {id: "0818", nama: "Dian Ilham Alamsyah", join_date: "2025-06-17", shift: "A", last_edited: "2024-05-01" },
