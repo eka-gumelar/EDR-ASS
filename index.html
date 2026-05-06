@@ -114,6 +114,7 @@
                     </div>
                 </div>
 
+
                 <div id="init-form-container" class="mt-4 pt-4 border-t border-slate-100 hide">
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="text-sm font-bold text-slate-700"><i class="fas fa-play-circle text-blue-500 mr-1"></i> Process Initiation</h3>
@@ -135,7 +136,7 @@
                             <div>
                                 <label class="text-[10px] text-slate-500 font-semibold mb-1 block text-indigo-600">LOKASI LINE</label>
                                 <select id="init-line-select" class="w-full px-2 py-1.5 border border-indigo-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 bg-indigo-50 font-bold shadow-sm" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('init-mp-input').focus(); }">
-                                    <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option>
+                                    <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option> <option value="Line 5">Line 5</option>
                                 </select>
                             </div>
                         </div>
@@ -219,6 +220,7 @@
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 2" checked onchange="app.checkLineState()"> L2</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 3" checked onchange="app.checkLineState()"> L3</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" checked onchange="app.checkLineState()"> L4</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" checked onchange="app.checkLineState()"> L5</label>
                 </div>
                 <div class="flex-1 text-right"><button onclick="app.applyAdminFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-sm font-semibold shadow-sm"><i class="fas fa-filter mr-1"></i> Apply Filter</button></div>
             </div>
@@ -287,7 +289,9 @@
                                         <th class="px-3 py-2 align-top"><div class="font-bold mb-1">Manpower / Tim</div><input type="text" id="flt-col-mp" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter NRP/Nama..."></th>
                                         <th class="px-3 py-2 align-top w-20"><div class="font-bold mb-1">Line Output</div><input type="text" id="flt-col-line" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter..."></th>
                                         <th class="px-3 py-2 align-top text-center"><div class="font-bold mb-1">CCT</div></th>
-                                        <th class="px-3 py-2 align-top w-48"><div class="font-bold text-amber-600 mb-1">Detail Downtime / Jeda</div><div class="text-[9px] font-normal text-slate-400 mt-1">Alasan | Durasi | Total</div></th>
+                                        <th class="px-3 py-2 align-top text-center"><div class="font-bold mb-1">Durasi (m)</div></th>
+                                        <th class="px-3 py-2 align-top w-40"><div class="font-bold text-amber-600 mb-1">Detail Downtime</div><div class="text-[9px] font-normal text-slate-400 mt-1">Problem Kendala</div></th>
+                                        <th class="px-3 py-2 align-top w-40"><div class="font-bold text-red-600 mb-1">Detail Pending</div><div class="text-[9px] font-normal text-slate-400 mt-1">Interupsi Sistem</div></th>
                                         <th class="px-3 py-2 align-top text-center w-16"><div class="font-bold mb-1">Status</div></th>
                                     </tr>
                                 </thead>
@@ -337,21 +341,39 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                            <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="src-mas-leader" onkeyup="app.renderMasterLeader()" placeholder="Cari Leader..." class="text-xs px-2 py-1 border rounded w-48 outline-none">
-                                <button onclick="app.openMasterModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <!-- Master Otorisasi Leader -->
+                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
+                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                                <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
+                                <div class="flex gap-2">
+                                    <input type="text" id="src-mas-leader" onkeyup="app.renderMasterLeader()" placeholder="Cari Leader..." class="text-xs px-2 py-1 border rounded w-48 outline-none">
+                                    <button onclick="app.openMasterModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                                </div>
+                            </div>
+                            <div class="flex-1 overflow-auto">
+                                <table class="w-full text-left text-xs whitespace-nowrap">
+                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                        <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                    </thead>
+                                    <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
                             </div>
                         </div>
-                        <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold w-24">Target/Day</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
+
+                        <!-- Master Target Line (Kapasitas Produksi) -->
+                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
+                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                                <h3 class="font-bold text-slate-800"><i class="fas fa-bullseye text-orange-500 mr-2"></i> Master Target Line (Kapasitas)</h3>
+                            </div>
+                            <div class="flex-1 overflow-auto">
+                                <table class="w-full text-left text-xs whitespace-nowrap">
+                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                        <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th></tr>
+                                    </thead>
+                                    <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -452,7 +474,7 @@
                     <div>
                         <label class="text-[10px] text-slate-500 font-semibold mb-1 block text-indigo-600">LOKASI LINE</label>
                         <select id="b-line-select" class="w-full px-2 py-1 border border-indigo-300 rounded text-sm bg-indigo-50 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('b-mp-input').focus(); }">
-                            <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option>
+                            <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option> <option value="Line 5">Line 5</option>
                         </select>
                     </div>
                     
@@ -638,7 +660,7 @@
                         <label class="text-[10px] font-semibold text-slate-600 whitespace-nowrap"><i class="fas fa-filter text-teal-500 mr-1"></i> Line:</label>
                         <select id="report-line-filter" onchange="app.renderReportModal()" class="text-xs border-none bg-transparent focus:ring-0 outline-none cursor-pointer text-slate-800 font-bold">
                             <option value="ALL">Semua Line</option>
-                            <option value="Line 1">Line 1</option><option value="Line 2">Line 2</option><option value="Line 3">Line 3</option><option value="Line 4">Line 4</option>
+                            <option value="Line 1">Line 1</option><option value="Line 2">Line 2</option><option value="Line 3">Line 3</option><option value="Line 4">Line 4</option> <option value="Line 5">Line 5</option>
                         </select>
                     </div>
                 </div>
@@ -655,8 +677,9 @@
                             <th class="px-4 py-3 font-semibold">Output CCT</th>
                             <th class="px-4 py-3 font-semibold">Line Area</th>
                             <th class="px-4 py-3 font-semibold">MP Terlibat</th>
-                            <th class="px-4 py-3 font-semibold">Durasi (m)</th>
-                            <th class="px-4 py-3 font-semibold">Detail Downtime (m)</th>
+                            <th class="px-4 py-3 font-semibold">Durasi Aktif (m)</th>
+                            <th class="px-4 py-3 font-semibold text-amber-600">Downtime (m)</th>
+                            <th class="px-4 py-3 font-semibold text-red-600">Pending (m)</th>
                             <th class="px-4 py-3 font-semibold">Status</th>
                         </tr>
                     </thead>
@@ -669,7 +692,8 @@
     <script src="js/data-assy.js"></script>
     <script src="js/data-leader.js"></script>
     <script src="js/data-mp.js"></script>
-
+    <script src="js/data-line.js"></script>
+    
     <script src="js/app.js"></script>
 
 </body>
