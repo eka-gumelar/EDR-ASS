@@ -1,4 +1,4 @@
-    const initMasterDataAssy = [
+    let initMasterDataAssy = [
         { no_assy: "0005386-012", cct: 227, umh: 300, last_edited: "2024-05-01" },
         { no_assy: "0005513-020", cct: 249, umh: 195, last_edited: "2024-05-01" },
         { no_assy: "0005555-008D", cct: 126, umh: 282, last_edited: "2024-05-01" },
