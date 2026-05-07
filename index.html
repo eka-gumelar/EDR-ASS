@@ -17,6 +17,7 @@
 
     <script src="js/config.js"></script>
 
+
 <body class="text-slate-800 h-screen flex flex-col">
 
     <datalist id="wp-datalist"></datalist>
@@ -31,11 +32,10 @@
             <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
                 <i class="fas fa-file-alt text-3xl text-white"></i>
             </div>
-            <h2 class="text-xl font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
+            <h2 class="text-[24px] font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
                 PROSES ASSEMBLING<br>DAILY REPORT
             </h2>
-            <p class="text-[12px] text-slate-500 mb-2 font-medium tracking-wide">v.4.5.0 (Poka-Yoke & Batch Split)</p>
-            <p class="text-[10px] text-slate-400 mb-6 font-medium text-center">Super Admin: 000 / 000</p>
+            <p class="text-[12px] text-slate-500 mb-[2rem] font-medium tracking-wide">v.0.5.8</p>
             
             <div class="w-full space-y-5">
                 <div class="text-left">
@@ -65,15 +65,15 @@
                 
                 <div class="flex items-center gap-3">
                     <button onclick="app.toggleIstirahat()" id="btn-istirahat" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded font-medium text-xs flex items-center gap-1 shadow-sm transition">
-                        <i class="fas fa-coffee"></i> Istirahat
+                        <i></i> Istirahat
                     </button>
                     <button onclick="app.showPendingList()" class="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded font-medium text-xs flex items-center gap-1 relative shadow-sm transition">
-                        <i class="fas fa-clock"></i> Pending
+                        <i></i> Pending
                         <span id="pending-count" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
                     </button>
                     <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
                     <button onclick="app.openReportModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded shadow-sm transition">Data Report</button>
-                    <button onclick="app.openMasterDataModal()" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded shadow-sm transition uppercase flex items-center gap-1"><i class="fas fa-user-edit"></i> Edit Data</button>
+                    <button onclick="app.openMasterDataModal()" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded shadow-sm transition uppercase flex items-center gap-1"><i class="fas fa-user mr-1"></i></button>
                     <button onclick="app.logout()" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded shadow-sm transition">Keluar</button>
                 </div>
             </div>
@@ -619,13 +619,13 @@
     <!-- Downtime & Pending Modals -->
     <div id="modal-downtime" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96">
-            <h3 class="font-bold text-amber-700 mb-2" id="dt-title"><i class="fas fa-exclamation-triangle"></i> Jeda: Problem / Downtime</h3>
-            <p class="text-xs text-slate-500 mb-3">Waktu akan dihitung sebagai pemborosan (Loss Time).</p>
+            <h3 class="font-bold text-amber-700 mb-2" id="dt-title"><i class="fas fa-exclamation-triangle"></i> Problem / Downtime</h3>
+            <p class="text-xs text-slate-500 mb-3">Waktu akan dihitung sebagai Loss Time.</p>
             <select id="dt-reason" class="w-full px-3 py-2 border border-amber-300 bg-amber-50 rounded mb-4 font-semibold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-amber-500">
-                <option value="Material Kosong">Material Kosong / Tunggu Part</option>
-                <option value="Mesin Error">Mesin / Tools Error</option>
-                <option value="Tunggu QA">Tunggu QA Check</option>
-                <option value="Lainnya">Lainnya (Problem)</option>
+                <option value="Problem Material">Problem Material</option>
+                <option value="Problem CCT">Problem CCT</option>
+                <option value="Problem Dokumen">Problem Dokumen</option>
+                <option value="Lain-lain">Lain-lain</option>
             </select>
             <div class="flex justify-end gap-2 text-sm">
                 <button onclick="app.closeModal('modal-downtime')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
@@ -636,12 +636,13 @@
 
     <div id="modal-pending" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96 border-t-4 border-red-500">
-            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-clock"></i> Simpan ke Pending List</h3>
+            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-clock"></i> Pending </h3>
             <p class="text-xs text-slate-500 mb-3">Proses akan dikeluarkan dari antrean aktif. Anda harus inisiasi ulang MP nanti.</p>
             <select id="pd-reason" class="w-full px-3 py-2 border border-red-200 bg-red-50 rounded mb-4 font-semibold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-red-500">
-                <option value="Ganti Shift">Pindah ke Shift Berikutnya</option>
-                <option value="Tarik Unit QA">Unit Ditarik QA (Lama)</option>
-                <option value="Stop Produksi">Stop Produksi Sementara</option>
+                <option value="Problem Material">Problem Material</option>
+                <option value="Problem CCT">Problem CCT</option>
+                <option value="Problem Dokumen">Problem Dokumen</option>
+                <option value="Lain-lain">Lain-lain</option>
             </select>
             <div class="flex justify-end gap-2 text-sm">
                 <button onclick="app.closeModal('modal-pending')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
@@ -660,7 +661,7 @@
     <!-- Quality Check Finish (Poka-Yoke Strict) -->
     <div id="modal-qc" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
         <div class="bg-white p-0 rounded-xl shadow-2xl w-[850px] max-w-[95vw] flex flex-col overflow-hidden">
-            <div class="p-4 border-b bg-teal-50 flex justify-between items-center shrink-0"><h3 class="font-bold text-teal-800"><i class="fas fa-clipboard-check mr-2"></i> Konfirmasi Selesai & Quality Check</h3><button onclick="app.closeModal('modal-qc')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div>
+            <div class="p-4 border-b bg-teal-50 flex justify-between items-center shrink-0"><h3 class="font-bold text-teal-800"><i class="fas fa-clipboard-check mr-2"></i> Quality Check</h3><button onclick="app.closeModal('modal-qc')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div>
             <div class="flex flex-col md:flex-row">
                 <div class="w-full md:w-5/12 bg-slate-50 p-6 border-r border-slate-200 flex flex-col gap-4">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2"><i class="fas fa-info-circle mr-1"></i> Informasi Unit</h4>
@@ -675,15 +676,15 @@
                 </div>
                 <div class="w-full md:w-7/12 p-6 flex flex-col bg-white">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                        <h4 class="text-sm font-bold text-teal-700">Poin Verifikasi Kualitas (6 Poin)</h4>
+                        <h4 class="text-sm font-bold text-teal-700">Verifikasi Kualitas</h4>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 flex-1" id="qc-checkboxes">
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Pengecekan Visual Part</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Fungsi Part Normal</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kebersihan (Tidak scratch)</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kelengkapan Komponen</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kesesuaian Torsi Baut</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Tidak Ada Benda Asing (FOD)</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Dimensi</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Marker</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Spot</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Clip</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Tapping</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">TPO</span></label>
                     </div>
                     <div class="flex justify-between items-center text-sm border-t pt-4 border-slate-100 mt-auto"><span id="qc-error" class="text-red-500 text-xs font-semibold"></span><div class="flex gap-2"><button onclick="app.closeModal('modal-qc')" class="px-5 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button><button onclick="app.confirmFinish()" class="px-6 py-2 bg-teal-600 text-white rounded font-bold shadow-md"><i class="fas fa-flag-checkered"></i> Selesaikan</button></div></div>
                 </div>
@@ -737,12 +738,7 @@
             </div>
         </div>
     </div>
-    
-    <script src="js/data-assy.js"></script>
-    <script src="js/data-leader.js"></script>
-    <script src="js/data-mp.js"></script>
-    <script src="js/data-line.js"></script>
-    
+
     <script src="js/app.js"></script>
 
 </body>
