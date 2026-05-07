@@ -19,7 +19,6 @@
             rekapMpFilterVals: { nama: '', line: '' },
             modalAddContext: 'MASTER',
 
-
             init: async function() {
                 try {
                     // 1. Ubah nama ini menjadi myRealFirebaseConfig
@@ -33,21 +32,32 @@
                         appId: "1:156144912420:web:f5c04f476a902dae1c70b1"
                     };
 
-                    // 2. Di ujung baris ini, ganti 'null' menjadi 'myRealFirebaseConfig'
-                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myRealFirebaseConfig;
+                    this.useLocalFallback();
+                    this.setupUIBindings(); this.startClock(); this.monitorNetwork();
+                    Chart.defaults.animation = false;
                     
+                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myRealFirebaseConfig;
                     if(firebaseConfig && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
                     if(firebase.apps.length) {
                         this.auth = firebase.auth(); this.db = firebase.firestore();
-                        try { await this.db.enablePersistence({ synchronizeTabs: true }); } catch (e) {}
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await this.auth.signInWithCustomToken(__initial_auth_token);
-                        else await this.auth.signInAnonymously();
-                        this.auth.onAuthStateChanged(user => { if(user){ this.user = user; } });
-                    } else { this.useLocalFallback(); }
-                    
-                    this.setupUIBindings(); this.startClock(); this.monitorNetwork();
-                    Chart.defaults.animation = false;
-                } catch(e) { this.showToast("System Init Error", "error"); console.error(e); }
+                        
+                        // DIHAPUS: enablePersistence() karena diblokir oleh iFrame Canvas.
+                        // Firebase 10 otomatis menggunakan Memory Cache.
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            this.auth.signInWithCustomToken(__initial_auth_token).catch(e => console.warn("SWR Bypass mode aktif"));
+                        } else {
+                            this.auth.signInAnonymously().catch(e => console.warn("SWR Bypass mode aktif"));
+                        }
+                        
+                        this.auth.onAuthStateChanged(user => { 
+                            if(user){ 
+                                this.user = user; 
+                                this.setupMasterDataListeners(); 
+                            } 
+                        });
+                    }
+                } catch(e) { this.showToast("System Init Error", "error"); }
             },
 
             // --- PENGGABUNGAN DATA (SWR: STALE-WHILE-REVALIDATE) ---
