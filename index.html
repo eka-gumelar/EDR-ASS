@@ -17,7 +17,6 @@
 
     <script src="js/config.js"></script>
 
-
 <body class="text-slate-800 h-screen flex flex-col">
 
     <datalist id="wp-datalist"></datalist>
@@ -100,10 +99,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0 relative">
                 <div class="flex flex-col lg:flex-row gap-4 items-center w-full">
                     <div class="flex-1 w-full min-w-[250px]">
-                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-barcode"></i> SCAN IN AREA (INISIASI)</label>
+                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-sign-in-alt mr-1"></i> SCAN IN AREA (INISIASI)</label>
                         <div class="relative">
                             <i class="fas fa-qrcode absolute left-3 top-3 text-slate-400"></i>
-                            <input type="text" id="main-scan-input" placeholder="Scan Barcode mulai..." class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
+                            <input type="text" id="main-scan-input" placeholder="Scan QRCODE" class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0 mt-4 lg:mt-5">
@@ -113,8 +112,8 @@
                     <div class="flex-1 w-full min-w-[250px]">
                         <label class="block text-xs font-bold text-teal-600 mb-1 tracking-wide"><i class="fas fa-sign-out-alt mr-1"></i> SCAN OUT (FINISH)</label>
                         <div class="relative">
-                            <i class="fas fa-barcode absolute left-3 top-3 text-teal-400"></i>
-                            <input type="text" id="scan-out-input" placeholder="Scan Barcode finish..." class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
+                            <i class="fas fa-qrcode absolute left-3 top-3 text-teal-400"></i>
+                            <input type="text" id="scan-out-input" placeholder="Scan QRCODE" class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                 </div>
@@ -738,6 +737,11 @@
             </div>
         </div>
     </div>
+
+    <script src="js/data-assy.js"></script>
+    <script src="js/data-line.js"></script>
+    <script src="js/data-leader.js"></script>
+    <script src="js/data-mp.js"></script>
 
     <script src="js/app.js"></script>
 
