@@ -1,4 +1,4 @@
-    const initMasterDataLeader = [
+    let initMasterDataLeader = [
         { lisensi: "200221", pass: "200221", nama: "Sahril Kubis", line: "Line 1", shift: "A", last_edited: "2024-05-01" },
         { lisensi: "200222", pass: "200222", nama: "Utami", line: "Line 1", shift: "A", last_edited: "2024-05-02" },
         { lisensi: "200223", pass: "200223", nama: "Angga Adi Saputra", line: "Line 2", shift: "A", last_edited: "2024-05-03" },
