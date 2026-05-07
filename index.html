@@ -34,7 +34,8 @@
             <h2 class="text-xl font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
                 PROSES ASSEMBLING<br>DAILY REPORT
             </h2>
-            <p class="text-[12px] text-slate-500 mb-8 font-medium tracking-wide">v.0.5.5</p>
+            <p class="text-[12px] text-slate-500 mb-2 font-medium tracking-wide">v.4.5.0 (Poka-Yoke & Batch Split)</p>
+            <p class="text-[10px] text-slate-400 mb-6 font-medium text-center">Super Admin: 000 / 000</p>
             
             <div class="w-full space-y-5">
                 <div class="text-left">
@@ -72,19 +73,23 @@
                     </button>
                     <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
                     <button onclick="app.openReportModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded shadow-sm transition">Data Report</button>
-                    <button onclick="app.openAdminLogin()" class="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-black text-xs font-bold rounded shadow-sm transition uppercase">ADMIN</button>
+                    <button onclick="app.openMasterDataModal()" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded shadow-sm transition uppercase flex items-center gap-1"><i class="fas fa-user-edit"></i> Edit Data</button>
                     <button onclick="app.logout()" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded shadow-sm transition">Keluar</button>
                 </div>
             </div>
             <div class="flex justify-between items-center px-6 py-2 bg-slate-50/50">
                 <div class="flex flex-wrap gap-2 md:gap-4">
-                    <div class="flex items-center text-[10px] font-bold bg-blue-50/50 border border-blue-100 rounded-lg text-slate-600 overflow-hidden shadow-sm">
-                        <span class="px-3 py-1.5 text-blue-500 uppercase tracking-widest">LEADER</span>
-                        <span class="px-3 py-1.5 bg-transparent text-slate-800 border-l border-blue-100" id="header-leader">-</span>
+                    <div class="flex items-center text-xs font-bold bg-blue-50/50 border border-blue-100 rounded-lg text-slate-600 overflow-hidden shadow-sm">
+                        <span class="px-4 py-2 text-blue-500 uppercase tracking-widest">LEADER</span>
+                        <span class="px-4 py-2 bg-white/50 text-slate-800 border-l border-blue-100" id="header-leader">-</span>
                     </div>
-                    <div class="flex items-center text-[10px] font-bold bg-slate-50/50 border border-slate-200 rounded-lg text-slate-600 overflow-hidden shadow-sm">
-                        <span class="px-3 py-1.5 text-slate-500 uppercase tracking-widest">SHIFT</span>
-                        <span class="px-3 py-1.5 bg-transparent text-slate-800 border-l border-slate-200" id="header-shift">-</span>
+                    <div class="flex items-center text-xs font-bold bg-indigo-50/50 border border-indigo-100 rounded-lg text-slate-600 overflow-hidden shadow-sm">
+                        <span class="px-4 py-2 text-indigo-500 uppercase tracking-widest">LINE</span>
+                        <span class="px-4 py-2 bg-white/50 text-slate-800 border-l border-indigo-100" id="header-line">-</span>
+                    </div>
+                    <div class="flex items-center text-xs font-bold bg-slate-50/50 border border-slate-200 rounded-lg text-slate-600 overflow-hidden shadow-sm">
+                        <span class="px-4 py-2 text-slate-500 uppercase tracking-widest">SHIFT</span>
+                        <span class="px-4 py-2 bg-white/50 text-slate-800 border-l border-slate-200" id="header-shift">-</span>
                     </div>
                 </div>
                 <div class="text-[11px] font-bold text-slate-800 bg-white border border-slate-200 px-4 py-1.5 rounded-lg shadow-sm tracking-wide hidden sm:block" id="clock-display">-</div>
@@ -95,10 +100,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0 relative">
                 <div class="flex flex-col lg:flex-row gap-4 items-center w-full">
                     <div class="flex-1 w-full min-w-[250px]">
-                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-sign-in-alt"></i> SCAN IN </label>
+                        <label class="block text-xs font-bold text-blue-600 mb-1"><i class="fas fa-barcode"></i> SCAN IN AREA (INISIASI)</label>
                         <div class="relative">
                             <i class="fas fa-qrcode absolute left-3 top-3 text-slate-400"></i>
-                            <input type="text" id="main-scan-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
+                            <input type="text" id="main-scan-input" placeholder="Scan Barcode mulai..." class="w-full pl-10 pr-4 py-2 border-2 border-blue-200 bg-blue-50/30 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0 mt-4 lg:mt-5">
@@ -108,12 +113,11 @@
                     <div class="flex-1 w-full min-w-[250px]">
                         <label class="block text-xs font-bold text-teal-600 mb-1 tracking-wide"><i class="fas fa-sign-out-alt mr-1"></i> SCAN OUT (FINISH)</label>
                         <div class="relative">
-                            <i class="fas fa-qrcode absolute left-3 top-3 text-teal-400"></i>
-                            <input type="text" id="scan-out-input" placeholder="Scan Barcode" class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
+                            <i class="fas fa-barcode absolute left-3 top-3 text-teal-400"></i>
+                            <input type="text" id="scan-out-input" placeholder="Scan Barcode finish..." class="w-full pl-10 pr-4 py-2 border-2 border-teal-200 bg-teal-50/30 rounded-lg focus:outline-none focus:border-teal-500 font-mono text-sm shadow-inner">
                         </div>
                     </div>
                 </div>
-
 
                 <div id="init-form-container" class="mt-4 pt-4 border-t border-slate-100 hide">
                     <div class="flex justify-between items-center mb-3">
@@ -146,9 +150,12 @@
                                 <label class="text-[10px] text-slate-500 font-semibold">MANPOWER (Max 10)</label>
                                 <span class="text-[9px] text-slate-400 font-bold"><span id="init-mp-count">0</span>/10 MP</span>
                             </div>
-                            <div class="relative mb-2">
-                                <input type="text" id="init-mp-input" placeholder="Scan/Ketik NRP -> Enter" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 uppercase shadow-inner transition-all bg-white" onkeydown="app.handleMpInputKeydown(event, this, false)">
-                                <div class="text-[9px] font-bold text-slate-400 mt-1"><i class="fas fa-magic text-blue-400 mr-1"></i> Biarkan kotak kosong & tekan Enter untuk KONFIRMASI START.</div>
+                            <div class="flex gap-2 mb-2 items-start">
+                                <div class="flex-1 relative">
+                                    <input type="text" id="init-mp-input" placeholder="Scan/Ketik NRP -> Enter" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 uppercase shadow-inner transition-all bg-white" onkeydown="app.handleMpInputKeydown(event, this, false)">
+                                    <div class="text-[9px] font-bold text-slate-400 mt-1"><i class="fas fa-magic text-blue-400 mr-1"></i> Biarkan kosong & Enter untuk START.</div>
+                                </div>
+                                <button onclick="app.openMasterAddModal('MP', 'INIT')" title="Tambah Data MP Baru (On the fly)" class="shrink-0 w-10 h-[34px] flex items-center justify-center bg-teal-50 hover:bg-teal-100 text-teal-600 border border-teal-200 rounded shadow-sm transition active:scale-95"><i class="fas fa-user-plus text-sm"></i></button>
                             </div>
                             <div id="init-mp-list" class="flex flex-wrap gap-1.5 max-h-[80px] overflow-y-auto mt-1 p-1">
                             </div>
@@ -181,12 +188,13 @@
     <div id="admin-dashboard" class="flex-1 flex flex-col h-full bg-slate-50 hide">
         <header class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <button onclick="app.closeAdmin()" class="text-slate-400 hover:text-white transition"><i class="fas fa-arrow-left text-xl"></i></button>
-                <h1 class="font-bold text-lg"><i class="fas fa-shield-alt text-blue-400 mr-2"></i> Performance & Admin Panel</h1>
+                <button onclick="app.closeAdmin()" class="text-slate-400 hover:text-white transition"><i class="fas fa-arrow-left text-xl"></i> Keluar Admin</button>
+                <div class="w-px h-5 bg-slate-600 mx-2"></div>
+                <h1 class="font-bold text-lg"><i class="fas fa-shield-alt text-blue-400 mr-2"></i> Global Performance & Admin Panel</h1>
             </div>
             <div>
                 <button onclick="app.exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-1.5 rounded-lg text-sm font-medium shadow-sm transition">
-                    <i class="fas fa-file-csv mr-1"></i> Export Data CSV
+                    <i class="fas fa-file-excel mr-1"></i> Export Data Excel
                 </button>
             </div>
         </header>
@@ -198,18 +206,28 @@
             <button onclick="app.switchAdminTab('rekapline')" id="tab-btn-rekapline" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-table mr-1"></i> Rekap Per Line</button>
             <button onclick="app.switchAdminTab('rekapmp')" id="tab-btn-rekapmp" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-users-cog mr-1"></i> Rekap Per MP</button>
             <button onclick="app.switchAdminTab('transactions')" id="tab-btn-transactions" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-list-alt mr-1"></i> Detail Transactions</button>
-            <button onclick="app.switchAdminTab('master')" id="tab-btn-master" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-database mr-1"></i> Master Data View</button>
         </div>
         
         <div class="flex-1 flex flex-col overflow-hidden" id="admin-content-area">
             <!-- GLOBAL FILTERS -->
             <div id="admin-global-filter" class="bg-white px-6 py-3 border-b border-slate-100 flex flex-wrap items-center gap-6 shrink-0 shadow-sm z-10">
                 <div class="flex items-center gap-4">
-                    <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Dari</label><input type="date" id="flt-date-start" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none"></div>
-                    <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Sampai</label><input type="date" id="flt-date-end" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none"></div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Shift</label>
-                        <select id="flt-shift" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none bg-white"><option value="ALL">Semua Shift</option><option value="A">Shift A</option><option value="B">Shift B</option></select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Dari Tanggal (Kosong=Hari Ini)</label>
+                        <input type="date" id="flt-date-start" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Sampai Tanggal</label>
+                        <input type="date" id="flt-date-end" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-red-500 uppercase block mb-0.5">* Wajib Pilih Shift</label>
+                        <select id="flt-shift" class="text-sm border border-slate-300 rounded px-2 py-1 outline-none bg-white">
+                            <option value="" disabled selected>-- Pilih Shift --</option>
+                            <option value="ALL">Semua Shift</option>
+                            <option value="A">Shift A</option>
+                            <option value="B">Shift B</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -222,11 +240,17 @@
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" checked onchange="app.checkLineState()"> L4</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" checked onchange="app.checkLineState()"> L5</label>
                 </div>
-                <div class="flex-1 text-right"><button onclick="app.applyAdminFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-sm font-semibold shadow-sm"><i class="fas fa-filter mr-1"></i> Apply Filter</button></div>
+                <div class="flex-1 text-right">
+                    <button onclick="app.fetchAdminData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-md uppercase tracking-wider active:scale-95 transition-transform"><i class="fas fa-tv mr-1"></i> Display Data</button>
+                </div>
             </div>
 
             <!-- SCROLLABLE CONTENT -->
             <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                <div id="admin-empty-state" class="h-full flex flex-col items-center justify-center text-slate-400">
+                    <i class="fas fa-filter text-4xl mb-3 text-slate-300"></i>
+                    <p class="font-medium">Pilih parameter Shift dan klik "Display Data" untuk memuat.</p>
+                </div>
 
                 <!-- TAB 1: OVERVIEW -->
                 <div id="admin-tab-overview" class="max-w-[100%] mx-auto space-y-6 hide">
@@ -277,22 +301,28 @@
                 <!-- TAB 5: TRANSACTIONS -->
                 <div id="admin-tab-transactions" class="max-w-[100%] mx-auto hide flex flex-col h-[700px]">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 shrink-0 bg-slate-50 flex justify-between items-center"><h3 class="font-bold text-slate-800"><i class="fas fa-list text-blue-500 mr-2"></i> Database Transaksi (Atomic Logging)</h3></div>
+                        <div class="p-4 border-b border-slate-100 shrink-0 bg-slate-50 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-list text-blue-500 mr-2"></i> Database Transaksi (Filtered)</h3>
+                            <div class="relative w-72">
+                                <i class="fas fa-search absolute left-3 top-2 text-slate-400"></i>
+                                <input type="text" id="admin-trx-search" onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.value = this.value.trim().slice(-11); app.renderAdminTransactions(); }" oninput="app.renderAdminTransactions()" placeholder="Scan/Cari Serial Number..." class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-blue-500">
+                            </div>
+                        </div>
                         <div class="flex-1 overflow-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap text-[11px]">
                                 <thead class="bg-slate-100 text-slate-600 sticky top-0 z-20 shadow-sm border-b-2 border-slate-200">
-                                    <tr>
-                                        <th class="px-3 py-2 align-top w-24"><div class="font-bold mb-1">Tanggal</div><input type="text" id="flt-col-date" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter..."></th>
-                                        <th class="px-3 py-2 align-top"><div class="font-bold mb-1">Shift / Leader</div><input type="text" id="flt-col-leader" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter..."></th>
-                                        <th class="px-3 py-2 align-top"><div class="font-bold mb-1 text-blue-600">Serial Number</div><input type="text" id="flt-col-sn" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.value=this.value.trim().slice(-11);app.renderAdminTransactions()}" class="w-full text-[10px] p-1 font-normal border border-blue-300 rounded focus:outline-blue-500 bg-blue-50" placeholder="Scan/Filter (Enter)"></th>
-                                        <th class="px-3 py-2 align-top"><div class="font-bold mb-1">No Assy</div><input type="text" id="flt-col-assy" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter..."></th>
-                                        <th class="px-3 py-2 align-top"><div class="font-bold mb-1">Manpower / Tim</div><input type="text" id="flt-col-mp" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter NRP/Nama..."></th>
-                                        <th class="px-3 py-2 align-top w-20"><div class="font-bold mb-1">Line Output</div><input type="text" id="flt-col-line" onkeyup="app.renderAdminTransactions()" class="w-full text-[10px] p-1 font-normal border border-slate-300 rounded focus:outline-blue-400" placeholder="Filter..."></th>
-                                        <th class="px-3 py-2 align-top text-center"><div class="font-bold mb-1">CCT</div></th>
-                                        <th class="px-3 py-2 align-top text-center"><div class="font-bold mb-1">Durasi (m)</div></th>
-                                        <th class="px-3 py-2 align-top w-40"><div class="font-bold text-amber-600 mb-1">Detail Downtime</div><div class="text-[9px] font-normal text-slate-400 mt-1">Problem Kendala</div></th>
-                                        <th class="px-3 py-2 align-top w-40"><div class="font-bold text-red-600 mb-1">Detail Pending</div><div class="text-[9px] font-normal text-slate-400 mt-1">Interupsi Sistem</div></th>
-                                        <th class="px-3 py-2 align-top text-center w-16"><div class="font-bold mb-1">Status</div></th>
+                                    <tr class="align-top">
+                                        <th class="px-3 py-2 font-bold w-24">Tanggal</th>
+                                        <th class="px-3 py-2 font-bold">Shift / Leader<br><input type="text" id="flt-col-trx-shift" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold text-blue-600">Serial Number</th>
+                                        <th class="px-3 py-2 font-bold">No Assy<br><input type="text" id="flt-col-trx-assy" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold">Manpower / Tim</th>
+                                        <th class="px-3 py-2 font-bold w-20">Line Output<br><input type="text" id="flt-col-trx-line" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold text-center">CCT</th>
+                                        <th class="px-3 py-2 font-bold text-center">Durasi (m)</th>
+                                        <th class="px-3 py-2 font-bold text-amber-600 w-40">Detail Downtime</th>
+                                        <th class="px-3 py-2 font-bold text-red-600 w-40">Detail Pending</th>
+                                        <th class="px-3 py-2 font-bold text-center w-16">Status<br><select id="flt-col-trx-status" onchange="app.renderAdminTransactions()" class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"><option value="">All</option><option value="OK">OK</option><option value="OVERTIME">OVERTIME</option></select></th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-trx-tbody" class="text-slate-700 divide-y divide-slate-100 bg-white align-top"></tbody>
@@ -301,89 +331,106 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: MASTER DATA VIEW & CRUD -->
-                <div id="admin-tab-master" class="max-w-full mx-auto hide space-y-6">
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[500px]">
-                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                                <h3 class="font-bold text-slate-800"><i class="fas fa-box text-blue-500 mr-2"></i> Master Assy</h3>
-                                <div class="flex gap-2">
-                                    <input type="text" id="src-mas-assy" onkeyup="app.renderMasterAssy()" placeholder="Cari Assy..." class="text-xs px-2 py-1 border rounded w-32 outline-none">
-                                    <button onclick="app.openMasterModal('ASSY')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
-                                    <input type="file" id="excel-upload-assy" accept=".xlsx, .xls" class="hide" onchange="app.handleExcelUpload(event, 'ASSY')">
-                                    <button onclick="document.getElementById('excel-upload-assy').click()" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-emerald-200 shadow-sm" title="Import from Excel"><i class="fas fa-file-excel"></i> Import</button>
-                                </div>
-                            </div>
-                            <div class="flex-1 overflow-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold w-32">No. Assy</th><th class="px-4 py-2 font-bold w-20">CCT</th><th class="px-4 py-2 font-bold w-20">UMH(m)</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr></thead>
-                                    <tbody id="master-assy-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODAL MASTER DATA -->
+    <div id="modal-master-data" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+        <div class="bg-slate-50 p-0 rounded-xl shadow-2xl w-[95vw] h-[90vh] flex flex-col overflow-hidden">
+            <header class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <h1 class="font-bold text-lg"><i class="fas fa-database text-blue-400 mr-2"></i> Master Data Management</h1>
+                    <span class="bg-blue-900 text-blue-200 text-[10px] px-2 py-0.5 rounded font-mono">Sync to Cloud • SWR Engine (Live Filter)</span>
+                </div>
+                <button onclick="app.closeModal('modal-master-data')" class="text-slate-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+            </header>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- MASTER ASSY -->
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[450px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-box text-blue-500 mr-2"></i> Master Assy</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-assy" oninput="app.renderMasterAssy()" placeholder="Cari No Assy..." class="text-xs px-2 py-1 border rounded w-40 outline-none focus:ring-1 focus:ring-blue-500">
+                                <button onclick="app.openMasterAddModal('ASSY')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                                <input type="file" id="excel-upload-assy" accept=".xlsx, .xls" class="hide" onchange="app.handleExcelUpload(event, 'ASSY')">
+                                <button onclick="document.getElementById('excel-upload-assy').click()" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-emerald-200 shadow-sm" title="Import from Excel"><i class="fas fa-file-excel"></i> Import</button>
                             </div>
                         </div>
-
-                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[500px]">
-                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                                <h3 class="font-bold text-slate-800"><i class="fas fa-users text-teal-500 mr-2"></i> Master Manpower (MP)</h3>
-                                <div class="flex gap-2">
-                                    <input type="text" id="src-mas-mp" onkeyup="app.renderMasterMP()" placeholder="Cari NRP/Nama..." class="text-xs px-2 py-1 border rounded w-32 outline-none">
-                                    <button onclick="app.openMasterModal('MP')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
-                                    <input type="file" id="excel-upload-mp" accept=".xlsx, .xls" class="hide" onchange="app.handleExcelUpload(event, 'MP')">
-                                    <button onclick="document.getElementById('excel-upload-mp').click()" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-emerald-200 shadow-sm" title="Import from Excel"><i class="fas fa-file-excel"></i> Import</button>
-                                </div>
-                            </div>
-                            <div class="flex-1 overflow-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold w-24">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold w-24">Join Date</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr></thead>
-                                    <tbody id="master-mp-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
-                            </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold w-32">No. Assy</th><th class="px-4 py-2 font-bold w-20">CCT</th><th class="px-4 py-2 font-bold w-20">UMH(m)</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr></thead>
+                                <tbody id="master-assy-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        <!-- Master Otorisasi Leader -->
-                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                                <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
-                                <div class="flex gap-2">
-                                    <input type="text" id="src-mas-leader" onkeyup="app.renderMasterLeader()" placeholder="Cari Leader..." class="text-xs px-2 py-1 border rounded w-48 outline-none">
-                                    <button onclick="app.openMasterModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
-                                </div>
-                            </div>
-                            <div class="flex-1 overflow-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                        <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                    </thead>
-                                    <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
+                    <!-- MASTER MP -->
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[450px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-users text-teal-500 mr-2"></i> Master Manpower (MP)</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-mp" oninput="app.renderMasterMP()" placeholder="Cari Nama/NRP..." class="text-xs px-2 py-1 border rounded w-40 outline-none focus:ring-1 focus:ring-teal-500">
+                                <button onclick="app.openMasterAddModal('MP', 'MASTER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                                <input type="file" id="excel-upload-mp" accept=".xlsx, .xls" class="hide" onchange="app.handleExcelUpload(event, 'MP')">
+                                <button onclick="document.getElementById('excel-upload-mp').click()" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-emerald-200 shadow-sm" title="Import from Excel"><i class="fas fa-file-excel"></i> Import</button>
                             </div>
                         </div>
-
-                        <!-- Master Target Line (Kapasitas Produksi) -->
-                        <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-                            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                                <h3 class="font-bold text-slate-800"><i class="fas fa-bullseye text-orange-500 mr-2"></i> Master Target Line (Kapasitas)</h3>
-                            </div>
-                            <div class="flex-1 overflow-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                        <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th></tr>
-                                    </thead>
-                                    <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
-                            </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold w-24">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold w-24">Join Date</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr></thead>
+                                <tbody id="master-mp-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- MASTER LEADER -->
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-leader" oninput="app.renderMasterLeader()" placeholder="Cari Lisensi / Nama..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-purple-500">
+                                <button onclick="app.openMasterAddModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                </thead>
+                                <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- MASTER LINE -->
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-bullseye text-orange-500 mr-2"></i> Master Target Line (Kapasitas)</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-line" oninput="app.renderMasterLine()" placeholder="Cari Line Area..." class="text-xs px-2 py-1 border rounded w-40 outline-none focus:ring-1 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th></tr>
+                                </thead>
+                                <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- MODALS UTILITY -->
-    <div id="modal-add-assy" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-add-assy" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-80">
             <h3 class="font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-box text-blue-500 mr-1"></i> Tambah Master Assy</h3>
             <div class="space-y-3 mb-5">
@@ -397,19 +444,20 @@
         </div>
     </div>
 
-    <div id="modal-add-mp" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-add-mp" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-80">
-            <h3 class="font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-users text-teal-500 mr-1"></i> Tambah Master MP</h3>
+            <h3 class="font-bold text-slate-800 mb-2 border-b pb-2"><i class="fas fa-user-plus text-teal-500 mr-1"></i> Tambah Data MP</h3>
+            <p class="text-[10px] text-slate-500 mb-4 leading-relaxed tracking-wide">Data MP yang disimpan akan <strong class="text-teal-600">otomatis ditambahkan ke tim</strong> saat ini agar proses bisa langsung berlanjut.</p>
             <div class="space-y-3 mb-5">
-                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">NRP / KODE</label><input type="text" id="m-add-mp-nrp" class="w-full px-3 py-2 border rounded text-sm font-mono uppercase focus:ring-1 focus:ring-teal-500 outline-none"></div>
-                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">NAMA LENGKAP</label><input type="text" id="m-add-mp-nama" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-teal-500 outline-none"></div>
-                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">TANGGAL JOIN (YYYY-MM-DD)</label><input type="date" id="m-add-mp-join" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-teal-500 outline-none"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">NRP / KODE (Wajib)</label><input type="text" id="m-add-mp-nrp" class="w-full px-3 py-2 border rounded text-sm font-mono uppercase focus:ring-1 focus:ring-teal-500 outline-none" onkeydown="if(event.key === 'Enter') document.getElementById('m-add-mp-nama').focus();"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">NAMA LENGKAP (Wajib)</label><input type="text" id="m-add-mp-nama" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-teal-500 outline-none" onkeydown="if(event.key === 'Enter') app.saveNewMasterMP();"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">TANGGAL JOIN (Opsional)</label><input type="date" id="m-add-mp-join" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-teal-500 outline-none"></div>
             </div>
-            <div class="flex justify-end gap-2 text-sm"><button onclick="app.closeModal('modal-add-mp')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button><button onclick="app.saveNewMasterMP()" class="px-4 py-2 bg-teal-600 text-white rounded font-bold shadow-sm">Simpan</button></div>
+            <div class="flex justify-end gap-2 text-sm"><button onclick="app.closeModal('modal-add-mp')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button><button onclick="app.saveNewMasterMP()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 transition text-white rounded font-bold shadow-md flex items-center gap-1"><i class="fas fa-save"></i> Simpan MP</button></div>
         </div>
     </div>
 
-    <div id="modal-add-leader" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-add-leader" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-80">
             <h3 class="font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-user-tie text-purple-500 mr-1"></i> Tambah Otorisasi Leader</h3>
             <div class="space-y-3 mb-5">
@@ -483,9 +531,12 @@
                             <label class="text-[10px] text-slate-500 font-semibold">MANPOWER (Max 10)</label>
                             <span class="text-[9px] text-slate-400 font-bold"><span id="b-mp-count">0</span>/10 MP</span>
                         </div>
-                        <div class="relative mb-2">
-                            <input type="text" id="b-mp-input" placeholder="Scan/Ketik NRP -> Enter" class="w-full px-3 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-indigo-500 uppercase shadow-inner transition-all bg-white" onkeydown="app.handleMpInputKeydown(event, this, true)">
-                            <div class="text-[9px] font-bold text-slate-400 mt-1"><i class="fas fa-magic text-indigo-400 mr-1"></i> Biarkan kosong & tekan Enter untuk KONFIRMASI START.</div>
+                        <div class="flex gap-2 mb-2 items-start">
+                            <div class="flex-1 relative">
+                                <input type="text" id="b-mp-input" placeholder="Scan/Ketik NRP -> Enter" class="w-full px-3 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-indigo-500 uppercase shadow-inner transition-all bg-white" onkeydown="app.handleMpInputKeydown(event, this, true)">
+                                <div class="text-[9px] font-bold text-slate-400 mt-1"><i class="fas fa-magic text-indigo-400 mr-1"></i> Biarkan kosong & Enter untuk START.</div>
+                            </div>
+                            <button onclick="app.openMasterAddModal('MP', 'BATCH')" title="Tambah Data MP Baru (On the fly)" class="shrink-0 w-9 h-[30px] flex items-center justify-center bg-teal-50 hover:bg-teal-100 text-teal-600 border border-teal-200 rounded shadow-sm transition active:scale-95"><i class="fas fa-user-plus text-xs"></i></button>
                         </div>
                         <div id="b-mp-list" class="flex flex-wrap gap-1.5 max-h-[80px] overflow-y-auto mt-1 p-1"></div>
                     </div>
@@ -524,9 +575,9 @@
     <div id="modal-resume-downtime" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96 border-t-4 border-emerald-500">
             <h3 class="font-bold text-emerald-700 mb-2"><i class="fas fa-play-circle mr-1"></i> Konfirmasi Lanjutkan Proses</h3>
-            <p class="text-xs text-slate-500 mb-4">Apakah Anda yakin untuk melanjutkan proses?</p>
+            <p class="text-xs text-slate-500 mb-4">Apakah Anda yakin kendala telah teratasi dan siap untuk melanjutkan perakitan?</p>
             <div class="bg-emerald-50 border border-emerald-100 rounded p-4 text-sm space-y-2 mb-5">
-                <div class="flex justify-between border-b border-emerald-200/50 pb-1"><span class="text-emerald-700 text-[11px] font-bold">ALASAN DOWNTIME</span><span id="crd-reason" class="font-bold text-slate-800"></span></div>
+                <div class="flex justify-between border-b border-emerald-200/50 pb-1"><span class="text-emerald-700 text-[11px] font-bold">ALASAN JEDA</span><span id="crd-reason" class="font-bold text-slate-800"></span></div>
                 <div class="flex justify-between"><span class="text-emerald-700 text-[11px] font-bold">WAKTU TERBUANG</span><span id="crd-duration" class="font-bold font-timer text-amber-600 text-sm"></span></div>
             </div>
             <div class="flex justify-end gap-2 text-sm">
@@ -538,44 +589,43 @@
         </div>
     </div>
 
-    <!-- POKA-YOKE: MODAL KONFIRMASI CANCEL PROSES -->
-    <div id="modal-cancel-process" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <!-- VALIDASI CANCEL MENGGUNAKAN SCAN SN -->
+    <div id="modal-validate-cancel" class="fixed inset-0 bg-slate-900/50 z-[70] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96 border-t-4 border-red-500">
-            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Batalkan Proses Ini?</h3>
-            <p class="text-[11px] text-slate-500 mb-4">Tindakan ini akan menghapus unit dari antrean aktif secara permanen tanpa menyimpannya ke laporan. Gunakan hanya jika terjadi salah input inisiasi.</p>
+            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Validasi Pembatalan Unit</h3>
+            <p class="text-[11px] text-slate-500 mb-4">Tindakan ini akan menghapus unit dari antrean aktif secara permanen tanpa menyimpannya ke laporan. <b>Wajib melakukan Scan Validasi fisik unit</b> untuk membatalkan proses.</p>
             <div class="bg-red-50 border border-red-100 rounded p-4 text-sm space-y-2 mb-5 shadow-inner">
-                <div class="flex justify-between border-b border-red-200/50 pb-1"><span class="text-red-700 text-[11px] font-bold">SERIAL NUMBER</span><span id="cc-sn" class="font-bold font-mono text-red-600 text-xs"></span></div>
-                <div class="flex justify-between"><span class="text-red-700 text-[11px] font-bold">NO ASSY</span><span id="cc-assy" class="font-bold text-slate-800 text-xs"></span></div>
+                <label class="text-[10px] font-bold text-red-600 block mb-1"><i class="fas fa-qrcode mr-1"></i> SCAN BARCODE (VALIDASI)</label>
+                <input type="text" id="vc-scan-input" placeholder="Scan unit yang ingin di-cancel..." class="w-full px-3 py-2 border-2 border-red-200 rounded focus:ring-2 focus:ring-red-500 font-mono text-sm" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.executeValidateCancel(); }">
             </div>
             <div class="flex justify-end gap-2 text-sm">
-                <button onclick="app.closeModal('modal-cancel-process')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded outline-none focus:ring-2 focus:ring-slate-200">Kembali</button>
-                <button id="btn-confirm-cancel" onclick="app.executeCancelProcess()" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-red-500 outline-none flex items-center gap-2">
-                    <i class="fas fa-trash-alt"></i> Ya, Batalkan
-                </button>
+                <button onclick="app.closeModal('modal-validate-cancel')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded outline-none">Batal</button>
             </div>
         </div>
     </div>
 
-    <!-- Admin Password -->
-    <div id="modal-password" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-80">
-            <h3 class="font-bold text-slate-800 mb-1">Admin Authentication</h3>
-            <p id="admin-auth-subtitle" class="text-xs text-slate-500 mb-4">Otorisasi ulang diperlukan.</p>
-            <input type="password" id="admin-pass-input" placeholder="Masukkan Password Anda" class="w-full px-3 py-2 border rounded mb-4" onkeyup="if(event.key === 'Enter') app.confirmPassword()">
-            <div class="flex justify-end gap-2 text-sm"><button onclick="app.closeModal('modal-password')" class="px-4 py-2 text-slate-500">Cancel</button><button onclick="app.confirmPassword()" class="px-4 py-2 bg-blue-600 text-white rounded">Verify</button></div>
+    <!-- Modal Batch Detail -->
+    <div id="modal-batch-detail" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+        <div class="bg-white p-0 rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b bg-indigo-50 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-indigo-800" id="bd-title"><i class="fas fa-layer-group mr-2"></i> Batch Detail</h3>
+                <button onclick="app.closeModal('modal-batch-detail')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50" id="bd-list">
+            </div>
         </div>
     </div>
 
     <!-- Downtime & Pending Modals -->
-    <div id="modal-downtime" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-downtime" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96">
             <h3 class="font-bold text-amber-700 mb-2" id="dt-title"><i class="fas fa-exclamation-triangle"></i> Jeda: Problem / Downtime</h3>
-            <p class="text-xs text-slate-500 mb-3">Waktu akan dihitung sebagai Loss Time.</p>
+            <p class="text-xs text-slate-500 mb-3">Waktu akan dihitung sebagai pemborosan (Loss Time).</p>
             <select id="dt-reason" class="w-full px-3 py-2 border border-amber-300 bg-amber-50 rounded mb-4 font-semibold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-amber-500">
-                <option value="Problem Material">Problem Material</option>
-                <option value="Problem CCT">Problem CCT</option>
-                <option value="Problem Dokumen">Problem Dokumen</option>
-                <option value="Lain-lain">Lain-lain</option>
+                <option value="Material Kosong">Material Kosong / Tunggu Part</option>
+                <option value="Mesin Error">Mesin / Tools Error</option>
+                <option value="Tunggu QA">Tunggu QA Check</option>
+                <option value="Lainnya">Lainnya (Problem)</option>
             </select>
             <div class="flex justify-end gap-2 text-sm">
                 <button onclick="app.closeModal('modal-downtime')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
@@ -584,15 +634,14 @@
         </div>
     </div>
 
-    <div id="modal-pending" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-pending" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96 border-t-4 border-red-500">
-            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-clock"></i> Pindahkan ke Pending List</h3>
+            <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-clock"></i> Simpan ke Pending List</h3>
             <p class="text-xs text-slate-500 mb-3">Proses akan dikeluarkan dari antrean aktif. Anda harus inisiasi ulang MP nanti.</p>
             <select id="pd-reason" class="w-full px-3 py-2 border border-red-200 bg-red-50 rounded mb-4 font-semibold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-red-500">
-                <option value="Problem Material">Problem Material</option>
-                <option value="Problem CCT">Problem CCT</option>
-                <option value="Problem Dokumen">Problem Dokumen</option>
-                <option value="Lain-lain">Lain-lain</option>
+                <option value="Ganti Shift">Pindah ke Shift Berikutnya</option>
+                <option value="Tarik Unit QA">Unit Ditarik QA (Lama)</option>
+                <option value="Stop Produksi">Stop Produksi Sementara</option>
             </select>
             <div class="flex justify-end gap-2 text-sm">
                 <button onclick="app.closeModal('modal-pending')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
@@ -601,7 +650,7 @@
         </div>
     </div>
 
-    <div id="modal-pending-list" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
+    <div id="modal-pending-list" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-0 rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] flex flex-col overflow-hidden">
             <div class="p-4 border-b bg-red-50 flex justify-between items-center shrink-0"><h3 class="font-bold text-red-800"><i class="fas fa-clock mr-2"></i> Daftar Antrian Tertunda (Pending)</h3><button onclick="app.closeModal('modal-pending-list')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50" id="pending-list-container"></div>
@@ -626,16 +675,15 @@
                 </div>
                 <div class="w-full md:w-7/12 p-6 flex flex-col bg-white">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                        <h4 class="text-sm font-bold text-teal-700">Quality Check</h4>
-                        <span class="text-[9px] font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded border border-amber-200"><i class="fas fa-exclamation-circle"></i> Wajib periksa satu-persatu</span>
+                        <h4 class="text-sm font-bold text-teal-700">Poin Verifikasi Kualitas (6 Poin)</h4>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 flex-1" id="qc-checkboxes">
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Dimensi</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Marker</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Spot</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Clip</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Tapping</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">TPO</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Pengecekan Visual Part</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Fungsi Part Normal</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kebersihan (Tidak scratch)</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kelengkapan Komponen</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Kesesuaian Torsi Baut</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-teal-50 rounded border border-transparent hover:border-teal-100 transition"><input type="checkbox" class="qc-check w-5 h-5 mt-0.5 text-teal-600 rounded cursor-pointer"> <span class="text-xs font-semibold text-slate-700">Tidak Ada Benda Asing (FOD)</span></label>
                     </div>
                     <div class="flex justify-between items-center text-sm border-t pt-4 border-slate-100 mt-auto"><span id="qc-error" class="text-red-500 text-xs font-semibold"></span><div class="flex gap-2"><button onclick="app.closeModal('modal-qc')" class="px-5 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button><button onclick="app.confirmFinish()" class="px-6 py-2 bg-teal-600 text-white rounded font-bold shadow-md"><i class="fas fa-flag-checkered"></i> Selesaikan</button></div></div>
                 </div>
@@ -671,17 +719,17 @@
             <div class="flex-1 overflow-auto p-0">
                 <table class="w-full text-left border-collapse whitespace-nowrap text-[11px]">
                     <thead class="bg-white text-slate-500 sticky top-0 z-10 shadow-sm border-b">
-                        <tr>
-                            <th class="px-4 py-3 font-semibold">Leader</th>
-                            <th class="px-4 py-3 font-semibold">Serial Number</th>
-                            <th class="px-4 py-3 font-semibold">No Assy</th>
-                            <th class="px-4 py-3 font-semibold">Output CCT</th>
-                            <th class="px-4 py-3 font-semibold">Line Area</th>
-                            <th class="px-4 py-3 font-semibold">MP Terlibat</th>
-                            <th class="px-4 py-3 font-semibold">Durasi Aktif (m)</th>
-                            <th class="px-4 py-3 font-semibold text-amber-600">Downtime (m)</th>
-                            <th class="px-4 py-3 font-semibold text-red-600">Pending (m)</th>
-                            <th class="px-4 py-3 font-semibold">Status</th>
+                        <tr class="align-top">
+                            <th class="px-4 py-2 font-semibold">Leader<br><input type="text" id="flt-col-rep-leader" oninput="app.renderReportModal()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-200 rounded outline-none focus:border-teal-400 text-slate-700 bg-slate-50"></th>
+                            <th class="px-4 py-2 font-semibold">Serial Number<br><input type="text" id="flt-col-rep-sn" oninput="app.renderReportModal()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-200 rounded outline-none focus:border-teal-400 text-slate-700 bg-slate-50"></th>
+                            <th class="px-4 py-2 font-semibold">No Assy<br><input type="text" id="flt-col-rep-assy" oninput="app.renderReportModal()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-200 rounded outline-none focus:border-teal-400 text-slate-700 bg-slate-50"></th>
+                            <th class="px-4 py-2 font-semibold">Output CCT</th>
+                            <th class="px-4 py-2 font-semibold">Line Area</th>
+                            <th class="px-4 py-2 font-semibold">MP Terlibat</th>
+                            <th class="px-4 py-2 font-semibold">Durasi Aktif (m)</th>
+                            <th class="px-4 py-2 font-semibold text-amber-600">Downtime (m)</th>
+                            <th class="px-4 py-2 font-semibold text-red-600">Pending (m)</th>
+                            <th class="px-4 py-2 font-semibold">Status<br><select id="flt-col-rep-status" onchange="app.renderReportModal()" class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-200 rounded outline-none focus:border-teal-400 text-slate-700 bg-slate-50"><option value="">All</option><option value="OK">OK</option><option value="OVERTIME">OVERTIME</option></select></th>
                         </tr>
                     </thead>
                     <tbody id="report-modal-tbody" class="text-slate-700 divide-y divide-slate-100 align-top"></tbody>
