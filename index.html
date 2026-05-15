@@ -7,16 +7,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/><line x1='10' y1='9' x2='8' y2='9'/></svg>">
-    <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-</head>
 
     <script src="js/config.js"></script>
 
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .font-timer { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide { display: none !important; }
+        .glass-panel { background: #ffffff; border: 1px solid #e2e8f0; }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 10px; }
+        .toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .toast.success { background-color: #10b981; }
+        .toast.error { background-color: #ef4444; }
+        .toast.info { background-color: #3b82f6; }
+        .toast.warning { background-color: #f59e0b; }
+        .admin-tab-active { border-bottom: 2px solid #3b82f6; color: #1e40af; font-weight: bold; background-color: #eff6ff; }
+        
+        .chip-enter { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    </style>    
+
+</head>
 <body class="text-slate-800 h-screen flex flex-col">
 
     <datalist id="wp-datalist"></datalist>
@@ -70,9 +91,14 @@
                         <i></i> Pending
                         <span id="pending-count" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
                     </button>
+                    <button onclick="app.showDowntimeList()" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded font-medium text-xs flex items-center gap-1 relative shadow-sm transition">
+                        <i></i> Downtime
+                        <span id="dt-count" class="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+                    </button>
                     <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
                     <button onclick="app.openReportModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded shadow-sm transition">Data Report</button>
-                    <button onclick="app.openMasterDataModal()" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded shadow-sm transition uppercase flex items-center gap-1"><i class="fas fa-user mr-1"></i></button>
+                    <button onclick="app.openMasterDataModal()" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded shadow-sm transition flex items-center gap-1" title="Master Data"><i class="fas fa-database"></i></button>
+                    <button onclick="app.openAdminAuth()" class="px-4 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-bold rounded shadow-sm transition flex items-center gap-1" title="Menu Admin"><i class="fas fa-shield-alt"></i></button>
                     <button onclick="app.logout()" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded shadow-sm transition">Keluar</button>
                 </div>
             </div>
@@ -205,6 +231,10 @@
             <button onclick="app.switchAdminTab('rekapline')" id="tab-btn-rekapline" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-table mr-1"></i> Rekap Per Line</button>
             <button onclick="app.switchAdminTab('rekapmp')" id="tab-btn-rekapmp" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-users-cog mr-1"></i> Rekap Per MP</button>
             <button onclick="app.switchAdminTab('transactions')" id="tab-btn-transactions" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-list-alt mr-1"></i> Detail Transactions</button>
+            <button onclick="app.switchAdminTab('masterleader')" id="tab-btn-masterleader" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-user-tie mr-1"></i> Master Leader</button>
+            <button onclick="app.switchAdminTab('masterline')" id="tab-btn-masterline" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-bullseye mr-1"></i> Master Line</button>
+            <button onclick="app.switchAdminTab('masterassy_admin')" id="tab-btn-masterassy_admin" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-box mr-1"></i> Master Assy</button>
+            <button onclick="app.switchAdminTab('mastermp_admin')" id="tab-btn-mastermp_admin" class="pb-3 px-2 text-slate-500 hover:text-slate-800 whitespace-nowrap transition"><i class="fas fa-users mr-1"></i> Master MP</button>
         </div>
         
         <div class="flex-1 flex flex-col overflow-hidden" id="admin-content-area">
@@ -232,13 +262,12 @@
                 
                 <div id="filter-line-checkboxes" class="flex items-center gap-3 border-l pl-4 border-slate-200 hide">
                     <span class="text-[10px] font-bold text-slate-500 uppercase">Tampilkan Line:</span>
-                    <label class="flex items-center gap-1 text-sm font-bold text-blue-700 cursor-pointer bg-blue-50 px-2 py-0.5 rounded border border-blue-200"><input type="checkbox" id="cb-line-all" class="accent-blue-600" checked onchange="app.toggleAllLines(this)"> ALL</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 1" checked onchange="app.checkLineState()"> L1</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 2" checked onchange="app.checkLineState()"> L2</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 3" checked onchange="app.checkLineState()"> L3</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" checked onchange="app.checkLineState()"> L4</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" checked onchange="app.checkLineState()"> L5</label>
-                </div>
+                    <label class="flex items-center gap-1 text-sm font-bold text-blue-700 cursor-pointer bg-blue-50 px-2 py-0.5 rounded border border-blue-200"><input type="checkbox" id="cb-line-all" class="accent-blue-600" onchange="app.toggleAllLines(this)"> ALL</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 1" onchange="app.checkLineState()"> L1</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 2" onchange="app.checkLineState()"> L2</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 3" onchange="app.checkLineState()"> L3</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" onchange="app.checkLineState()"> L4</label>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" onchange="app.checkLineState()"> L5</label>                </div>
                 <div class="flex-1 text-right">
                     <button onclick="app.fetchAdminData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-md uppercase tracking-wider active:scale-95 transition-transform"><i class="fas fa-tv mr-1"></i> Display Data</button>
                 </div>
@@ -322,6 +351,7 @@
                                         <th class="px-3 py-2 font-bold text-amber-600 w-40">Detail Downtime</th>
                                         <th class="px-3 py-2 font-bold text-red-600 w-40">Detail Pending</th>
                                         <th class="px-3 py-2 font-bold text-center w-16">Status<br><select id="flt-col-trx-status" onchange="app.renderAdminTransactions()" class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"><option value="">All</option><option value="OK">OK</option><option value="OVERTIME">OVERTIME</option></select></th>
+                                        <th class="px-3 py-2 font-bold text-center w-16">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-trx-tbody" class="text-slate-700 divide-y divide-slate-100 bg-white align-top"></tbody>
@@ -329,7 +359,84 @@
                         </div>
                     </div>
                 </div>
+                <div id="admin-tab-masterleader" class="max-w-full mx-auto hide flex flex-col h-full w-full">
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-leader" oninput="app.renderMasterLeader()" placeholder="Cari Lisensi / Nama..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-purple-500">
+                                <button onclick="app.openMasterAddModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                </thead>
+                                <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
+                <div id="admin-tab-masterline" class="max-w-full mx-auto hide flex flex-col h-full w-full">
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-bullseye text-orange-500 mr-2"></i> Master Target Line (Kapasitas)</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-line" oninput="app.renderMasterLine()" placeholder="Cari Line Area..." class="text-xs px-2 py-1 border rounded w-40 outline-none focus:ring-1 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                </thead>
+                                <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-tab-masterassy_admin" class="max-w-full mx-auto hide flex flex-col h-full w-full">
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-box text-blue-500 mr-2"></i> Master Assy (Full Control)</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-assy-admin" oninput="app.renderMasterAssyAdmin()" placeholder="Cari No Assy..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-blue-500">
+                                <button onclick="app.openMasterAddModal('ASSY')" class="bg-blue-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm">Tambah Assy</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-32">No. Assy</th><th class="px-4 py-2 font-bold w-20">CCT</th><th class="px-4 py-2 font-bold w-20">UMH(m)</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                </thead>
+                                <tbody id="master-assy-admin-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-tab-mastermp_admin" class="max-w-full mx-auto hide flex flex-col h-full w-full">
+                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-users text-teal-500 mr-2"></i> Master Manpower (Full Control)</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="src-mas-mp-admin" oninput="app.renderMasterMPAdmin()" placeholder="Cari Nama/NRP..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-teal-500">
+                                <button onclick="app.openMasterAddModal('MP', 'MASTER')" class="bg-teal-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm">Tambah MP</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
+                                    <tr><th class="px-4 py-2 font-bold w-24">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold w-24">Join Date</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
+                                </thead>
+                                <tbody id="master-mp-admin-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -381,45 +488,6 @@
                             <table class="w-full text-left text-xs whitespace-nowrap">
                                 <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold w-24">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold w-24">Join Date</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr></thead>
                                 <tbody id="master-mp-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <!-- MASTER LEADER -->
-                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                            <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="src-mas-leader" oninput="app.renderMasterLeader()" placeholder="Cari Lisensi / Nama..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-purple-500">
-                                <button onclick="app.openMasterAddModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
-                            </div>
-                        </div>
-                        <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- MASTER LINE -->
-                    <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-                            <h3 class="font-bold text-slate-800"><i class="fas fa-bullseye text-orange-500 mr-2"></i> Master Target Line (Kapasitas)</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="src-mas-line" oninput="app.renderMasterLine()" placeholder="Cari Line Area..." class="text-xs px-2 py-1 border rounded w-40 outline-none focus:ring-1 focus:ring-orange-500">
-                            </div>
-                        </div>
-                        <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th></tr>
-                                </thead>
-                                <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
@@ -592,10 +660,10 @@
     <div id="modal-validate-cancel" class="fixed inset-0 bg-slate-900/50 z-[70] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96 border-t-4 border-red-500">
             <h3 class="font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Validasi Pembatalan Unit</h3>
-            <p class="text-[11px] text-slate-500 mb-4">Tindakan ini akan menghapus unit dari antrean aktif secara permanen tanpa menyimpannya ke laporan. <b>Wajib melakukan Scan Validasi fisik unit</b> untuk membatalkan proses.</p>
+            <p class="text-[11px] text-slate-500 mb-4">Tindakan ini menghapus unit secara permanen tanpa menyimpannya ke laporan. <b>Scan fisik unit</b> untuk membatalkan.</p>
             <div class="bg-red-50 border border-red-100 rounded p-4 text-sm space-y-2 mb-5 shadow-inner">
-                <label class="text-[10px] font-bold text-red-600 block mb-1"><i class="fas fa-qrcode mr-1"></i> SCAN BARCODE (VALIDASI)</label>
-                <input type="text" id="vc-scan-input" placeholder="Scan unit yang ingin di-cancel..." class="w-full px-3 py-2 border-2 border-red-200 rounded focus:ring-2 focus:ring-red-500 font-mono text-sm" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.executeValidateCancel(); }">
+                <label class="text-[10px] font-bold text-red-600 block mb-1"><i class="fas fa-qrcode mr-1"></i> SCAN BARCODE</label>
+                <input type="text" id="vc-scan-input" placeholder="Scan Unit " class="w-full px-3 py-2 border-2 border-red-200 rounded focus:ring-2 focus:ring-red-500 font-mono text-sm uppercase" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.executeValidateCancel(); }">
             </div>
             <div class="flex justify-end gap-2 text-sm">
                 <button onclick="app.closeModal('modal-validate-cancel')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded outline-none">Batal</button>
@@ -618,18 +686,22 @@
     <!-- Downtime & Pending Modals -->
     <div id="modal-downtime" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
         <div class="bg-white p-6 rounded-xl shadow-xl w-96">
-            <h3 class="font-bold text-amber-700 mb-2" id="dt-title"><i class="fas fa-exclamation-triangle"></i> Problem / Downtime</h3>
-            <p class="text-xs text-slate-500 mb-3">Waktu akan dihitung sebagai Loss Time.</p>
+            <div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-amber-700" id="dt-title"><i class="fas fa-exclamation-triangle"></i> Menu Downtime/Pending</h3>
+                <button onclick="app.closeModal('modal-downtime')" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Silakan pilih alasan kendala dan tindakan yang akan diambil.</p>
             <select id="dt-reason" class="w-full px-3 py-2 border border-amber-300 bg-amber-50 rounded mb-4 font-semibold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-amber-500">
                 <option value="Problem Material">Problem Material</option>
                 <option value="Problem CCT">Problem CCT</option>
                 <option value="Problem Dokumen">Problem Dokumen</option>
                 <option value="Lain-lain">Lain-lain</option>
             </select>
-            <div class="flex justify-end gap-2 text-sm">
-                <button onclick="app.closeModal('modal-downtime')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
-                <button onclick="app.confirmDowntime()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold shadow-md">Catat Downtime</button>
+            <div class="flex justify-between gap-2 text-sm mt-4">
+                <button onclick="app.confirmPending()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold shadow-md w-full transition"><i class="fas fa-clock"></i> Set Pending</button>
+                <button onclick="app.confirmDowntime()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold shadow-md w-full transition"><i class="fas fa-pause"></i> Set Downtime</button>
             </div>
+            <button onclick="app.closeModal('modal-downtime')" class="mt-3 w-full px-3 py-2 text-slate-500 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded font-bold text-sm transition">Batal / Kembali</button>
         </div>
     </div>
 
@@ -654,6 +726,13 @@
         <div class="bg-white p-0 rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] flex flex-col overflow-hidden">
             <div class="p-4 border-b bg-red-50 flex justify-between items-center shrink-0"><h3 class="font-bold text-red-800"><i class="fas fa-clock mr-2"></i> Daftar Antrian Tertunda (Pending)</h3><button onclick="app.closeModal('modal-pending-list')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50" id="pending-list-container"></div>
+        </div>
+    </div>
+
+    <div id="modal-downtime-list" class="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center hide">
+        <div class="bg-white p-0 rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b bg-amber-50 flex justify-between items-center shrink-0"><h3 class="font-bold text-amber-800"><i class="fas fa-pause mr-2"></i> Daftar Antrian Downtime</h3><button onclick="app.closeModal('modal-downtime-list')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50" id="downtime-list-container"></div>
         </div>
     </div>
 
@@ -738,12 +817,2233 @@
         </div>
     </div>
 
+    <div id="modal-edit-master" class="fixed inset-0 bg-slate-900/50 z-[80] flex items-center justify-center hide">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-96">
+            <h3 class="font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-edit text-blue-500 mr-1"></i> Edit Data Master</h3>
+            <div id="edit-master-form" class="space-y-3 mb-5">
+                </div>
+            <div class="flex justify-end gap-2 text-sm">
+                <button onclick="app.closeModal('modal-edit-master')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
+                <button onclick="app.saveEditMaster()" class="px-4 py-2 bg-blue-600 text-white rounded font-bold shadow-sm">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-admin-auth" class="fixed inset-0 bg-slate-900/50 z-[90] flex items-center justify-center hide">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-80 border-t-4 border-purple-500">
+            <h3 class="font-bold text-slate-800 mb-2 border-b pb-2"><i class="fas fa-shield-alt text-purple-500 mr-1"></i> Otorisasi Super Admin</h3>
+            <p class="text-[10px] text-slate-500 mb-4 leading-relaxed">Masukkan Lisensi dan Password Leader yang Anda gunakan saat ini untuk mengakses Panel Admin.</p>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">ID LISENSI</label>
+                    <input type="text" id="admin-auth-id" class="w-full px-3 py-2 border rounded text-sm font-mono uppercase focus:ring-1 focus:ring-purple-500 outline-none" onkeydown="if(event.key === 'Enter') document.getElementById('admin-auth-pass').focus();">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">PASSWORD</label>
+                    <input type="password" id="admin-auth-pass" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-purple-500 outline-none" onkeydown="if(event.key === 'Enter') app.verifyAdminAuth()">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 text-sm">
+                <button onclick="app.closeModal('modal-admin-auth')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">Batal</button>
+                <button onclick="app.verifyAdminAuth()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-bold shadow-sm transition">Verifikasi</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/data-assy.js"></script>
     <script src="js/data-line.js"></script>
     <script src="js/data-leader.js"></script>
     <script src="js/data-mp.js"></script>
 
-    <script src="js/app.js"></script>
+    <script>
+
+        const app = {
+            db: null, auth: null, appId: typeof __app_id !== 'undefined' ? __app_id : 'default-app-id',
+            user: null, shift: null, leader: null,
+            
+            masterAssy: [], masterMP: [], masterLeader: [], masterLine: [],
+            
+            activeQueue: [], historyReports: [], validWpList: [], 
+            scanDataTmp: null, activeTaskTmpId: null, resumePendingId: null, 
+            batchItemsValid: [], isIstirahatGlobal: false, adminTab: 'overview',
+            isProcessing: false, adminPageTrx: 1, adminPageMasAssy: 1, adminPageMasMP: 1, editTmp: null,
+            lastAdminFetch: null,
+            
+            unsubQueue: null, unsubHistory: null, unsubGlobalState: null,
+            unsubMasterAssy: null, unsubMasterMP: null, unsubMasterLeader: null, unsubMasterLine: null,
+            adminHistoryReports: [], 
+            
+            tempMps: [], 
+            isBatchModeConfirming: false,
+            rekapMpFilterVals: { nama: '', line: '' },
+
+            modalAddContext: 'MASTER',
+
+            init: async function() {
+                try {
+                    // 1. Ubah nama ini menjadi myRealFirebaseConfig
+                    const myRealFirebaseConfig = {
+                        apiKey: "AIzaSyDfWp9DMuoDDr7M7LIfgQfok8xKmn4yOe0",
+                        authDomain: "edr-assembling.firebaseapp.com",
+                        databaseURL: "https://edr-assembling-default-rtdb.asia-southeast1.firebasedatabase.app",
+                        projectId: "edr-assembling",
+                        storageBucket: "edr-assembling.firebasestorage.app",
+                        messagingSenderId: "156144912420",
+                        appId: "1:156144912420:web:f5c04f476a902dae1c70b1"
+                    };
+
+                    this.useLocalFallback();
+                    this.setupUIBindings(); this.startClock(); this.monitorNetwork();
+                    Chart.defaults.animation = false;
+                    
+                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myRealFirebaseConfig;
+                    if(firebaseConfig && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    if(firebase.apps.length) {
+                        this.auth = firebase.auth(); this.db = firebase.firestore();
+                        
+                        // DIHAPUS: enablePersistence() karena diblokir oleh iFrame Canvas.
+                        // Firebase 10 otomatis menggunakan Memory Cache.
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            this.auth.signInWithCustomToken(__initial_auth_token).catch(e => console.warn("SWR Bypass mode aktif"));
+                        } else {
+                            this.auth.signInAnonymously().catch(e => console.warn("SWR Bypass mode aktif"));
+                        }
+                        
+                        this.auth.onAuthStateChanged(user => { 
+                            if(user){ 
+                                this.user = user; 
+                                this.setupMasterDataListeners(); 
+                            } 
+                        });
+                    }
+                } catch(e) { this.showToast("System Init Error", "error"); }
+            },
+
+
+            setupMasterDataListeners: function() {
+                if(!this.db || !this.user) return;
+                const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
+
+                const mergeData = (localArray, firebaseDocs, idField) => {
+                    firebaseDocs.forEach(doc => {
+                        let data = doc.data();
+                        let idx = localArray.findIndex(x => x[idField] === data[idField]);
+                        if (idx > -1) localArray[idx] = data; 
+                        else localArray.unshift(data); 
+                    });
+                };
+
+                if(this.unsubMasterAssy) this.unsubMasterAssy();
+                this.unsubMasterAssy = pubRef.collection('master_assy').onSnapshot(snap => {
+                    mergeData(this.masterAssy, snap.docs, 'no_assy');
+                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterAssy();
+                });
+
+                if(this.unsubMasterMP) this.unsubMasterMP();
+                this.unsubMasterMP = pubRef.collection('master_mp').onSnapshot(snap => {
+                    mergeData(this.masterMP, snap.docs, 'id');
+                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterMP();
+                });
+
+                if(this.unsubMasterLeader) this.unsubMasterLeader();
+                this.unsubMasterLeader = pubRef.collection('master_leader').onSnapshot(snap => {
+                    mergeData(this.masterLeader, snap.docs, 'lisensi');
+                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterLeader();
+                });
+
+                if(this.unsubMasterLine) this.unsubMasterLine();
+                this.unsubMasterLine = pubRef.collection('master_line').onSnapshot(snap => {
+                    mergeData(this.masterLine, snap.docs, 'id');
+                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterLine();
+                });
+            },
+
+            setupRealtimeListeners: function() {
+                if(!this.leader) return;
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+
+                if(!this.db || !this.user) {
+                    this.activeQueue = JSON.parse(localStorage.getItem(`activeQueue_${lineKey}`) || '[]');
+                    this.historyReports = JSON.parse(localStorage.getItem(`history_${lineKey}`) || '[]');
+                    this.isIstirahatGlobal = JSON.parse(localStorage.getItem(`state_${lineKey}`) || 'false');
+                    this.renderQueue();
+                    return;
+                }
+
+                if(this.unsubQueue) this.unsubQueue();
+                this.unsubQueue = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).onSnapshot(snap => {
+                    this.activeQueue = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); this.renderQueue();
+                }, err => { this.showToast("Gagal menyinkronisasi antrian", "error"); });
+                
+                if(this.unsubHistory) this.unsubHistory();
+                this.unsubHistory = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).onSnapshot(snap => {
+                    let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    allData.sort((a,b) => b.finishedAt - a.finishedAt);
+                    this.historyReports = allData.slice(0, 2000); 
+                }, err => {});
+
+                if(this.unsubGlobalState) this.unsubGlobalState();
+                this.unsubGlobalState = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('line_states').doc(lineKey).onSnapshot(doc => {
+                    if (doc.exists) this.isIstirahatGlobal = doc.data().isIstirahatGlobal || false;
+                    else this.isIstirahatGlobal = false;
+                    this.renderQueue(); 
+                }, err => {});
+            },
+
+            useLocalFallback: function() {
+                this.masterAssy = [...initMasterDataAssy];
+                this.masterMP = [...initMasterDataMP];
+                this.masterLeader = [...initMasterDataLeader];
+                this.masterLine = [...initMasterDataLine];
+            },
+            persistLocal: function(k, d) { localStorage.setItem(k, JSON.stringify(d)); },
+
+            setupUIBindings: function() {
+                ['main-scan-input', 'scan-out-input'].forEach(id => {
+                    let el = document.getElementById(id);
+                    el.addEventListener('keydown', (e) => { if(e.key==='Enter') { e.preventDefault(); this.processRawScan(el.value, id==='main-scan-input'?'IN':'OUT'); el.value=''; }});
+                });
+
+                const symbols = ['C', '/', '-', 'S', 'E', 'P'];
+                this.validWpList = []; 
+                for(let i=1; i<=12; i++) for(let j=1; j<=12; j++) for(let s of symbols) this.validWpList.push(`${i.toString().padStart(2,'0')}${s}${j.toString().padStart(2,'0')}`);
+            },
+
+            monitorNetwork: function() {
+                const updateStatus = () => {
+                    const el = document.getElementById('network-status');
+                    if(navigator.onLine) { el.classList.add('bg-emerald-100', 'text-emerald-800'); setTimeout(()=>el.classList.add('hide'),3000); }
+                    else { el.classList.remove('hide', 'bg-emerald-100'); el.classList.add('bg-red-500', 'text-white'); document.getElementById('network-text').innerText = "Offline"; }
+                };
+                window.addEventListener('online', updateStatus); window.addEventListener('offline', updateStatus); updateStatus();
+            },
+            showToast: function(msg, type='info') {
+                const c = document.getElementById('toast-container'); const t = document.createElement('div');
+                t.className = `toast ${type}`; t.innerHTML = `<i class="fas fa-info-circle mr-2"></i> ${msg}`;
+                c.appendChild(t); setTimeout(() => t.remove(), 3000); 
+            },
+
+            formatDateShort: function(dateObj) {
+                const m = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
+                return `${dateObj.getDate().toString().padStart(2,'0')}-${m[dateObj.getMonth()]}`;
+            },
+
+            getProductionDay: function(timestamp) {
+                let d = new Date(timestamp);
+                let h = d.getHours(); let m = d.getMinutes();
+                if (h < 7 || (h === 7 && m < 30)) {
+                    d.setDate(d.getDate() - 1);
+                }
+                return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+            },
+
+            login: async function() {
+                const lisensi = document.getElementById('login-lisensi').value.trim().toUpperCase();
+                const pass = document.getElementById('login-pass').value.trim();
+                
+
+                let validLeader = this.masterLeader.find(l => l.lisensi === lisensi && l.pass === pass);
+                
+                if (!validLeader && this.db) {
+                    try {
+                        const getDocPromise = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_leader').doc(lisensi).get();
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Firebase')), 3000));
+                        
+                        const doc = await Promise.race([getDocPromise, timeoutPromise]);
+                        
+                        if (doc && doc.exists) {
+                            let ld = doc.data();
+                            if (ld.pass === pass) { validLeader = ld; this.masterLeader.unshift(ld); }
+                        }
+                    } catch(e) { console.warn("Firebase query timeout / error", e); }
+                }
+
+                if(validLeader) {
+                    this.leader = validLeader; this.shift = validLeader.shift;
+                    document.getElementById('header-shift').innerText = validLeader.shift;
+                    document.getElementById('header-leader').innerText = validLeader.nama;
+                    document.getElementById('header-line').innerText = validLeader.line;
+                    document.getElementById('login-screen').classList.add('hide'); document.getElementById('main-dashboard').classList.remove('hide');
+                    this.showToast(`Welcome, ${validLeader.nama} - Ruang: ${validLeader.line}`, 'success');
+                    this.setupRealtimeListeners();
+                    setTimeout(() => document.getElementById('main-scan-input').focus(), 500);
+                } else this.showToast('Lisensi / Pass Salah atau tidak ditemukan', 'error');
+            },
+            logout: function() {
+                if(this.unsubQueue) { this.unsubQueue(); this.unsubQueue = null; }
+                if(this.unsubHistory) { this.unsubHistory(); this.unsubHistory = null; }
+                if(this.unsubGlobalState) { this.unsubGlobalState(); this.unsubGlobalState = null; }
+                this.activeQueue = []; this.historyReports = []; this.adminHistoryReports = [];
+
+                this.shift = null; this.leader = null;
+                document.getElementById('login-screen').classList.remove('hide'); 
+                document.getElementById('main-dashboard').classList.add('hide');
+                document.getElementById('admin-dashboard').classList.add('hide'); 
+                document.getElementById('login-lisensi').value=''; document.getElementById('login-pass').value='';
+            },
+
+            processRawScan: async function(rawStr, mode) {
+                let trimmedStr = rawStr.trim(); let spaceIdx = trimmedStr.indexOf(' ');
+                if(spaceIdx === -1 || trimmedStr.length < 12) { this.showToast("Format Barcode tidak dikenali", "error"); return; }
+                let noAssy = trimmedStr.substring(0, spaceIdx); let sn = trimmedStr.slice(-11);
+                
+                if(mode === 'IN') {
+                    if(this.activeQueue.some(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn)) || this.historyReports.some(h => h.sn === sn)) { this.showToast(`Duplicate: SN ${sn}`, "error"); return; }
+                    
+                    let assyData = this.masterAssy.find(a => a.no_assy === noAssy);
+                    
+                    if(!assyData && this.db) {
+                        try {
+                            let safeAssy = noAssy.replace(/\//g, '_');
+                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy).get();                            if(doc.exists) {
+                                assyData = doc.data();
+                                this.masterAssy.unshift(assyData); 
+                            }
+                        } catch (e) { console.error("Gagal tarik data Assy", e); }
+                    }
+
+                    if(!assyData) { this.showToast(`Assy ${noAssy} tidak terdaftar di Sistem`, "error"); return; }
+                    
+                    this.scanDataTmp = { noAssy, sn, cct: assyData.cct, umh: assyData.umh };
+                    document.getElementById('init-assy').innerText = noAssy; document.getElementById('init-sn').innerText = sn;
+                    document.getElementById('init-cct').innerText = assyData.cct; document.getElementById('init-umh').innerText = assyData.umh;
+                    document.getElementById('wp-input').value = ''; 
+                    
+                    this.tempMps = [];
+                    this.renderTempMps(false);
+                    document.getElementById('init-mp-input').value = '';
+                    
+                    document.getElementById('init-form-container').classList.remove('hide');
+                    document.getElementById('init-line-select').value = this.leader.line; 
+                    
+                    document.getElementById('wp-input').focus();
+                } else if(mode === 'OUT') {
+                    const activeItem = this.activeQueue.find(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn));
+                    if(activeItem) {
+                        if(activeItem.status === 'downtime' || activeItem.status === 'pending') { this.showToast("Antrian sedang Pause/Pending.", "warning"); return; }
+                        this.finishProcess(activeItem.id);
+                    } else this.showToast(`SN ${sn} tidak di Active Queue`, "error");
+                }
+            },
+
+            handleMpInputKeydown: async function(event, inputEl, isBatch) {
+                if(event.key === 'Enter') {
+                    event.preventDefault();
+                    let val = inputEl.value.trim().toUpperCase();
+                    
+                    if(val === '') { app.promptConfirmStart(isBatch); return; }
+                    if(this.tempMps.length >= 10) { this.showToast("Maksimal mencapai 10 MP!", "warning"); inputEl.value = ''; return; }
+                    if(this.tempMps.some(m => m.id === val)) { this.showToast("NRP ini sudah dimasukkan", "warning"); inputEl.value = ''; return; }
+
+                    let mpData = this.masterMP.find(m => m.id === val);
+
+                    if(!mpData && this.db) {
+                        try {
+                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_mp').doc(val).get();
+                            if(doc.exists) {
+                                mpData = doc.data();
+                                this.masterMP.unshift(mpData);
+                            }
+                        } catch (e) { console.error("Gagal tarik data MP", e); }
+                    }
+
+                    if(mpData) {
+                        this.tempMps.push({ id: mpData.id, nama: mpData.nama });
+                        inputEl.value = '';
+                        this.renderTempMps(isBatch);
+                    } else {
+                        this.showToast(`NRP ${val} tidak terdaftar di Sistem`, "error");
+                    }
+                }
+            },
+
+            renderTempMps: function(isBatch) {
+                let containerId = isBatch ? 'b-mp-list' : 'init-mp-list';
+                let countId = isBatch ? 'b-mp-count' : 'init-mp-count';
+                let container = document.getElementById(containerId);
+                
+                document.getElementById(countId).innerText = this.tempMps.length;
+                container.innerHTML = '';
+                
+                this.tempMps.forEach((mp, idx) => {
+                    let html = `
+                        <div class="chip-enter flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-800 px-2 py-1 rounded-md text-[11px] font-bold shadow-sm">
+                            <i class="fas fa-user-check text-blue-500"></i> ${mp.id} - ${mp.nama.split(' ')[0]}
+                            <button onclick="app.removeTempMp(${idx}, ${isBatch})" class="text-blue-400 hover:text-red-500 ml-1 outline-none transition-colors"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            },
+
+            removeTempMp: function(idx, isBatch) {
+                this.tempMps.splice(idx, 1);
+                this.renderTempMps(isBatch);
+                document.getElementById(isBatch ? 'b-mp-input' : 'init-mp-input').focus();
+            },
+
+            cancelInit: function() { 
+                document.getElementById('init-form-container').classList.add('hide'); 
+                this.scanDataTmp = null; 
+                this.resumePendingId = null; 
+                this.tempMps = []; 
+                document.getElementById('main-scan-input').focus(); 
+            },
+
+            promptConfirmStart: function(isBatch) {
+                let wpRaw = isBatch ? document.getElementById('b-wp-input').value : document.getElementById('wp-input').value;
+                let wp = wpRaw ? wpRaw.toUpperCase() : '';
+                if(!this.validWpList.includes(wp)) { this.showToast(`WP tidak valid`, "error"); return; }
+                
+                let targetLine = isBatch ? document.getElementById('b-line-select').value : document.getElementById('init-line-select').value;
+                if(this.tempMps.length === 0) { this.showToast("Minimal 1 Manpower! (Ketik lalu Enter terlebih dahulu)", "warning"); return; }
+
+                this.isBatchModeConfirming = isBatch;
+
+                let assyText = "", snText = "", cctText = "", umhText = "";
+                if(isBatch) {
+                    assyText = this.batchItemsValid[0]?.noAssy || "-";
+                    snText = `BATCH MODE (${this.batchItemsValid.length} Unit)`;
+                    cctText = document.getElementById('batch-cct').innerText;
+                    umhText = document.getElementById('batch-umh').innerText;
+                } else {
+                    if(this.resumePendingId) {
+                        const item = this.activeQueue.find(q => q.id === this.resumePendingId);
+                        assyText = item.noAssy; snText = item.sn; cctText = item.cct; umhText = item.baseUmh;
+                    } else if (this.scanDataTmp) {
+                        assyText = this.scanDataTmp.noAssy; snText = this.scanDataTmp.sn; cctText = this.scanDataTmp.cct; umhText = this.scanDataTmp.umh;
+                    }
+                }
+
+                document.getElementById('cs-assy').innerText = assyText;
+                document.getElementById('cs-sn').innerText = snText;
+                document.getElementById('cs-cct-umh').innerText = `${cctText} / ${umhText}`;
+                document.getElementById('cs-wp').innerText = wp;
+                document.getElementById('cs-line').innerText = targetLine;
+                document.getElementById('cs-mp').innerHTML = this.tempMps.map((m, idx) => `<span class="text-blue-500 mr-1">${idx+1}.</span> ${m.id} - ${m.nama}`).join('<br>');
+
+                document.getElementById('modal-confirm-start').classList.remove('hide');
+                setTimeout(() => document.getElementById('btn-confirm-yes').focus(), 100);
+            },
+
+            executeStart: async function() {
+                if(this.isProcessing) return; this.isProcessing = true;
+                try {
+                    this.closeModal('modal-confirm-start');
+                    if(this.isBatchModeConfirming) { await this.startBatch(); } else { await this.startProcess(); }
+                } finally {
+                    setTimeout(() => { this.isProcessing = false; }, 1000);
+                }
+            },
+
+            startProcess: async function() {
+                if(!this.scanDataTmp) return;
+                const btn = document.getElementById('btn-start-process'); btn.disabled = true;
+                try {
+                    let wpRaw = document.getElementById('wp-input').value; let wp = wpRaw ? wpRaw.toUpperCase() : '';
+                    let targetLine = document.getElementById('init-line-select').value; 
+                    let mps = [...this.tempMps]; 
+
+                    if(this.resumePendingId) {
+                        const item = this.activeQueue.find(q => q.id === this.resumePendingId);
+                        if(item) {
+                            let now = Date.now();
+                            item.downtimes = item.downtimes || [];
+                            if(item.downtimes.length > 0 && !item.downtimes[item.downtimes.length-1].end) {
+                                let lastDt = item.downtimes[item.downtimes.length-1];
+                                lastDt.end = now; lastDt.duration = lastDt.end - lastDt.start;
+                                item.totalDowntime += lastDt.duration;
+                            }
+                            this.updateQueueDoc(item.id, { mps: mps, wp: wp, targetLine: targetLine, status: 'running', downtimes: item.downtimes, totalDowntime: item.totalDowntime, lastDowntimeStart: null, isGlobalPause: false });
+                            this.showToast(`Resumed SN ${item.sn}`, "success");
+                        }
+                        this.resumePendingId = null; 
+                    } else {
+                        let processData = {
+                            sn: this.scanDataTmp.sn, noAssy: this.scanDataTmp.noAssy, cct: this.scanDataTmp.cct, baseUmh: this.scanDataTmp.umh,
+                            wp: wp, mps: mps, targetLine: targetLine, startTime: Date.now(), status: 'running', totalDowntime: 0, downtimes: [],
+                            lastDowntimeStart: null, isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama 
+                        };
+                        this.showToast("Process Started", "success"); this.saveToQueue(processData);
+                    }
+                    this.cancelInit(); 
+                } finally { btn.disabled = false; }
+            },
+
+            saveToQueue: async function(data) {
+                let docId = data.id || data.sn; 
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(docId).set(data);
+                else { this.activeQueue.push({ ...data, id: docId }); this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); this.renderQueue(); }
+            },
+
+            renderQueue: function(filterText = '') {
+                const container = document.getElementById('active-queue-container');
+                let filtered = this.activeQueue.filter(q => q.status !== 'pending' && !(q.status === 'downtime' && !q.isGlobalPause));                if(filterText) {
+                    let ft = filterText.toLowerCase();
+                    filtered = filtered.filter(q => (q.sn && q.sn.toLowerCase().includes(ft)) || q.noAssy.toLowerCase().includes(ft) || (q.isBatch && q.batchSNs.some(bsn => bsn.toLowerCase().includes(ft))));
+                }
+                let sortedFiltered = filtered.sort((a, b) => a.startTime - b.startTime);
+                document.getElementById('queue-count').innerText = sortedFiltered.length;
+                this.updatePendingCount();
+                this.updateDowntimeCount();
+
+                let btnIstirahat = document.getElementById('btn-istirahat');
+                if(this.isIstirahatGlobal) { btnIstirahat.innerHTML = `<i class="fas fa-play-circle"></i> Selesai Istirahat`; btnIstirahat.className = "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1 transition shadow-sm"; }
+                else { btnIstirahat.innerHTML = `<i class="fas fa-coffee"></i> Istirahat`; btnIstirahat.className = "bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1 transition shadow-sm"; }
+
+                if(sortedFiltered.length === 0) { container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-400 text-sm italic">Queue is empty.</div>`; return; }
+
+                container.innerHTML = '';
+                sortedFiltered.forEach((q, i) => {
+                    const isDT = q.status === 'downtime';
+                    const bgClass = isDT ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200';
+                    let snDisplay = q.isBatch ? `<span class="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded mr-1 text-[9px]">BATCH x${q.batchSize}</span> <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${q.sn}</span>` : `<span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${q.sn}</span>`;
+                    
+                    let mps = q.mps || [];
+                    let mpsName = mps.map(m => {
+                        if (!m) return '';
+                        return m.nama ? m.nama.split(' ')[0] : String(m);
+                    }).join(', ');
+                    let teamSizeLabel = mps.length > 3 ? `(+${mps.length-3} lainnya)` : '';
+
+                    let batchMultiplier = q.isBatch ? q.batchSize : 1;
+                    let targetMs = ((q.baseUmh * batchMultiplier) / (mps.length || 1)) * 60000;
+                    let targetStr = this.formatMs(targetMs);
+
+                    let clickAttr = q.isBatch ? `onclick="app.openBatchDetail('${q.id}')" title="Klik untuk lihat detail unit & pisah batch"` : `title="Klik Kanan untuk opsi Cancel"`;
+
+                    let html = `
+                    <div class="queue-item flex justify-between items-center p-3 rounded-lg border ${bgClass} shadow-sm hover:border-blue-300 transition-colors ${q.isBatch ? 'cursor-pointer' : 'cursor-context-menu'}" id="q-${q.id}" ${clickAttr} oncontextmenu="app.handleRightClickQueue(event, '${q.id}')">
+                        <div class="flex-1 flex items-center gap-4 pointer-events-none">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center ${isDT?'bg-amber-200 text-amber-700':'bg-blue-100 text-blue-600'} font-bold text-sm border shrink-0">${i + 1}</div>
+                            <div>
+                                <div class="flex items-baseline gap-2"><span class="font-bold text-slate-800 font-mono text-sm">${q.noAssy}</span> ${snDisplay} <span class="text-[9px] text-indigo-600 font-bold ml-1">${q.targetLine}</span></div>
+                                <div class="text-[11px] text-slate-500 mt-0.5"><i class="fas fa-users mr-1 text-blue-400"></i> ${mpsName} <span class="font-bold text-indigo-500">${teamSizeLabel}</span> <span class="mx-1">|</span> WP: <strong>${q.wp}</strong></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right flex gap-3 pointer-events-none">
+                                <div>
+                                    <div class="flex items-end gap-1.5 justify-end">
+                                        <div class="font-timer font-bold text-blue-600 text-[15px] timer-duration">00:00:00</div>
+                                        <div class="font-timer font-bold text-slate-400 text-[11px] mb-[2px]">/ ${targetStr}</div>
+                                    </div>
+                                    <div class="text-[8px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Aktual / Target</div>
+                                </div>
+                                <div class="dt-container border-l border-amber-200 pl-3 hide">
+                                    <div class="font-timer font-bold text-amber-600 text-[15px] timer-downtime">00:00:00</div>
+                                    <div class="text-[8px] text-amber-500 font-bold uppercase dt-label">LOSS TIME</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1 shrink-0 w-24">
+                                ${isDT && !q.isGlobalPause ? 
+                                `<button onclick="event.stopPropagation(); app.promptResumeDowntime('${q.id}')" class="w-full text-[10px] py-1 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold"><i class="fas fa-play"></i> Resume</button>` : 
+                                (q.isGlobalPause ? `<span class="text-[10px] text-center font-bold text-slate-400 border py-1 rounded bg-slate-100">Jeda Global</span>` : 
+                                `<button onclick="event.stopPropagation(); app.openDowntimeModal('${q.id}')" class="w-full text-[10px] py-1 rounded border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold"><i class="fas fa-pause"></i> Downtime </button>`)
+                                }
+                            </div>
+                        </div>
+                    </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                this.updateTimers(); 
+            },
+
+            openBatchDetail: function(id) {
+                const item = this.activeQueue.find(q => q.id === id);
+                if (!item || !item.isBatch) return;
+                this.activeTaskTmpId = id;
+                document.getElementById('bd-title').innerHTML = `<i class="fas fa-layer-group mr-2"></i> Batch Detail: ${item.noAssy}`;
+                
+                let list = document.getElementById('bd-list');
+                list.innerHTML = '';
+                item.batchSNs.forEach(sn => {
+                    list.innerHTML += `
+                    <div class="flex justify-between items-center p-3 border border-slate-200 rounded-lg bg-white shadow-sm hover:border-blue-200 transition">
+                        <span class="font-mono font-bold text-blue-700">${sn}</span>
+                        <div class="flex gap-2">
+                            <button onclick="app.promptCancel('${id}', true, '${sn}')" class="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded text-[10px] font-bold transition shadow-sm"><i class="fas fa-times"></i> Cancel</button>
+                            <button onclick="app.separateFromBatch('${id}', '${sn}', 'DOWNTIME')" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 rounded text-[10px] font-bold transition shadow-sm"><i class="fas fa-pause"></i> DT</button>
+                            <button onclick="app.separateFromBatch('${id}', '${sn}', 'PENDING')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded text-[10px] font-bold transition shadow-sm"><i class="fas fa-clock"></i> Pend</button>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('modal-batch-detail').classList.remove('hide');
+            },
+
+            separateFromBatch: async function(batchId, sn, action) {
+                let item = this.activeQueue.find(q => q.id === batchId);
+                if (!item || !item.isBatch) return;
+                
+                item.batchSNs = item.batchSNs.filter(s => s !== sn);
+                item.batchSize = item.batchSNs.length;
+                
+                let sepItem = { ...item, id: sn, sn: sn, isBatch: false, batchSNs: null, batchSize: null };
+                
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                const batchObj = this.db ? this.db.batch() : null;
+                
+                if(this.db) {
+                    if(item.batchSize === 0) {
+                        batchObj.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(batchId));
+                    } else {
+                        batchObj.update(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(batchId), { batchSNs: item.batchSNs, batchSize: item.batchSize });
+                    }
+                } else {
+                    if(item.batchSize === 0) {
+                        this.activeQueue = this.activeQueue.filter(q => q.id !== batchId);
+                    }
+                }
+
+                if (action === 'CANCEL') {
+                    this.showToast(`Unit ${sn} dibatalkan.`, 'info');
+                } else if (action === 'DOWNTIME') {
+                    sepItem.status = 'downtime';
+                    sepItem.downtimes = sepItem.downtimes || [];
+                    sepItem.downtimes.push({ reason: 'Pemisahan Batch (Problem)', start: Date.now(), end: null, duration: 0 });
+                    sepItem.lastDowntimeStart = Date.now();
+                    if(this.db) batchObj.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(sn), sepItem);
+                    else this.activeQueue.push(sepItem);
+                    this.showToast(`Unit ${sn} dipisah ke Antrean Downtime.`, 'warning');
+                } else if (action === 'PENDING') {
+                    sepItem.status = 'pending';
+                    sepItem.downtimes = sepItem.downtimes || [];
+                    sepItem.downtimes.push({ reason: 'PENDING: Pemisahan Batch', start: Date.now(), end: null, duration: 0 });
+                    sepItem.lastDowntimeStart = Date.now();
+                    if(this.db) batchObj.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(sn), sepItem);
+                    else this.activeQueue.push(sepItem);
+                    this.showToast(`Unit ${sn} dipisah ke Pending List.`, 'info');
+                }
+
+                if(this.db) await batchObj.commit();
+                else { this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); this.renderQueue(); }
+
+                if(item.batchSize > 0) {
+                    this.openBatchDetail(batchId); 
+                } else {
+                    this.closeModal('modal-batch-detail');
+                }
+            },
+
+            filterQueue: function() { this.renderQueue(document.getElementById('queue-search').value); },
+            handleQueueScanSearch: function() {
+                let el = document.getElementById('queue-search'); let val = el.value.trim();
+                if(val.indexOf(' ') !== -1 && val.length >= 12) el.value = val.slice(-11);
+                this.filterQueue();
+            },
+
+            startClock: function() {
+                setInterval(() => {
+                    const now = new Date();
+                    let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '.'); 
+                    document.getElementById('clock-display').innerText = `${this.formatDateShort(now)} ${now.getFullYear()} - ${timeStr}`;
+                    this.updateTimers();
+                }, 1000);
+            },
+
+            updateTimers: function() {
+                const now = Date.now();
+                document.querySelectorAll('.queue-item').forEach(el => {
+                    const id = el.id.replace('q-', '');
+                    const item = this.activeQueue.find(q => q.id === id);
+                    if(item) {
+                        let tDt = 0; let tPd = 0;
+                        if(item.downtimes) {
+                            item.downtimes.forEach(dt => {
+                                let dur = dt.end ? dt.duration : (now - dt.start);
+                                if(dt.reason.startsWith('PENDING:')) tPd += dur;
+                                else tDt += dur;
+                            });
+                        }
+                        
+                        let activeMs = (now - item.startTime) - tDt - tPd;
+
+                        let durEl = el.querySelector('.timer-duration');
+                        if (durEl) durEl.innerText = this.formatMs(activeMs);
+
+                        let dtContainer = el.querySelector('.dt-container');
+                        if (dtContainer) {
+                            let totalLoss = tDt + tPd;
+                            
+                            if (totalLoss > 0 || item.status === 'downtime') {
+                                dtContainer.classList.remove('hide');
+                                let dtEl = dtContainer.querySelector('.timer-downtime');
+                                if (dtEl) dtEl.innerText = this.formatMs(totalLoss);
+
+                                let dtLabel = dtContainer.querySelector('.dt-label');
+                                if (dtLabel) {
+                                    if (item.status === 'downtime') {
+                                        dtLabel.innerText = item.isGlobalPause ? 'ISTIRAHAT' : 'DOWNTIME';
+                                        dtLabel.classList.add('text-red-500', 'animate-pulse');
+                                        if(dtEl) dtEl.classList.replace('text-amber-600', 'text-red-600');
+                                    } else {
+                                        dtLabel.innerText = 'TOTAL LOSS TIME';
+                                        dtLabel.classList.remove('text-red-500', 'animate-pulse');
+                                        if(dtEl) dtEl.classList.replace('text-red-600', 'text-amber-600');
+                                    }
+                                }
+                            } else {
+                                dtContainer.classList.add('hide');
+                            }
+                        }
+                    }
+                });
+            },
+            formatMs: function(ms) {
+                if(ms < 0) ms = 0; let totalSec = Math.floor(ms / 1000);
+                let h = Math.floor(totalSec / 3600); let m = Math.floor((totalSec % 3600) / 60); let s = totalSec % 60;
+                return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            },
+
+            handleRightClickQueue: function(event, id) {
+                event.preventDefault(); 
+                let q = this.activeQueue.find(x => x.id === id);
+                if(q && q.isBatch) {
+                    this.showToast("Buka Batch Detail (Klik Kiri) untuk Cancel spesifik unit.", "warning");
+                } else {
+                    this.promptCancel(id, false);
+                }
+            },
+
+            promptCancel: function(id, isBatchItem = false, batchItemSn = null) {
+                this.activeTaskTmpId = id;
+                this.cancelTargetSn = isBatchItem ? batchItemSn : null;
+                document.getElementById('vc-scan-input').value = '';
+                document.getElementById('modal-validate-cancel').classList.remove('hide');
+                setTimeout(() => document.getElementById('vc-scan-input').focus(), 100);
+            },
+
+            executeValidateCancel: async function() {
+                let scan = document.getElementById('vc-scan-input').value.trim().toUpperCase();
+                if(!scan) { this.showToast("Input tidak boleh kosong!", "warning"); return; }
+                
+                const item = this.activeQueue.find(q => q.id === this.activeTaskTmpId);
+                if (!item) return;
+
+                let isAuthorizedByLeader = false;
+                
+                // 1. Cek bypass apakah inputan adalah Lisensi Leader (Cek memori lokal)
+                if (this.masterLeader.some(l => l.lisensi.toUpperCase() === scan)) {
+                    isAuthorizedByLeader = true;
+                } 
+                // 2. Fallback cek ke Database Server jika Leader baru saja ditambahkan tapi belum sinkron
+                else if (this.db) {
+                    try {
+                        let doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_leader').doc(scan).get();
+                        if(doc.exists) isAuthorizedByLeader = true;
+                    } catch(e) {}
+                }
+
+                // 3. Jika bukan lisensi Leader, berarti kita validasi seperti biasa (harus cocok dengan SN)
+                if (!isAuthorizedByLeader) {
+                    let snToCancel = "";
+                    let sIdx = scan.indexOf(' ');
+                    if (sIdx !== -1 && scan.length >= 12) {
+                        snToCancel = scan.slice(-11);
+                    } else {
+                        snToCancel = scan;
+                    }
+
+                    let expectedSn = this.cancelTargetSn ? this.cancelTargetSn : item.sn;
+                    if (item.isBatch && !this.cancelTargetSn) {
+                        if (!item.batchSNs.includes(snToCancel)) {
+                            this.showToast("Ditolak! SN tidak sesuai & Lisensi Leader tidak dikenali.", "error"); return;
+                        }
+                    } else {
+                        if (snToCancel !== expectedSn) {
+                            this.showToast("Ditolak! SN tidak sesuai & Lisensi Leader tidak dikenali.", "error"); return;
+                        }
+                    }
+                } else {
+                    this.showToast("Otorisasi Bypass Diterima.", "success");
+                }
+
+                // Jika lolos salah satu (Entah SN-nya benar, atau di bypass oleh lisensi leader), eksekusi cancel
+                this.closeModal('modal-validate-cancel');
+                
+                if (this.cancelTargetSn) {
+                    this.separateFromBatch(this.activeTaskTmpId, this.cancelTargetSn, 'CANCEL');
+                } else {
+                    this.executeCancelProcess();
+                }
+            },
+
+            executeCancelProcess: async function() {
+                let id = this.activeTaskTmpId;
+                const item = this.activeQueue.find(q => q.id === id);
+                if(!item) return;
+                
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                let snDisplay = item.isBatch ? `BATCH (x${item.batchSize}) - ${item.sn}` : item.sn;
+
+                if(this.db) {
+                    try {
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).delete();
+                    } catch(e) {
+                        this.showToast("Gagal membatalkan proses", "error");
+                    }
+                } else {
+                    this.activeQueue = this.activeQueue.filter(q => q.id !== id);
+                    this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue);
+                    this.renderQueue();
+                }
+                
+                this.showToast(`Proses ${snDisplay} berhasil dihapus/batal.`, "success");
+            },
+
+            finishProcess: function(id) {
+                this.activeTaskTmpId = id; document.getElementById('qc-error').innerText = '';
+                document.querySelectorAll('.qc-check').forEach(cb => cb.checked = false);
+                const item = this.activeQueue.find(q => q.id === id);
+                if(item) {
+                    let snDisplay = item.isBatch ? `BATCH (x${item.batchSize})<br><span class="text-[10px] font-normal">${item.sn}</span>` : item.sn;
+                    let mps = item.mps || [];
+                    let mpStr = mps.map(m => `<div class="truncate"><i class="fas fa-user text-slate-400 mr-1"></i> <strong>${m ? (m.nama || String(m)) : '-'}</strong></div>`).join('');
+                    
+                    let tDt = 0; let tPd = 0;
+                    if(item.downtimes) {
+                        item.downtimes.forEach(dt => {
+                            if(dt.reason.startsWith('PENDING:')) tPd += dt.duration;
+                            else tDt += dt.duration;
+                        });
+                    }
+                    let activeMs = (Date.now() - item.startTime) - tDt - tPd;
+                    
+                    document.getElementById('qc-detail-sn').innerHTML = snDisplay; 
+                    document.getElementById('qc-detail-line').innerText = `Target Output: ${item.targetLine}`;
+                    document.getElementById('qc-detail-assy').innerText = item.noAssy; 
+                    document.getElementById('qc-detail-cct').innerText = item.isBatch ? item.cct * item.batchSize : item.cct;
+                    document.getElementById('qc-detail-wp').innerText = item.wp; 
+                    document.getElementById('qc-detail-mp').innerHTML = mpStr;
+                    document.getElementById('qc-detail-duration').innerText = this.formatMs(activeMs);
+                }
+                document.getElementById('modal-qc').classList.remove('hide');
+            },
+            
+            confirmFinish: async function() {
+                if(this.isProcessing) return; this.isProcessing = true;
+                try {
+                    let qcEls = document.querySelectorAll('.qc-check');
+                    let chkCount = 0; qcEls.forEach(cb => { if(cb.checked) chkCount++; });
+                    if(chkCount < 1) { document.getElementById('qc-error').innerText = "Form verifikasi kualitas tidak diselesaikan!"; return; }
+                    const item = this.activeQueue.find(q => q.id === this.activeTaskTmpId); if(!item) return;
+                    let qcData = { dim: qcEls[0].checked, mark: qcEls[1].checked, spot: qcEls[2].checked, clip: qcEls[3].checked, tap: qcEls[4].checked, tpo: qcEls[5].checked };
+                const now = Date.now();
+                
+                let totalDt = 0; let totalPd = 0;
+                if(item.downtimes) {
+                    item.downtimes.forEach(dt => {
+                        if(dt.reason.startsWith('PENDING:')) totalPd += dt.duration;
+                        else totalDt += dt.duration;
+                    });
+                }
+
+                let activeMs = (now - item.startTime) - totalDt - totalPd; 
+                let activeMin = activeMs / 60000;
+                let dtMin = totalDt / 60000;
+                let pdMin = totalPd / 60000;
+                
+                let batchMultiplier = item.isBatch ? item.batchSize : 1;
+                let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
+                
+                let targetUmh = (item.baseUmh * batchMultiplier) / mpsLength; 
+                let isOK = activeMin <= targetUmh; 
+                
+                let cctPerMp = item.cct / mpsLength; 
+                let durationPerUnit = activeMin / batchMultiplier; 
+                let dtPerUnit = dtMin / batchMultiplier;
+                let pdPerUnit = pdMin / batchMultiplier;
+
+                let historyDataArray = [];
+                let baseH = { ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
+                if(item.isBatch) {
+                    item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
+                } else { historyDataArray.push(baseH); }
+
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+
+                if(this.db) {
+                    const batch = this.db.batch();
+                    batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
+                    historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
+                    await batch.commit();
+                } else {
+                    this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
+                    historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
+                    this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); 
+                    this.persistLocal(`history_${lineKey}`, this.historyReports); 
+                    this.renderQueue();
+                }
+
+                this.closeModal('modal-qc'); this.showToast(`Finish: +${(cctPerMp * batchMultiplier).toFixed(1)} CCT/MP`, "success");
+                document.getElementById('scan-out-input').focus();
+            } finally {
+                setTimeout(() => { this.isProcessing = false; }, 1000);
+            }
+            },
+            
+            toggleIstirahat: async function() {
+                let now = Date.now();
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                
+                if(!this.isIstirahatGlobal) {
+                    this.isIstirahatGlobal = true;
+                    if(this.db) {
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('line_states').doc(lineKey).set({ isIstirahatGlobal: true });
+                    }
+                    
+                    let runnings = this.activeQueue.filter(q => q.status === 'running');
+                    for(let q of runnings) {
+                        q.downtimes = q.downtimes || [];
+                        q.downtimes.push({ reason: 'Istirahat', start: now, end: null, duration: 0 });
+                        await this.updateQueueDoc(q.id, { status: 'downtime', lastDowntimeStart: now, downtimes: q.downtimes, isGlobalPause: true });
+                    }
+                    this.showToast("Istirahat Aktif", "info");
+                } else {
+                    this.isIstirahatGlobal = false;
+                    if(this.db) {
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('line_states').doc(lineKey).set({ isIstirahatGlobal: false });
+                    }
+                    
+                    let globals = this.activeQueue.filter(q => q.status === 'downtime' && q.isGlobalPause);
+                    for(let q of globals) {
+                        let lastDt = q.downtimes[q.downtimes.length - 1];
+                        lastDt.end = now; lastDt.duration = lastDt.end - lastDt.start;
+                        let tot = q.totalDowntime + lastDt.duration;
+                        await this.updateQueueDoc(q.id, { status: 'running', totalDowntime: tot, lastDowntimeStart: null, downtimes: q.downtimes, isGlobalPause: false });
+                    }
+                    this.showToast("Selesai Istirahat", "success");
+                }
+                if(!this.db) {
+                    this.persistLocal(`state_${lineKey}`, this.isIstirahatGlobal);
+                    this.renderQueue(); 
+                }
+            },
+
+            openDowntimeModal: function(id) { this.activeTaskTmpId = id; document.getElementById('modal-downtime').classList.remove('hide'); },
+            openPendingModal: function(id) { this.activeTaskTmpId = id; document.getElementById('modal-pending').classList.remove('hide'); },
+
+            confirmDowntime: async function() {
+                let reason = document.getElementById('dt-reason').value; let now = Date.now();
+                let item = this.activeQueue.find(q => q.id === this.activeTaskTmpId);
+                item.downtimes = item.downtimes || []; item.downtimes.push({ reason: reason, start: now, end: null, duration: 0 });
+                await this.updateQueueDoc(this.activeTaskTmpId, { status: 'downtime', lastDowntimeStart: now, downtimes: item.downtimes, isGlobalPause: false });
+                this.closeModal('modal-downtime');
+            },
+
+            promptResumeDowntime: function(id) {
+                this.activeTaskTmpId = id;
+                let item = this.activeQueue.find(q => q.id === id);
+                if(!item || !item.downtimes || item.downtimes.length === 0) return;
+                
+                let lastDt = item.downtimes[item.downtimes.length - 1];
+                let currentDtMs = Date.now() - lastDt.start;
+                
+                document.getElementById('crd-reason').innerText = lastDt.reason;
+                document.getElementById('crd-duration').innerText = this.formatMs(currentDtMs);
+                
+                // Menutup menu daftar downtime saat akan mengkonfirmasi
+                this.closeModal('modal-downtime-list');
+                
+                document.getElementById('modal-resume-downtime').classList.remove('hide');
+                setTimeout(() => document.getElementById('btn-resume-yes').focus(), 100);
+            },
+
+            executeResumeDowntime: async function() {
+                let id = this.activeTaskTmpId;
+                let item = this.activeQueue.find(q => q.id === id); let now = Date.now();
+                let lastDt = item.downtimes[item.downtimes.length - 1];
+                lastDt.end = now; lastDt.duration = lastDt.end - lastDt.start;
+                let tot = item.totalDowntime + lastDt.duration;
+                await this.updateQueueDoc(id, { status: 'running', totalDowntime: tot, lastDowntimeStart: null, downtimes: item.downtimes, isGlobalPause: false });
+                this.closeModal('modal-resume-downtime');
+            },
+
+            confirmPending: async function() {
+                let reason = document.getElementById('pd-reason').value; let now = Date.now();
+                let item = this.activeQueue.find(q => q.id === this.activeTaskTmpId);
+                item.downtimes = item.downtimes || []; item.downtimes.push({ reason: `PENDING: ${reason}`, start: now, end: null, duration: 0 });
+                await this.updateQueueDoc(this.activeTaskTmpId, { status: 'pending', lastDowntimeStart: now, downtimes: item.downtimes, isGlobalPause: false });
+                this.closeModal('modal-pending'); this.closeModal('modal-downtime'); 
+            },
+
+            updatePendingCount: function() { document.getElementById('pending-count').innerText = this.activeQueue.filter(q => q.status === 'pending').length; },
+            
+            showPendingList: function() {
+                let pendings = this.activeQueue.filter(q => q.status === 'pending');
+                if(pendings.length === 0) { this.showToast("Tidak ada pending", "info"); return; }
+                const container = document.getElementById('pending-list-container'); container.innerHTML = '';
+                pendings.forEach(p => {
+                    let snDisplay = p.isBatch ? `<span class="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded text-[10px] mr-1">BATCH x${p.batchSize}</span> <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>` : `<span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>`;
+                    let lastDt = p.downtimes[p.downtimes.length-1];
+                    let pendingDurationStr = this.formatMs(Date.now() - lastDt.start); 
+
+                    let html = `
+                    <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-red-200 shadow-sm">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm font-mono">${p.noAssy} ${snDisplay}</div>
+                            <div class="text-[10px] text-slate-600 mt-1 font-semibold">${lastDt.reason}</div>
+                            <div class="text-[10px] text-red-500 font-bold font-timer mt-0.5">Waktu Pending: ${pendingDurationStr}</div>
+                        </div>
+                        <button onclick="app.resumePendingInit('${p.id}')" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjut Inisiasi</button>
+                    </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                document.getElementById('modal-pending-list').classList.remove('hide');
+                
+                if(this.pendingTimer) clearInterval(this.pendingTimer);
+                this.pendingTimer = setInterval(() => {
+                    if(!document.getElementById('modal-pending-list').classList.contains('hide')) this.showPendingList();
+                    else clearInterval(this.pendingTimer);
+                }, 1000);
+            },
+            
+            resumePendingInit: function(id) {
+                const item = this.activeQueue.find(q => q.id === id); if(!item) return;
+                this.closeModal('modal-pending-list'); this.scanDataTmp = item; this.resumePendingId = item.id;
+                let snDisplay = item.isBatch ? `BATCH (x${item.batchSize}) - ${item.sn}` : item.sn;
+                document.getElementById('init-assy').innerText = item.noAssy; document.getElementById('init-sn').innerText = snDisplay;
+                document.getElementById('init-cct').innerText = item.cct; document.getElementById('init-umh').innerText = item.baseUmh;
+                
+                document.getElementById('wp-input').value = item.wp; 
+                document.getElementById('init-line-select').value = item.targetLine;
+                
+                this.tempMps = [...item.mps];
+                this.renderTempMps(false);
+                document.getElementById('init-mp-input').value = '';
+                
+                document.getElementById('init-form-container').classList.remove('hide'); document.getElementById('init-mp-input').focus();
+                this.showToast("Silakan periksa atau tambah Manpower.", "info");
+            },
+
+            updateDowntimeCount: function() { 
+                let el = document.getElementById('dt-count');
+                if(el) el.innerText = this.activeQueue.filter(q => q.status === 'downtime' && !q.isGlobalPause).length; 
+            },
+            showDowntimeList: function() {
+                let dts = this.activeQueue.filter(q => q.status === 'downtime' && !q.isGlobalPause);
+                if(dts.length === 0) { 
+                    this.showToast("Tidak ada unit yang sedang Downtime", "info"); 
+                    document.getElementById('modal-downtime-list').classList.add('hide'); 
+                    return; 
+                }
+                const container = document.getElementById('downtime-list-container'); container.innerHTML = '';
+                dts.forEach(p => {
+                    let snDisplay = p.isBatch ? `<span class="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded text-[10px] mr-1">BATCH x${p.batchSize}</span> <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>` : `<span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>`;
+                    let lastDt = p.downtimes[p.downtimes.length-1];
+                    let dtDurationStr = this.formatMs(Date.now() - lastDt.start); 
+
+                    let html = `
+                    <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-200 shadow-sm">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm font-mono">${p.noAssy} ${snDisplay}</div>
+                            <div class="text-[10px] text-slate-600 mt-1 font-semibold">Kendala: <span class="text-amber-600 font-bold">${lastDt.reason}</span></div>
+                            <div class="text-[10px] text-amber-600 font-bold font-timer mt-0.5">Waktu Downtime: ${dtDurationStr}</div>
+                        </div>
+                        <button onclick="app.promptResumeDowntime('${p.id}')" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjutkan</button>
+                    </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                document.getElementById('modal-downtime-list').classList.remove('hide');
+                
+                if(this.downtimeTimer) clearInterval(this.downtimeTimer);
+                this.downtimeTimer = setInterval(() => {
+                    if(!document.getElementById('modal-downtime-list').classList.contains('hide')) this.showDowntimeList();
+                    else clearInterval(this.downtimeTimer);
+                }, 1000);
+            },
+
+            toggleAllLines: function(el) { document.querySelectorAll('.flt-cb-line').forEach(cb => cb.checked = el.checked); },
+            checkLineState: function() { let allChecked = Array.from(document.querySelectorAll('.flt-cb-line')).every(cb => cb.checked); document.getElementById('cb-line-all').checked = allChecked; },
+
+            fetchAdminData: async function() {
+                let shiftInput = document.getElementById('flt-shift').value;
+                if (!shiftInput) {
+                    this.showToast("Wajib memilih Shift terlebih dahulu!", "warning"); document.getElementById('flt-shift').focus(); return;
+                }
+
+                let startInput = document.getElementById('flt-date-start').value; 
+                let endInput = document.getElementById('flt-date-end').value;
+                if (!startInput) { startInput = this.getProductionDay(Date.now()); document.getElementById('flt-date-start').value = startInput; }
+                if (!endInput) { endInput = startInput; }
+
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+                if (checkedLines.length === 0) { this.showToast("Pilih minimal 1 Line!", "warning"); return; }
+
+                // BIKIN SIGNATURE UNTUK CACHE (Berdasarkan Tanggal & Line)
+                let fetchSignature = `${startInput}_${endInput}_${checkedLines.join(',')}`;
+
+                document.getElementById('admin-empty-state').classList.add('hide');
+
+                if(!this.db) { this.adminHistoryReports = this.historyReports; this.applyAdminFilter(); return; }
+
+                // CEK CACHE: Jika pencarian parameter Tanggal & Line sama persis, jangan memanggil Firebase lagi (hemat kuota)
+                if(this.lastAdminFetch === fetchSignature && this.adminHistoryReports.length > 0) {
+                    this.showToast("Menampilkan data Cache tersimpan...", "info");
+                    this.applyAdminFilter();
+                    return;
+                }
+
+                let loadingToast = document.createElement('div'); loadingToast.className = 'toast info'; loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data dari cloud...'; document.getElementById('toast-container').appendChild(loadingToast);
+
+                this.adminHistoryReports = [];
+                try {
+                    let startMs = new Date(startInput).setHours(0,0,0,0);
+                    let endMs = new Date(endInput).setHours(23,59,59,999);
+                    
+                    for (let line of checkedLines) {
+                        let lineKey = line.replace(/\s+/g, '_');
+                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`);
+                        let q = ref.where('finishedAt', '>=', startMs).where('finishedAt', '<=', endMs);
+                        let snap = await q.get();
+                        let lineData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        if(shiftInput !== 'ALL') { lineData = lineData.filter(d => d.shift === shiftInput); }
+                        this.adminHistoryReports.push(...lineData);
+                    }
+                    // SET CACHE TERCATAT
+                    this.lastAdminFetch = fetchSignature;
+                    this.applyAdminFilter();
+                } catch(e) { this.showToast("Gagal mengambil data admin", "error"); } finally { loadingToast.remove(); }
+            },
+
+            getFilteredReportsForAdmin: function() {
+                let startInput = document.getElementById('flt-date-start').value; 
+                let endInput = document.getElementById('flt-date-end').value;
+                let shiftInput = document.getElementById('flt-shift').value;
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+                
+                let filtered = this.adminHistoryReports || [];
+                
+                if(startInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) >= startInput); }
+                if(endInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) <= endInput); }
+                if(shiftInput !== 'ALL' && shiftInput !== "") { filtered = filtered.filter(h => h.shift === shiftInput); }
+                filtered = filtered.filter(h => checkedLines.includes(h.targetLine));
+                
+                return filtered;
+            },
+
+            applyAdminFilter: function() {
+                if(this.adminTab === 'overview') this.renderAdminOverview();
+                if(this.adminTab === 'leaderboard') this.renderAdminLeaderboard();
+                if(this.adminTab === 'transactions') this.renderAdminTransactions();
+                if(this.adminTab === 'rekapline') this.renderRekapLine();
+                if(this.adminTab === 'rekapmp') this.renderRekapMP();
+                if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
+                if(this.adminTab === 'mastermp_admin') this.renderMasterMPAdmin();
+            },
+
+            switchAdminTab: function(tabName) {
+                this.adminTab = tabName;
+                this.adminPageTrx = 1; this.adminPageMasAssy = 1; this.adminPageMasMP = 1; // Reset halaman
+                ['overview', 'leaderboard', 'rekapline', 'rekapmp', 'transactions', 'masterleader', 'masterline', 'masterassy_admin', 'mastermp_admin'].forEach(t => {
+                document.getElementById('tab-btn-' + t).classList.remove('admin-tab-active'); document.getElementById('admin-tab-' + t).classList.add('hide');
+                });
+                document.getElementById('tab-btn-' + tabName).classList.add('admin-tab-active'); document.getElementById('admin-tab-' + tabName).classList.remove('hide');
+
+                if(tabName === 'overview' || tabName === 'leaderboard') document.getElementById('filter-line-checkboxes').classList.remove('hide');
+                else document.getElementById('filter-line-checkboxes').classList.add('hide');
+
+                if (!document.getElementById('admin-empty-state').classList.contains('hide')) return; 
+                this.applyAdminFilter();
+            },
+
+            renderAdminOverview: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+
+                let totalCct = 0; let totalQty = 0; let uniqueAssys = new Set();
+                let lineStats = {};
+                
+                checkedLines.forEach(l => lineStats[l] = { cct: 0, qty: 0, assys: new Set() });
+
+                data.forEach(h => {
+                    let l = h.targetLine;
+                    if(lineStats[l]) {
+                        totalCct += h.cct; 
+                        totalQty += 1;
+                        uniqueAssys.add(h.noAssy);
+                        lineStats[l].cct += h.cct;
+                        lineStats[l].qty += 1;
+                        lineStats[l].assys.add(h.noAssy);
+                    }
+                });
+                
+                document.getElementById('ov-total-cct').innerText = totalCct.toLocaleString();
+                document.getElementById('ov-total-unit').innerText = totalQty.toLocaleString();
+                document.getElementById('ov-total-var').innerText = uniqueAssys.size.toLocaleString();
+
+                const container = document.getElementById('overview-line-cards'); container.innerHTML = '';
+                if(checkedLines.length === 0) { container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 italic">Silakan pilih minimal satu Line untuk menampilkan ringkasan.</div>`; return; }
+
+                checkedLines.sort().forEach(line => {
+                    let stats = lineStats[line];
+                    let lineTargetDay = app.masterLine.find(x => x.id === line)?.target || 0;
+                    
+                    let shiftInput = document.getElementById('flt-shift').value;
+                    let lineTarget = shiftInput === 'ALL' ? lineTargetDay : (lineTargetDay / 2);
+                    
+                    let percentage = lineTarget > 0 ? ((stats.cct / lineTarget) * 100).toFixed(1) : 0;
+                    let progressColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-500';
+
+                    let html = `
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-blue-500 flex flex-col transition-all hover:shadow-md">
+                            <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 text-sm uppercase tracking-wider">
+                                <i class="fas fa-industry text-blue-500 mr-2"></i> ${line}
+                            </h3>
+                            <div class="space-y-4 flex-1">
+                                <div class="flex justify-between items-center bg-indigo-50/50 px-3 py-2 rounded-lg border border-indigo-100 relative overflow-hidden">
+                                    <div class="absolute bottom-0 left-0 h-1.5 bg-indigo-200 w-full"><div class="h-full ${progressColor}" style="width: ${Math.min(percentage, 100)}%"></div></div>
+                                    <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide z-10">Output CCT</span>
+                                    <div class="text-right z-10">
+                                        <span class="text-xl font-black text-indigo-700">${stats.cct.toLocaleString()}</span>
+                                        <span class="text-[10px] text-slate-500 font-bold">/ ${lineTarget}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100">
+                                    <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Unit (QTY)</span>
+                                    <span class="text-lg font-bold text-emerald-700">${stats.qty.toLocaleString()}</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-amber-50/50 px-3 py-2 rounded-lg border border-amber-100">
+                                    <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Varian (ASSY)</span>
+                                    <span class="text-lg font-bold text-amber-700">${stats.assys.size.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            },
+
+            renderAdminLeaderboard: function() {
+                const lbContainer = document.getElementById('leaderboard-container'); 
+                const unitContainer = document.getElementById('unit-leaderboard-container');
+                const varContainer = document.getElementById('variant-leaderboard-container');
+                
+                let data = this.getFilteredReportsForAdmin(); let mpScores = {}; 
+                
+                data.forEach(h => {
+                    let mps = h.mps || [];
+                    if (mps.length === 0) return;
+                    let outputPerMP = h.cct / mps.length;
+                    
+                    mps.forEach(mp => {
+                        if (!mp) return;
+                        let id = mp.id || String(mp); let nama = mp.nama || '-';
+                        if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
+                        mpScores[id].cct += outputPerMP; mpScores[id].qty += 1; mpScores[id].assys.add(h.noAssy);
+                    });
+                });
+
+                const renderList = (container, sortedArray, valKey, valFormat, valLabel, iconColorClass) => {
+                    container.innerHTML = '';
+                    if(sortedArray.length === 0) { container.innerHTML = `<div class="text-center text-slate-400 italic mt-10">Data tidak ditemukan.</div>`; return; }
+                    sortedArray.forEach((mp, i) => {
+                        let rank = i===0 ? '<i class="fas fa-crown text-yellow-500"></i>' : (i===1 ? '<i class="fas fa-medal text-slate-400"></i>' : (i===2 ? '<i class="fas fa-medal text-orange-400"></i>' : i+1));
+                        let val = valKey === 'assys' ? mp.assys.size : mp[valKey];
+                        let formattedVal = valFormat === 'float' ? val.toFixed(1) : val;
+                        container.innerHTML += `
+                        <div class="flex justify-between items-center p-2 border-b text-sm hover:bg-slate-50 transition">
+                            <div class="flex gap-3 items-center">
+                                <span class="w-6 text-center font-bold text-slate-500">${rank}</span>
+                                <div><p class="font-bold text-slate-700">${mp.nama}</p><p class="text-[10px] text-slate-500 font-mono">${mp.id}</p></div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-black ${iconColorClass} text-lg leading-none">${formattedVal}</div>
+                                <div class="text-[8px] text-slate-400 uppercase font-bold mt-1">${valLabel}</div>
+                            </div>
+                        </div>`;
+                    });
+                };
+
+                let sortedCCT = Object.values(mpScores).sort((a,b) => b.cct - a.cct);
+                let sortedQTY = Object.values(mpScores).sort((a,b) => b.qty - a.qty);
+                let sortedVar = Object.values(mpScores).sort((a,b) => b.assys.size - a.assys.size);
+
+                renderList(lbContainer, sortedCCT, 'cct', 'float', 'Total CCT', 'text-indigo-600');
+                renderList(unitContainer, sortedQTY, 'qty', 'int', 'Unit Qty', 'text-emerald-600');
+                renderList(varContainer, sortedVar, 'assys', 'int', 'Varian', 'text-purple-600');
+            },
+
+            renderRekapLine: function() {
+                const container = document.getElementById('rekap-line-container'); let data = this.getFilteredReportsForAdmin();
+                let dateKeys = [...new Set(data.map(d => new Date(d.finishedAt).toISOString().split('T')[0]))].sort();
+                let pivot = {};
+                data.forEach(h => {
+                    let dKey = new Date(h.finishedAt).toISOString().split('T')[0];
+                    let line = h.targetLine || '-';
+                    if(!pivot[line]) pivot[line] = { total: 0 };
+                    if(!pivot[line][dKey]) pivot[line][dKey] = 0;
+                    pivot[line][dKey] += h.cct; pivot[line].total += h.cct;
+                });
+
+                let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max"><thead class="bg-slate-100 text-slate-600 shadow-sm border-b"><tr><th class="px-4 py-2 font-bold sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] w-48">Line Area</th>`;
+                dateKeys.forEach(dk => { html += `<th class="px-4 py-2 font-bold text-center border-r bg-slate-50">${this.formatDateShort(new Date(dk))}</th>`; });
+                html += `<th class="px-4 py-2 font-bold text-right bg-indigo-100 sticky right-0 z-10 shadow-[-2px_0_5px_rgba(0,0,0,0.05)]">Total Output</th></tr></thead><tbody class="bg-white divide-y divide-slate-100">`;
+                
+                Object.keys(pivot).sort().forEach(line => {
+                    html += `<tr class="hover:bg-blue-50"><td class="px-4 py-2 font-bold sticky left-0 bg-white border-r z-0 w-48">${line}</td>`;
+                    dateKeys.forEach(dk => { html += `<td class="px-4 py-2 text-center border-r font-mono">${pivot[line][dk] ? pivot[line][dk].toFixed(1) : '-'}</td>`; });
+                    html += `<td class="px-4 py-2 font-black text-indigo-600 text-right bg-indigo-50 sticky right-0 z-0">${pivot[line].total.toFixed(1)}</td></tr>`;
+                });
+                html += `</tbody></table>`; container.innerHTML = html;
+            },
+
+            renderRekapMP: function() {
+                const container = document.getElementById('rekap-mp-container'); 
+                let data = this.getFilteredReportsForAdmin();
+                let dateKeys = [...new Set(data.map(d => new Date(d.finishedAt).toISOString().split('T')[0]))].sort();
+                
+                if (!this.rekapMpFilterVals) this.rekapMpFilterVals = { nama: '', line: '' };
+                
+                let fNama = (this.rekapMpFilterVals.nama || '').toLowerCase();
+                let fLine = (this.rekapMpFilterVals.line || '').toLowerCase();
+                
+                let pivot = {};
+                data.forEach(h => {
+                    let dKey = new Date(h.finishedAt).toISOString().split('T')[0];
+                    let mps = h.mps || [];
+                    if (mps.length === 0) return;
+                    let cctPerMP = h.cct / mps.length;
+                    
+                    mps.forEach(m => {
+                        if (!m) return;
+                        let mId = m.id || String(m); let mNama = m.nama || '-';
+                        let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
+                        let joinDate = mInfo.join_date || '-';
+                        let line = h.targetLine || '-';
+                        
+                        if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
+                        if(fLine && !line.toLowerCase().includes(fLine)) return;
+                        
+                        let pKey = `${mId}-${line}`;
+                        let targetUMH = h.baseUmh / mps.length;
+                        let rPct = h.durationMin > 0 ? (targetUMH / h.durationMin) * 100 : 0;
+                        
+                        if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: joinDate, line: line, total: 0, totRasio: 0, countTrx: 0 }; }
+                        if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
+                        pivot[pKey][dKey] += cctPerMP; pivot[pKey].total += cctPerMP;
+                        pivot[pKey].totRasio += rPct; pivot[pKey].countTrx += 1;                    });
+                });
+
+                let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max">
+                    <thead class="bg-slate-100 text-slate-600 shadow-sm border-b-2 border-slate-200">
+                        <tr>
+                            <th class="px-4 py-2 font-bold sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[16rem] align-top">
+                                <div class="mb-1">Manpower Detail</div>
+                                <div class="flex gap-2">
+                                    <input type="text" id="flt-rmp-nama" value="${this.rekapMpFilterVals.nama}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.nama=this.value; app.renderRekapMP()" placeholder="Filter Nama/NRP..." class="w-full text-[10px] p-1 border rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                    <input type="text" id="flt-rmp-line" value="${this.rekapMpFilterVals.line}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.line=this.value; app.renderRekapMP()" placeholder="Filter Line..." class="w-20 text-[10px] p-1 border rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                </div>
+                            </th>`;
+                dateKeys.forEach(dk => { html += `<th class="px-4 py-2 font-bold text-center border-r bg-slate-50 align-top"><div class="pt-4">${this.formatDateShort(new Date(dk))}</div></th>`; });
+                html += `<th class="px-4 py-2 font-bold text-right bg-indigo-100 sticky right-0 z-10 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] align-top"><div class="pt-4">Total Output</div></th></tr></thead><tbody class="bg-white divide-y divide-slate-100">`;
+                
+                if(Object.keys(pivot).length === 0) {
+                    html += `<tr><td colspan="${dateKeys.length + 2}" class="px-4 py-12 text-center text-slate-400 italic">Tidak ada data untuk rentang waktu/filter ini.</td></tr>`;
+                } else {
+                    Object.values(pivot).sort((a,b)=>b.total-a.total).forEach(m => {
+                        let mk = app.calculateMasaKerja(m.join_date);
+                        let avgR = (m.totRasio / (m.countTrx || 1)).toFixed(1);
+                        let rCol = avgR >= 100 ? 'text-emerald-600' : 'text-red-600';
+                        html += `<tr class="hover:bg-blue-50"><td class="px-4 py-2 sticky left-0 bg-white border-r z-0 w-64"><div class="font-bold">${m.nama || '-'}</div><div class="text-[9px] text-slate-500 mt-0.5"><span class="font-mono bg-slate-100 px-1 rounded">${m.id || '-'}</span> | Line: <span class="font-bold text-slate-700">${m.line || '-'}</span> | MK: <span class="text-teal-600 font-bold">${mk || '-'}</span> | Rasio: <span class="${rCol} font-black">${avgR}%</span></div></td>`;
+                        dateKeys.forEach(dk => { html += `<td class="px-4 py-2 text-center border-r font-mono">${m[dk] ? m[dk].toFixed(1) : '-'}</td>`; });
+                        html += `<td class="px-4 py-2 font-black text-indigo-600 text-right bg-indigo-50 sticky right-0 z-0">${m.total.toFixed(1)}</td></tr>`;
+                    });
+                }
+                html += `</tbody></table>`; 
+                container.innerHTML = html;
+                
+                if(document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('flt-rmp')) {
+                    let focusedId = document.activeElement.id;
+                    setTimeout(() => { let el = document.getElementById(focusedId); if(el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
+                }
+            },
+
+            calculateMasaKerja: function(jd) {
+                if(!jd || jd==='-') return '-'; let d = new Date(jd); if(isNaN(d)) return '-';
+                let dif = Math.ceil(Math.abs(new Date() - d) / 86400000); let y = Math.floor(dif/365); let m = Math.floor((dif%365)/30);
+                if(y>0) return `${y}Thn ${m}Bln`; if(m>0) return `${m}Bln`; return `${dif}Hr`;
+            },
+
+            renderAdminTransactions: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let fSnSearch = (document.getElementById('admin-trx-search')?.value || '').toLowerCase();
+                let fShift = (document.getElementById('flt-col-trx-shift')?.value || '').toLowerCase();
+                let fAssy = (document.getElementById('flt-col-trx-assy')?.value || '').toLowerCase();
+                let fLine = (document.getElementById('flt-col-trx-line')?.value || '').toLowerCase();
+                let fStatus = document.getElementById('flt-col-trx-status')?.value || '';
+
+                let filtered = data.filter(h => {
+                    let matchSn = h.sn.toLowerCase().includes(fSnSearch);
+                    let matchShift = `${h.shift} - ${h.leaderName||''}`.toLowerCase().includes(fShift);
+                    let matchAssy = h.noAssy.toLowerCase().includes(fAssy);
+                    let matchLine = (h.targetLine||'').toLowerCase().includes(fLine);
+                    let matchStatus = fStatus === '' || h.finalStatus === fStatus;
+                    return matchSn && matchShift && matchAssy && matchLine && matchStatus;
+                });
+
+                let totalData = filtered.length;
+                let maxPage = Math.ceil(totalData / 50) || 1;
+                if(this.adminPageTrx > maxPage) this.adminPageTrx = maxPage;
+                let paginated = filtered.slice((this.adminPageTrx - 1) * 50, this.adminPageTrx * 50);
+
+                const tbody = document.getElementById('admin-trx-tbody'); tbody.innerHTML = '';                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="px-3 py-8 text-center text-slate-400 italic">Data kosong sesuai filter pencarian.</td></tr>`;
+                    return;
+                }
+
+                paginated.forEach(h => {
+                    let mps = h.mps || [];
+                    let mpStr = mps.map(m => {
+                        if (!m) return '';
+                        let id = m.id || String(m);
+                        let nama = m.nama || '-';
+                        return `<b>${nama}</b> <span class="text-[9px]">(${id})</span>`;
+                    }).join('<br>');
+
+                    let dtHtml = ''; let pdHtml = '';
+                    if(h.downtimes && h.downtimes.length > 0) {
+                        h.downtimes.forEach(dt => { 
+                            if(dt.duration > 0) {
+                                if(dt.reason.startsWith('PENDING:')) {
+                                    pdHtml += `<div class="text-[9px] border-b border-dashed border-red-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason.replace('PENDING: ','')}</span>: ${this.formatMs(dt.duration)}</div>`;
+                                } else {
+                                    dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`;
+                                }
+                            }
+                        });
+                    }
+                    if(!dtHtml) dtHtml = '<span class="text-slate-300">-</span>';
+                    if(!pdHtml) pdHtml = '<span class="text-slate-300">-</span>';
+                    
+                    let statClass = h.finalStatus === 'OK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+                    let tr = `<tr class="hover:bg-indigo-50 transition">
+                        <td class="px-3 py-2 border-r border-slate-100">${new Date(h.finishedAt).toLocaleString()}</td>
+                        <td class="px-3 py-2 border-r">${h.shift} - ${h.leaderName||'-'}</td>
+                        <td class="px-3 py-2 border-r font-mono font-bold text-blue-600">${h.sn}</td>
+                        <td class="px-3 py-2 border-r">${h.noAssy}</td>
+                        <td class="px-3 py-2 border-r leading-tight">${mpStr}</td>
+                        <td class="px-3 py-2 border-r font-bold text-slate-600 text-center">${h.targetLine}</td>
+                        <td class="px-3 py-2 border-r text-center">${mps.length>1 ? `<span class="font-bold text-indigo-600">${h.cct}</span><div class="text-[9px] text-slate-400">@ ${(h.cct/mps.length).toFixed(1)}</div>` : `<span class="font-bold text-indigo-600">${h.cct}</span>`}</td>
+                        <td class="px-3 py-2 border-r font-timer text-center">${h.durationMin.toFixed(2)}</td>
+                        <td class="px-3 py-2 border-r font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-100 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 border-r font-mono text-red-600">${pdHtml}<div class="font-bold text-red-700 mt-1 pt-1 border-t border-red-100 text-right">Tot: ${(h.pendingMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statClass} block mb-1">${h.finalStatus}</span></td>
+                        <td class="px-3 py-2 text-center"><button onclick="app.promptDeleteTrx('${h.id}', '${h.sn}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', tr);
+                });
+
+                // Hapus pagination lama jika ada
+                let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove();
+                
+                let pageHtml = `<div id="admin-pagination-box" class="flex justify-between items-center p-3 text-xs bg-slate-50 border-t"><button onclick="app.adminPageTrx=Math.max(1, app.adminPageTrx-1); app.renderAdminTransactions()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Prev</button><span class="font-bold text-slate-500">Page ${this.adminPageTrx} of ${maxPage} (${totalData} Data)</span><button onclick="app.adminPageTrx=Math.min(${maxPage}, app.adminPageTrx+1); app.renderAdminTransactions()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Next</button></div>`;
+                tbody.parentElement.insertAdjacentHTML('afterend', pageHtml);            },
+
+            openMasterDataModal: function() {
+                document.getElementById('modal-master-data').classList.remove('hide');
+                this.renderMasterAssy();
+                this.renderMasterMP();
+                this.renderMasterLeader();
+                this.renderMasterLine();
+            },
+            
+            renderMasterAssyAdmin: function() {
+                let src = document.getElementById('src-mas-assy-admin').value.trim().toUpperCase();
+                const tb = document.getElementById('master-assy-admin-tbody'); 
+                let filtered = this.masterAssy.filter(a => a.no_assy.toUpperCase().includes(src));
+                
+                let totalData = filtered.length;
+                let maxPage = Math.ceil(totalData / 50) || 1;
+                if(this.adminPageMasAssy > maxPage) this.adminPageMasAssy = maxPage;
+                let paginated = filtered.slice((this.adminPageMasAssy - 1) * 50, this.adminPageMasAssy * 50);
+
+                let html = '';
+                paginated.forEach(a => {
+                    html += `<tr><td class="px-4 py-2 font-mono font-bold text-blue-600">${a.no_assy}</td><td class="px-4 py-2 font-mono">${a.cct}</td><td class="px-4 py-2 font-mono">${a.umh}</td><td class="px-4 py-2 text-[10px] text-slate-400">${a.last_edited||'-'}</td><td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('ASSY','${a.no_assy}')" class="text-blue-500 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('ASSY','${a.no_assy}')" class="text-red-400 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+                tb.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center italic text-slate-400">Data tidak ditemukan</td></tr>';
+
+                let oldPage = document.getElementById('admin-mas-assy-page'); if(oldPage) oldPage.remove();
+                if (totalData > 0) {
+                    let pageHtml = `<div id="admin-mas-assy-page" class="flex justify-between items-center p-3 text-xs bg-slate-50 border-t"><button onclick="app.adminPageMasAssy=Math.max(1, app.adminPageMasAssy-1); app.renderMasterAssyAdmin()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Prev</button><span class="font-bold text-slate-500">Page ${this.adminPageMasAssy} of ${maxPage} (${totalData} Data)</span><button onclick="app.adminPageMasAssy=Math.min(${maxPage}, app.adminPageMasAssy+1); app.renderMasterAssyAdmin()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Next</button></div>`;
+                    tb.parentElement.insertAdjacentHTML('afterend', pageHtml);
+                }
+            },
+
+            renderMasterMPAdmin: function() {
+                let src = document.getElementById('src-mas-mp-admin').value.trim().toLowerCase();
+                const tb = document.getElementById('master-mp-admin-tbody'); 
+                let filtered = this.masterMP.filter(m => m.id.toLowerCase().includes(src) || m.nama.toLowerCase().includes(src));
+                
+                let totalData = filtered.length;
+                let maxPage = Math.ceil(totalData / 50) || 1;
+                if(this.adminPageMasMP > maxPage) this.adminPageMasMP = maxPage;
+                let paginated = filtered.slice((this.adminPageMasMP - 1) * 50, this.adminPageMasMP * 50);
+
+                let html = '';
+                paginated.forEach(m => {
+                    html += `<tr><td class="px-4 py-2 font-mono font-bold text-blue-600">${m.id}</td><td class="px-4 py-2 font-mono">${m.nama}</td><td class="px-4 py-2 font-mono">${m.join_date || '-'}</td><td class="px-4 py-2 text-[10px] text-slate-400">${m.last_edited||'-'}</td><td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('MP','${m.id}')" class="text-blue-500 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('MP','${m.id}')" class="text-red-400 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+                tb.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center italic text-slate-400">Data tidak ditemukan</td></tr>';
+
+                let oldPage = document.getElementById('admin-mas-mp-page'); if(oldPage) oldPage.remove();
+                if (totalData > 0) {
+                    let pageHtml = `<div id="admin-mas-mp-page" class="flex justify-between items-center p-3 text-xs bg-slate-50 border-t"><button onclick="app.adminPageMasMP=Math.max(1, app.adminPageMasMP-1); app.renderMasterMPAdmin()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Prev</button><span class="font-bold text-slate-500">Page ${this.adminPageMasMP} of ${maxPage} (${totalData} Data)</span><button onclick="app.adminPageMasMP=Math.min(${maxPage}, app.adminPageMasMP+1); app.renderMasterMPAdmin()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Next</button></div>`;
+                    tb.parentElement.insertAdjacentHTML('afterend', pageHtml);
+                }
+            },
+
+            renderMasterAssy: function() {
+                let src = document.getElementById('src-mas-assy').value.trim().toUpperCase();
+                const tb = document.getElementById('master-assy-tbody'); 
+                
+                let filtered = this.masterAssy;
+                if (src) {
+                    filtered = filtered.filter(a => a.no_assy.toUpperCase().includes(src));
+                }
+                
+                let displayData = filtered.slice(0, 50);
+                
+                if(displayData.length === 0) {
+                    tb.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Data Assy tidak ditemukan.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                displayData.forEach(a => {
+                    html += `<tr>
+                        <td class="px-4 py-2 font-mono font-bold text-blue-600">${a.no_assy}</td>
+                        <td class="px-4 py-2 font-mono">${a.cct}</td>
+                        <td class="px-4 py-2 font-mono">${a.umh}</td>
+                        <td class="px-4 py-2 text-[10px] text-slate-400">${a.last_edited||'-'}</td>
+                        <td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('ASSY','${a.no_assy}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('ASSY','${a.no_assy}')" class="text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;                
+                });
+                
+                if (filtered.length > 50) html += `<tr><td colspan="5" class="px-4 py-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-t">Menampilkan 50 dari ${filtered.length} data. Gunakan pencarian untuk lebih spesifik.</td></tr>`;
+                tb.innerHTML = html;
+            },
+
+            renderMasterMP: function() {
+                let src = document.getElementById('src-mas-mp').value.trim().toLowerCase();
+                const tb = document.getElementById('master-mp-tbody'); 
+                
+                let filtered = this.masterMP;
+                if (src) {
+                    filtered = filtered.filter(m => m.id.toLowerCase().includes(src) || m.nama.toLowerCase().includes(src));
+                }
+
+                let displayData = filtered.slice(0, 50);
+
+                if(displayData.length === 0) {
+                    tb.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Data MP tidak ditemukan.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                displayData.forEach(m => {
+                    html += `<tr>
+                        <td class="px-4 py-2 font-mono font-bold text-blue-600">${m.id}</td>
+                        <td class="px-4 py-2 font-mono">${m.nama}</td>
+                        <td class="px-4 py-2 font-mono">${m.join_date || '-'}</td>
+                        <td class="px-4 py-2 text-[10px] text-slate-400">${m.last_edited||'-'}</td>
+                        <td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('MP','${m.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('MP','${m.id}')" class="text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;                
+                });
+                
+                if (filtered.length > 50) html += `<tr><td colspan="5" class="px-4 py-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-t">Menampilkan 50 dari ${filtered.length} data. Gunakan pencarian untuk lebih spesifik.</td></tr>`;
+                tb.innerHTML = html;
+            },
+
+            renderMasterLeader: function() {
+                let src = document.getElementById('src-mas-leader').value.trim().toLowerCase();
+                const tb = document.getElementById('master-leader-tbody'); 
+                
+                let filtered = this.masterLeader;
+                if (src) {
+                    filtered = filtered.filter(l => l.lisensi.toLowerCase().includes(src) || l.nama.toLowerCase().includes(src));
+                }
+
+                let displayData = filtered.slice(0, 50);
+
+                if(displayData.length === 0) {
+                    tb.innerHTML = `<tr><td colspan="7" class="px-4 py-4 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Data Leader tidak ditemukan.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                displayData.forEach(l => {
+                    html += `<tr>
+                        <td class="px-4 py-2 font-mono font-bold text-blue-600">${l.lisensi}</td>
+                        <td class="px-4 py-2 font-mono">${l.pass}</td>
+                        <td class="px-4 py-2 font-mono">${l.nama}</td>
+                        <td class="px-4 py-2 font-mono">${l.line}</td>
+                        <td class="px-4 py-2 font-mono">${l.shift}</td>
+                        <td class="px-4 py-2 text-[10px] text-slate-400">${l.last_edited||'-'}</td>
+                        <td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('LEADER','${l.lisensi}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('LEADER','${l.lisensi}')" class="text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;                
+                });
+                
+                if (filtered.length > 50) html += `<tr><td colspan="7" class="px-4 py-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-t">Menampilkan 50 dari ${filtered.length} data. Gunakan pencarian untuk lebih spesifik.</td></tr>`;
+                tb.innerHTML = html;
+            },
+
+            renderMasterLine: function() {
+                let src = document.getElementById('src-mas-line').value.trim().toLowerCase();
+                const tb = document.getElementById('master-line-tbody'); 
+                
+                let filtered = this.masterLine;
+                if (src) {
+                    filtered = filtered.filter(l => l.id.toLowerCase().includes(src));
+                }
+
+                let displayData = filtered.slice(0, 50);
+
+                if(displayData.length === 0) {
+                    tb.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-xs text-slate-500 italic bg-slate-50 border-t">Data Line tidak ditemukan.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                displayData.forEach(l => {
+                    html += `<tr>
+                        <td class="px-4 py-2 font-mono font-bold text-blue-600">${l.id}</td>
+                        <td class="px-4 py-2 font-mono">${l.target || 0}</td>
+                        <td class="px-4 py-2 text-[10px] text-slate-400">${l.last_edited||'-'}</td>                        <td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('LINE','${l.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('LINE','${l.id}')" class="text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;                
+                });
+                
+                if (filtered.length > 50) html += `<tr><td colspan="3" class="px-4 py-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-t">Menampilkan 50 dari ${filtered.length} data. Gunakan pencarian untuk lebih spesifik.</td></tr>`;
+                tb.innerHTML = html;
+            },
+
+            saveInline: async function(type, id, field, newVal) {
+                let val = newVal.trim();
+                let dateStr = new Date().toISOString().split('T')[0];
+                let collName, idField, searchBoxId;
+
+                if(type==='ASSY') { idField = 'no_assy'; collName = 'master_assy'; searchBoxId = 'src-mas-assy'; if(field==='cct'||field==='umh') val = Number(val); }
+                if(type==='MP') { idField = 'id'; collName = 'master_mp'; searchBoxId = 'src-mas-mp'; }
+                if(type==='LEADER') { idField = 'lisensi'; collName = 'master_leader'; searchBoxId = 'src-mas-leader'; }
+                if(type==='LINE') { idField = 'id'; collName = 'master_line'; searchBoxId = 'src-mas-line'; if(field==='target') val = Number(val); }
+                
+                if (field === idField) {
+                    if(this.db) {
+                        try {
+                            const oldDoc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName).doc(id).get();
+                            if(oldDoc.exists) {
+                                let newObj = { ...oldDoc.data(), [field]: val, last_edited: dateStr };
+                                const batch = this.db.batch();
+                                const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
+                                batch.delete(pubRef.collection(collName).doc(id)); 
+                                batch.set(pubRef.collection(collName).doc(val), newObj); 
+                                await batch.commit();
+                            }
+                        } catch(e) { this.showToast("Gagal mengubah ID ke database", "error"); return; }
+                    } else {
+                        let arr = this['master' + (type === 'LEADER' ? 'Leader' : (type === 'MP' ? 'MP' : (type === 'ASSY' ? 'Assy' : 'Line')))];
+                        let idx = arr.findIndex(x => x[idField] === id);
+                        if (idx > -1) {
+                            arr[idx][field] = val;
+                            arr[idx].last_edited = dateStr;
+                            this.persistLocal('master'+type, arr);
+                        }
+                    }
+                    document.getElementById(searchBoxId).value = val;
+                    this.showToast("ID diperbarui dan tersimpan.", "success");
+                } else {
+                    if(this.db) {
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName).doc(id).update({ [field]: val, last_edited: dateStr });
+                        this.showToast("Data tersimpan otomatis ke Cloud.", "success");
+                    } else {
+                        let arr = this['master' + (type === 'LEADER' ? 'Leader' : (type === 'MP' ? 'MP' : (type === 'ASSY' ? 'Assy' : 'Line')))];
+                        let idx = arr.findIndex(x => x[idField] === id);
+                        if (idx > -1) {
+                            arr[idx][field] = val;
+                            arr[idx].last_edited = dateStr;
+                            this.persistLocal('master'+type, arr);
+                        }
+                        this.showToast("Data tersimpan ke Lokal.", "success");
+                    }
+                }
+                if (!this.db) {
+                    if(type==='ASSY') this.renderMasterAssy(); if(type==='MP') this.renderMasterMP(); 
+                    if(type==='LEADER') this.renderMasterLeader(); if(type==='LINE') this.renderMasterLine();
+                }
+            },
+            
+            openEditMasterModal: function(type, id) {
+                this.editTmp = { type, id };
+                let form = document.getElementById('edit-master-form');
+                if(type==='ASSY') { let item = this.masterAssy.find(x=>x.no_assy===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">ID ASSY</label><input type="text" id="e-id" value="${item.no_assy}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">CCT</label><input type="number" id="e-cct" value="${item.cct}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">UMH</label><input type="number" id="e-umh" value="${item.umh}" class="w-full border p-2 rounded text-sm"></div>`; }
+                else if(type==='MP') { let item = this.masterMP.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">NRP</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Join Date</label><input type="date" id="e-join" value="${item.join_date}" class="w-full border p-2 rounded text-sm"></div>`; }
+                else if(type==='LEADER') { let item = this.masterLeader.find(x=>x.lisensi===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">Lisensi</label><input type="text" id="e-id" value="${item.lisensi}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Password</label><input type="text" id="e-pass" value="${item.pass}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Line</label><input type="text" id="e-line" value="${item.line}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Shift</label><input type="text" id="e-shift" value="${item.shift}" class="w-full border p-2 rounded text-sm"></div>`; }
+                else if(type==='LINE') { let item = this.masterLine.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">ID Line</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Target CCT / Hari</label><input type="number" id="e-target" value="${item.target}" class="w-full border p-2 rounded text-sm"></div>`; }
+                document.getElementById('modal-edit-master').classList.remove('hide');
+            },
+            
+            saveEditMaster: async function() {
+                let t = this.editTmp.type; 
+                let oldId = this.editTmp.id;
+                let newId = document.getElementById('e-id').value.trim().toUpperCase();
+                
+                if(!newId) { this.showToast("ID tidak boleh kosong!", "warning"); return; }
+                
+                let dateStr = new Date().toISOString().split('T')[0];
+                let nObj = {}; 
+                let collName = ''; 
+                let idField = '';
+
+                // LOGIKA FIX: Pastikan nObj mengambil field yang benar agar tidak saling tertimpa
+                if(t==='ASSY') { 
+                    idField='no_assy'; 
+                    nObj = { 
+                        no_assy: newId, 
+                        cct: Number(document.getElementById('e-cct').value), 
+                        umh: Number(document.getElementById('e-umh').value), 
+                        last_edited: dateStr 
+                    }; 
+                    collName = 'master_assy'; 
+                }
+                else if(t==='MP') { 
+                    idField='id'; 
+                    nObj = { 
+                        id: newId, 
+                        nama: document.getElementById('e-nama').value, 
+                        join_date: document.getElementById('e-join').value, // Ambil dari input date khusus join_date
+                        last_edited: dateStr 
+                    }; 
+                    collName = 'master_mp'; 
+                }
+                else if(t==='LEADER') { 
+                    idField='lisensi'; 
+                    nObj = { 
+                        lisensi: newId, 
+                        pass: document.getElementById('e-pass').value, 
+                        nama: document.getElementById('e-nama').value, 
+                        line: document.getElementById('e-line').value, 
+                        shift: document.getElementById('e-shift').value, 
+                        last_edited: dateStr 
+                    }; 
+                    collName = 'master_leader'; 
+                }
+                else if(t==='LINE') { 
+                    idField='id'; 
+                    nObj = { 
+                        id: newId, 
+                        target: Number(document.getElementById('e-target').value), // FIX: Target line sekarang menggunakan Number
+                        last_edited: dateStr 
+                    }; 
+                    collName = 'master_line'; 
+                }
+
+                let safeOldId = String(oldId).replace(/\//g, '_');
+                let safeNewId = String(newId).replace(/\//g, '_');
+
+                if(this.db) {
+                    try {
+                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName);
+                        
+                        // AUTO SAVE KE CLOUD: Jika ID Berubah, hapus yang lama, set yang baru.
+                        if(safeOldId !== safeNewId) {
+                            let batch = this.db.batch();
+                            batch.set(ref.doc(safeNewId), nObj);
+                            batch.delete(ref.doc(safeOldId));
+                            await batch.commit();
+                        } else {
+                            // Jika ID tetap, cukup update isinya
+                            await ref.doc(safeNewId).update(nObj);
+                        }
+                        this.showToast(`Data ${newId} tersimpan di cloud.`, "success");
+                    } catch(e) { 
+                        console.error(e);
+                        this.showToast("Gagal sinkronisasi ke server.", "error"); 
+                        return; 
+                    }
+                } else {
+                    // Fallback Lokal
+                    let arrName = 'master' + (t === 'LEADER' ? 'Leader' : (t === 'MP' ? 'MP' : (t === 'ASSY' ? 'Assy' : 'Line')));
+                    let arr = this[arrName];
+                    let idx = arr.findIndex(x => (x.id || x.no_assy || x.lisensi) === oldId);
+                    if (idx > -1) { 
+                        arr.splice(idx, 1);
+                        arr.unshift(nObj);
+                        this.persistLocal(arrName, arr); 
+                    }
+                }
+
+                this.closeModal('modal-edit-master');
+                
+                // Refresh Tampilan yang sedang aktif
+                if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
+                else if(this.adminTab === 'mastermp_admin') this.renderMasterMPAdmin();
+                else if(t==='ASSY') this.renderMasterAssy(); 
+                else if(t==='MP') this.renderMasterMP(); 
+                else if(t==='LEADER') this.renderMasterLeader(); 
+                else if(t==='LINE') this.renderMasterLine();
+            },
+
+            promptDeleteTrx: function(id, sn) {
+                let verif = prompt(`PERINGATAN! Ketik Serial Number berikut untuk menghapus permanen transaksi: ${sn}`);
+                if(verif !== sn) { this.showToast("SN tidak cocok, batal hapus.", "error"); return; }
+                this.executeDeleteTrx(id, sn);
+            },
+            executeDeleteTrx: async function(id, sn) {
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                if(!this.db) return;
+                try {
+                    let refTrx = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(id);
+                    let doc = await refTrx.get();
+                    if(doc.exists) {
+                        let data = doc.data();
+                        let batch = this.db.batch();
+                        batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`recycleLog_${lineKey}`).doc(id), data);
+                        batch.delete(refTrx);
+                        await batch.commit();
+                        this.showToast("Transaksi dipindah ke Recycle Log (dihapus).", "success");
+                        this.fetchAdminData();
+                    }
+                } catch(e) { this.showToast("Gagal menghapus transaksi.", "error"); }
+            },
+
+            openMasterAddModal: function(type, context = 'MASTER') {
+                this.modalAddContext = context;
+                if(type==='ASSY') { ['m-add-assy-no','m-add-assy-cct','m-add-assy-umh'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-assy').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-assy-no').focus(), 100); }
+                if(type==='MP') { ['m-add-mp-nrp','m-add-mp-nama','m-add-mp-join'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-mp').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-mp-nrp').focus(), 100); }
+                if(type==='LEADER') { ['m-add-ld-id','m-add-ld-pass','m-add-ld-nama','m-add-ld-line'].forEach(id=>document.getElementById(id).value=''); document.getElementById('m-add-ld-shift').value='A'; document.getElementById('modal-add-leader').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-ld-id').focus(), 100); }
+            },
+            saveNewMasterAssy: async function() {
+                let no = document.getElementById('m-add-assy-no').value.trim().toUpperCase(); let cct = document.getElementById('m-add-assy-cct').value; let umh = document.getElementById('m-add-assy-umh').value;
+                if(!no || !cct || !umh) { this.showToast("Isi semua data Assy!", "warning"); return; }
+                let newItem = { no_assy: no, cct: Number(cct), umh: Number(umh), last_edited: new Date().toISOString().split('T')[0] };
+                if (this.db) {
+                    let safeNo = no.replace(/\//g, '_');
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeNo).set(newItem);
+                }
+                else { this.masterAssy.unshift(newItem); this.persistLocal('masterAssy', this.masterAssy); this.renderMasterAssy(); }                this.closeModal('modal-add-assy'); this.showToast("Data Assy ditambahkan.", "success");
+            },
+            
+            saveNewMasterMP: async function() {
+                let nrp = document.getElementById('m-add-mp-nrp').value.trim().toUpperCase(); let nama = document.getElementById('m-add-mp-nama').value.trim(); let jd = document.getElementById('m-add-mp-join').value;
+                if(!nrp || !nama) { this.showToast("NRP dan Nama wajib diisi!", "warning"); return; }
+                let newItem = { id: nrp, nama: nama, join_date: jd || '-', shift: 'A', last_edited: new Date().toISOString().split('T')[0] };
+                
+                if (this.db) {
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_mp').doc(nrp).set(newItem);
+                } else {
+                    let existingIndex = this.masterMP.findIndex(m => m.id === nrp);
+                    if(existingIndex > -1) {
+                        this.masterMP[existingIndex] = newItem;
+                    } else {
+                        this.masterMP.unshift(newItem);
+                    }
+                    this.persistLocal('masterMP', this.masterMP); this.renderMasterMP(); 
+                }
+                
+                this.closeModal('modal-add-mp'); 
+                this.showToast("Data MP ditambahkan & tersimpan ke sistem.", "success");
+
+                if (this.modalAddContext === 'INIT' || this.modalAddContext === 'BATCH') {
+                    let isBatch = this.modalAddContext === 'BATCH';
+                    if(!this.tempMps.some(m => m.id === nrp) && this.tempMps.length < 10) {
+                        this.tempMps.push({ id: nrp, nama: nama });
+                        this.renderTempMps(isBatch);
+                        this.showToast(`${nama} berhasil dimasukkan ke daftar Tim!`, "success");
+                    }
+                    let inputId = isBatch ? 'b-mp-input' : 'init-mp-input';
+                    setTimeout(() => { document.getElementById(inputId).focus(); }, 100);
+                }
+                this.modalAddContext = 'MASTER';
+            },
+            
+            saveNewMasterLeader: async function() {
+                let id = document.getElementById('m-add-ld-id').value.trim().toUpperCase(); let pass = document.getElementById('m-add-ld-pass').value; let nama = document.getElementById('m-add-ld-nama').value; let line = document.getElementById('m-add-ld-line').value; let shift = document.getElementById('m-add-ld-shift').value;
+                if(!id || !pass || !nama || !line) { this.showToast("Semua kolom wajib diisi!", "warning"); return; }
+                let newItem = { lisensi: id, pass: pass, nama: nama, line: line, shift: shift, last_edited: new Date().toISOString().split('T')[0] };
+                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_leader').doc(id).set(newItem);
+                else { this.masterLeader.unshift(newItem); this.persistLocal('masterLeader', this.masterLeader); this.renderMasterLeader(); }
+                this.closeModal('modal-add-leader'); this.showToast("Otorisasi Leader ditambahkan.", "success");
+            },
+
+            delMaster: async function(type, id) {
+                if(!confirm(`Yakin ingin menghapus secara permanen data: ${id}?`)) return;
+                let collName;
+                if(type==='ASSY') collName = 'master_assy';
+                if(type==='MP') collName = 'master_mp';
+                if(type==='LEADER') collName = 'master_leader';
+                if(type==='LINE') collName = 'master_line';
+
+                if(this.db) {
+                    let safeId = String(id).replace(/\//g, '_');
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName).doc(safeId).delete();
+                } else {
+                    if(type==='ASSY') { this.masterAssy = this.masterAssy.filter(x=>x.no_assy!==id); this.renderMasterAssy(); }
+                    if(type==='MP') { this.masterMP = this.masterMP.filter(x=>x.id!==id); this.renderMasterMP(); }
+                    if(type==='LEADER') { this.masterLeader = this.masterLeader.filter(x=>x.lisensi!==id); this.renderMasterLeader(); }
+                    this.persistLocal('master'+type, this['master'+type]);
+                }
+                this.showToast(`Data ${id} telah dihapus.`, "info");
+            },
+
+            openReportModal: function() {
+                let filterHtml = `<option value="${this.leader.line}">${this.leader.line} (Area Anda)</option>`;
+                let filterEl = document.getElementById('report-line-filter');
+                filterEl.innerHTML = filterHtml;
+                filterEl.disabled = true; 
+                filterEl.classList.add('cursor-not-allowed', 'text-teal-700', 'bg-teal-50'); 
+                
+                document.getElementById('modal-report').classList.remove('hide');
+                this.renderReportModal();
+            },
+
+            renderReportModal: function() {
+                const tbody = document.getElementById('report-modal-tbody'); const summaryContainer = document.getElementById('report-line-summary');
+                const filterLine = document.getElementById('report-line-filter').value;
+                
+                let currentProdDay = this.getProductionDay(Date.now());
+                let todayData = this.historyReports.filter(h => this.getProductionDay(h.finishedAt) === currentProdDay && h.shift === this.shift);
+                
+                let filterLeader = (document.getElementById('flt-col-rep-leader')?.value || '').toLowerCase();
+                let filterSn = (document.getElementById('flt-col-rep-sn')?.value || '').toLowerCase();
+                let filterAssy = (document.getElementById('flt-col-rep-assy')?.value || '').toLowerCase();
+                let filterStatus = document.getElementById('flt-col-rep-status')?.value || '';
+
+                let lineOutputAgg = {}; 
+                todayData.forEach(h => {
+                    let l = h.targetLine;
+                    if(!lineOutputAgg[l]) lineOutputAgg[l] = { cct: 0, qty: 0, assys: new Set() };
+                    lineOutputAgg[l].cct += h.cct; lineOutputAgg[l].qty += 1; lineOutputAgg[l].assys.add(h.noAssy);
+                });
+
+                tbody.innerHTML = '';
+                todayData.forEach(h => {
+                    let matchLeader = (h.leaderName || '').toLowerCase().includes(filterLeader);
+                    let matchSn = h.sn.toLowerCase().includes(filterSn);
+                    let matchAssy = h.noAssy.toLowerCase().includes(filterAssy);
+                    let matchStatus = filterStatus === '' || h.finalStatus === filterStatus;
+
+                    if((filterLine === 'ALL' || h.targetLine === filterLine) && matchLeader && matchSn && matchAssy && matchStatus) {
+                        let mps = h.mps || [];
+                        let mpStr = mps.map(m => {
+                            if (!m) return '';
+                            return m.nama || String(m);
+                        }).join(', ');
+                        
+                        let statClass = h.finalStatus === 'OK' ? 'text-emerald-600' : 'text-red-600';
+                        tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="px-4 py-2 font-bold text-slate-700">${h.leaderName || '-'}</td>
+                            <td class="px-4 py-2 font-mono text-blue-600">${h.sn}</td>
+                            <td class="px-4 py-2">${h.noAssy}</td>
+                            <td class="px-4 py-2 font-bold text-indigo-600 text-center">${h.cct}</td>
+                            <td class="px-4 py-2 font-bold text-slate-700">${h.targetLine}</td>
+                            <td class="px-4 py-2 truncate max-w-[150px]" title="${mpStr}">${mpStr}</td>
+                            <td class="px-4 py-2 font-timer">${h.durationMin.toFixed(2)}</td>
+                            <td class="px-4 py-2 font-mono text-amber-600 font-bold">${(h.downtimeMin || 0).toFixed(2)}</td>
+                            <td class="px-4 py-2 font-mono text-red-600 font-bold">${(h.pendingMin || 0).toFixed(2)}</td>
+                            <td class="px-4 py-2 font-bold ${statClass}">${h.finalStatus}</td>
+                        </tr>`;
+                    }
+                });
+
+                let summaryHtml = '';
+                for (const [line, data] of Object.entries(lineOutputAgg)) {
+                    let hl = (filterLine === line || filterLine === 'ALL') ? 'bg-white border-indigo-200 shadow-md' : 'bg-slate-50 border-slate-200 opacity-75';
+                    
+                    let lineMasterObj = app.masterLine.find(x => x.id === line) || initMasterDataLine.find(x => x.id === line);
+                    let lineTargetDay = lineMasterObj?.target || 0;
+                    let lineTargetShift = lineTargetDay / 2;
+                    
+                    let percentage = lineTargetShift > 0 ? ((data.cct / lineTargetShift) * 100).toFixed(1) : 0;
+                    let barColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-indigo-500';
+
+                    summaryHtml += `
+                    <div class="${hl} border rounded-xl p-3 flex flex-col transition-all relative overflow-hidden">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase border-b border-slate-100 pb-1 mb-2">${line}</span>
+                        <div class="flex justify-between items-end"><span class="text-[9px] text-slate-400">Pencapaian CCT</span><span class="text-sm font-bold text-indigo-700 leading-none">${data.cct.toFixed(0)} <span class="text-[9px] text-slate-400 font-medium">/ ${lineTargetShift}</span></span></div>
+                        <div class="w-full bg-slate-200 h-1.5 mt-1.5 rounded-full overflow-hidden"><div class="${barColor} h-full" style="width: ${Math.min(percentage, 100)}%"></div></div>
+                        <div class="flex justify-between items-center mt-1 mb-2"><span class="text-[8px] text-slate-400 uppercase font-bold">Persentase</span><span class="text-[10px] text-indigo-600 font-black">${percentage}%</span></div>
+                        
+                        <div class="flex justify-between items-end mt-auto pt-2 border-t border-slate-100"><span class="text-[9px] text-slate-400">Qty Unit</span><span class="text-sm font-bold text-slate-700 leading-none">${data.qty}</span></div>
+                        <div class="flex justify-between items-end mt-1"><span class="text-[9px] text-slate-400">Var. Assy</span><span class="text-sm font-bold text-slate-700 leading-none">${data.assys.size}</span></div>
+                    </div>`;
+                }
+                summaryContainer.innerHTML = summaryHtml || '<div class="col-span-full text-xs text-slate-400 italic">Belum ada output di shift ini.</div>';
+                if(tbody.innerHTML === '') tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 text-sm italic">Data kosong.</td></tr>`;
+            },
+            
+            exportDailyReport: function() {
+                let todayMs = new Date().setHours(0,0,0,0); let data = this.historyReports.filter(h => h.finishedAt >= todayMs);
+                if(data.length === 0) return;
+                
+                let exportData = data.map(h => {
+                    let mps = h.mps || [];
+                    let mp1 = mps[0] ? (mps[0].nama || String(mps[0])) : '-';
+                    let mp2 = mps[1] ? (mps[1].nama || String(mps[1])) : '-';
+                    let mp3 = mps.length > 2 ? mps.slice(2).map(m => m.nama || String(m)).join(' & ') : '-';
+                    
+                    return {
+                        "Tanggal": new Date(h.finishedAt).toLocaleString(),
+                        "Leader": h.leaderName || '-',
+                        "Serial Number": h.sn,
+                        "No Assy": h.noAssy,
+                        "Target Line": h.targetLine,
+                        "Total CCT": h.cct,
+                        "WP": String(h.wp),
+                        "MP 1": mp1,
+                        "MP 2": mp2,
+                        "MP 3 (Lainnya)": mp3,
+                        "Durasi (m)": Number(h.durationMin.toFixed(2)),
+                        "Downtime (m)": Number((h.downtimeMin || 0).toFixed(2)),
+                        "Status": h.finalStatus,
+                        "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-',
+                        "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-',
+                        "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
+                        "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-',
+                        "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-',
+                        "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
+                    };
+                });
+
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
+                XLSX.writeFile(wb, "Daily_Assembling_Report.xlsx");
+            },
+
+            exportCSV: function() {
+                let data = this.getFilteredReportsForAdmin(); if(data.length === 0) return;
+                let exportData = [];
+                
+                if (this.adminTab === 'rekapline' || this.adminTab === 'rekapmp') {
+                    this.showToast("Export rekapitulasi saat ini hanya mendukung tabel transaksi detail.", "warning");
+                    return; // Opsional: Bisa di kembangkan jika ingin format pivot ke json
+                }
+
+                if (this.adminTab === 'transactions') {
+                    // Pakai logika yang sama dengan admin transaksi view (Sudah difilter per page? tidak, ambil full filter)
+                    let fSnSearch = (document.getElementById('admin-trx-search')?.value || '').toLowerCase();
+                    let fShift = (document.getElementById('flt-col-trx-shift')?.value || '').toLowerCase();
+                    let fAssy = (document.getElementById('flt-col-trx-assy')?.value || '').toLowerCase();
+                    let fLine = (document.getElementById('flt-col-trx-line')?.value || '').toLowerCase();
+                    let fStatus = document.getElementById('flt-col-trx-status')?.value || '';
+
+                    let filtered = data.filter(h => {
+                        let matchSn = h.sn.toLowerCase().includes(fSnSearch);
+                        let matchShift = `${h.shift} - ${h.leaderName||''}`.toLowerCase().includes(fShift);
+                        let matchAssy = h.noAssy.toLowerCase().includes(fAssy);
+                        let matchLine = (h.targetLine||'').toLowerCase().includes(fLine);
+                        let matchStatus = fStatus === '' || h.finalStatus === fStatus;
+                        return matchSn && matchShift && matchAssy && matchLine && matchStatus;
+                    });
+
+                    exportData = filtered.map(h => {
+                        let mps = h.mps || [];
+                        let mp1 = mps[0] ? (mps[0].nama || String(mps[0])) : '-';
+                        let mp2 = mps[1] ? (mps[1].nama || String(mps[1])) : '-';
+                        let mp3 = mps.length > 2 ? mps.slice(2).map(m => m.nama || String(m)).join(' & ') : '-';
+                        
+                        return {
+                            "Tanggal": new Date(h.finishedAt).toLocaleString(), "Leader": h.leaderName || '-', "Serial Number": h.sn, "No Assy": h.noAssy,
+                            "Target Line": h.targetLine, "Total CCT": h.cct, "WP": String(h.wp), "MP 1": mp1, "MP 2": mp2, "MP 3 (Lainnya)": mp3,
+                            "Durasi (m)": Number(h.durationMin.toFixed(2)), "Downtime (m)": Number((h.downtimeMin || 0).toFixed(2)), "Status": h.finalStatus,
+                            "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-', "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-', "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
+                            "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-', "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-', "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
+                        };
+                    });
+                } else {
+                    this.showToast("Buka tab Transaksi untuk export data mentah CSV.", "info"); return;
+                }
+
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Admin Report");
+                XLSX.writeFile(wb, `Admin_Filtered_Report_${Date.now()}.xlsx`);
+            },
+
+            filterWpList: function(inputEl) {
+                const val = inputEl.value.toUpperCase();
+                const datalist = document.getElementById(inputEl.getAttribute('list'));
+                if (!datalist) return;
+                
+                if (val.length >= 1) {
+                    let filtered = this.validWpList.filter(wp => wp.startsWith(val));
+                    let html = '';
+                    filtered.forEach(wp => html += `<option value="${wp}">`);
+                    datalist.innerHTML = html;
+                } else {
+                    datalist.innerHTML = ''; 
+                }
+            },
+
+            openAdminAuth: function() {
+                document.getElementById('admin-auth-id').value = '';
+                document.getElementById('admin-auth-pass').value = '';
+                document.getElementById('modal-admin-auth').classList.remove('hide');
+                setTimeout(() => document.getElementById('admin-auth-id').focus(), 100);
+            },
+
+            verifyAdminAuth: function() {
+                let lisensi = document.getElementById('admin-auth-id').value.trim().toUpperCase();
+                let pass = document.getElementById('admin-auth-pass').value;
+
+                if (lisensi === this.leader.lisensi && pass === this.leader.pass) {
+                    let now = new Date();
+                    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                    let gmt7 = new Date(utc + (3600000 * 7));
+                    let h = gmt7.getHours();
+                    let isAllowed = (h >= 7 && h < 9) || (h >= 13 && h < 14) || (h >= 16 && h < 18) || (h >= 22 || h < 7);
+                    
+                    if (!isAllowed) {
+                        this.showToast("Akses Super Admin dikunci. Hanya dibuka jam 07-09, 13-14, 16-18, 22-07 WIB.", "error");
+                        return;
+                    }
+
+                    this.closeModal('modal-admin-auth');
+                    document.getElementById('main-dashboard').classList.add('hide');
+                    document.getElementById('admin-dashboard').classList.remove('hide');
+                    
+                    if(!document.getElementById('flt-date-start').value) {
+                        document.getElementById('flt-date-start').value = this.getProductionDay(Date.now());
+                    }
+
+                    // Logika Caching: Jika sudah ada data ter-display sebelumnya, langsung tampilkan tanpa loading state kosong
+                    if (this.adminHistoryReports && this.adminHistoryReports.length > 0) {
+                        document.getElementById('admin-empty-state').classList.add('hide');
+                        this.applyAdminFilter();
+                    } else {
+                        this.switchAdminTab('overview');
+                    }
+                    this.showToast("Akses Admin Diberikan", "success");
+                } else {
+                    this.showToast("Lisensi atau Password tidak cocok dengan sesi berjalan!", "error");
+                }
+            },
+
+            closeAdmin: function() { 
+                document.getElementById('admin-dashboard').classList.add('hide'); 
+                document.getElementById('main-dashboard').classList.remove('hide'); 
+                // Tidak ada lagi clear value login screen, karena admin dibuka dari main dashboard
+            },
+
+            closeModal: function(id) { document.getElementById(id).classList.add('hide'); },
+            
+            handleExcelUpload: function(event, type) {
+                const file = event.target.files[0]; if(!file) return;
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, {type: 'array'});
+                        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                        let sc = 0; let dStr = new Date().toISOString().split('T')[0];
+                        
+                        json.forEach(async row => {
+                            if(type === 'ASSY') {
+                                let no = row['ASSY'] || row['Assy']; let c = row['CCT'] || row['cct']; let u = row['UMH'] || row['umh'];
+                                if(no && c!==undefined && u!==undefined) {
+                                    let nObj = {no_assy: String(no).trim(), cct: Number(c), umh: Number(u), last_edited: dStr};
+                                    let safeAssy = nObj.no_assy.replace(/\//g, '_');
+                                    if (this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy).set(nObj);
+                                    sc++;
+                                }
+                            } else if(type === 'MP') {
+                                let id = row['NRP'] || row['ID']; let nm = row['Nama']; let jd = row['Join Date'] || '-';
+                                if(id && nm) {
+                                    let nObj = {id: String(id).trim().toUpperCase(), nama: String(nm), join_date: String(jd), last_edited: dStr};
+                                    if (this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_mp').doc(nObj.id).set(nObj);
+                                    sc++;
+                                }
+                            }
+                        });
+                        
+                        this.showToast(`Import ${sc} data ${type} ke Server telah berjalan!`, "info");
+                        event.target.value = ''; 
+                    } catch (err) { this.showToast("Gagal proses Excel.", "error"); }
+                }; reader.readAsArrayBuffer(file);
+            },
+
+            openManualInputModal: function() { ['manual-scan-trigger','manual-assy','manual-sn','manual-cct','manual-umh'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-manual').classList.remove('hide'); setTimeout(() => document.getElementById('manual-scan-trigger').focus(), 100); },
+            handleManualScanTrigger: function(val) { let tr=val.trim(); let s=tr.indexOf(' '); if(s===-1||tr.length<12){this.showToast("Format Salah","error");return;} document.getElementById('manual-assy').value=tr.substring(0,s); document.getElementById('manual-sn').value=tr.slice(-11); document.getElementById('manual-scan-trigger').value=''; this.showToast("Barcode terekstrak","success"); document.getElementById('manual-cct').focus(); },
+            
+            confirmManualInput: async function() {
+                let a=document.getElementById('manual-assy').value.trim().toUpperCase(); 
+                let s=document.getElementById('manual-sn').value.trim().toUpperCase();
+                let c=parseInt(document.getElementById('manual-cct').value); 
+                let u=parseInt(document.getElementById('manual-umh').value);
+                if(!a||!s||isNaN(c)||isNaN(u)) { this.showToast("Isi semua kolom", "warning"); return; }
+                this.closeModal('modal-manual');
+                
+                let newItem = { no_assy: a, cct: c, umh: u, last_edited: new Date().toISOString().split('T')[0] };
+                if(this.db) {
+                    let safeA = a.replace(/\//g, '_');
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeA).set(newItem);
+                    this.showToast("Assy baru tersimpan ke Database", "success");
+                } else {
+                    let idx = this.masterAssy.findIndex(x=>x.no_assy===a);
+                    if(idx>-1) this.masterAssy[idx] = newItem; else this.masterAssy.push(newItem);
+                    this.persistLocal('masterAssy', this.masterAssy);
+                }
+
+                this.scanDataTmp = {noAssy:a,sn:s,cct:c,umh:u};
+                document.getElementById('init-assy').innerText=a; document.getElementById('init-sn').innerText=s; document.getElementById('init-cct').innerText=c; document.getElementById('init-umh').innerText=u; document.getElementById('wp-input').value='';
+                
+                this.tempMps = []; this.renderTempMps(false); document.getElementById('init-mp-input').value = '';
+                
+                document.getElementById('init-form-container').classList.remove('hide'); document.getElementById('init-line-select').value=this.leader.line; document.getElementById('wp-input').focus();
+            },
+
+            openBatchMode: function() { document.getElementById('modal-batch').classList.remove('hide'); ['batch-scan-trigger','b-wp-input','b-mp-input'].forEach(id=>document.getElementById(id).value=''); ['batch-assy','batch-cct','batch-umh'].forEach(id=>document.getElementById(id).innerText='-'); this.batchItemsValid=[]; this.updateBatchUI(); this.tempMps = []; this.renderTempMps(true); setTimeout(() => document.getElementById('batch-scan-trigger').focus(), 100); },
+            
+            processBatchScan: async function(val) {
+                let tr=val.trim(); document.getElementById('batch-scan-trigger').value=''; let s=tr.indexOf(' '); if(s===-1||tr.length<12){this.showToast("Format invalid","error");return;}
+                let a=tr.substring(0,s); let sn=tr.slice(-11); let c=null,u=null;
+                
+                if(this.activeQueue.some(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn)) || this.historyReports.some(h => h.sn === sn)) { 
+                    this.showToast(`Serial ${sn} sudah diproses / ada di antrian!`, "error"); return; 
+                }
+
+                if(this.batchItemsValid.length===0){ 
+                    let d = this.masterAssy.find(x=>x.no_assy===a); 
+                    if(!d && this.db) {
+                        try {
+                            let safeA = a.replace(/\//g, '_');
+                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeA).get();                            if(doc.exists) { d = doc.data(); this.masterAssy.unshift(d); }
+                        } catch(e){}
+                    }
+                    if(!d){this.showToast("Assy tdk ada di master","error");return;} 
+                    
+                    if (d.cct > 100) {
+                        this.showToast(`Batch ditolak! CCT Assy (${d.cct}) lebih dari 100.`, "error");
+                        return;
+                    }
+                    
+                    c=d.cct; u=d.umh; document.getElementById('batch-assy').innerText=a; document.getElementById('batch-cct').innerText=c; document.getElementById('batch-umh').innerText=u; 
+                }
+                else if(a!==document.getElementById('batch-assy').innerText){this.showToast("Assy berbeda!","error");return;}
+                
+                if(this.batchItemsValid.some(v=>v.sn===sn)){this.showToast("Duplicate di list batch ini","error");return;}
+                this.batchItemsValid.push({noAssy:a,sn:sn}); this.updateBatchUI();
+            },
+            updateBatchUI: function() { let l=document.getElementById('batch-valid-list'); l.innerHTML=''; this.batchItemsValid.forEach(v=>{l.innerHTML+=`<div class="p-1 border-b flex justify-between"><span>${v.sn}</span> <span class="text-teal-600">Valid</span></div>`;}); document.getElementById('batch-count').innerText=this.batchItemsValid.length; document.getElementById('btn-batch-start').disabled=this.batchItemsValid.length===0; },
+            startBatch: async function() {
+                let w=document.getElementById('b-wp-input').value.toUpperCase(); 
+                let mps=[...this.tempMps]; 
+                let bData = { id:`BCH-${Date.now()}`, sn:this.batchItemsValid[0].sn, batchSNs:this.batchItemsValid.map(v=>v.sn), isBatch:true, batchSize:this.batchItemsValid.length, noAssy:this.batchItemsValid[0].noAssy, cct:parseInt(document.getElementById('batch-cct').innerText), baseUmh:parseInt(document.getElementById('batch-umh').innerText), wp:w, mps:mps, targetLine:document.getElementById('b-line-select').value, startTime:Date.now(), status:'running', totalDowntime:0, downtimes:[], lastDowntimeStart:null, isGlobalPause:false, shift:this.shift, leaderName:this.leader.nama };
+                this.closeModal('modal-confirm-start'); this.closeModal('modal-batch'); this.showToast(`Batch Started`,"success"); this.saveToQueue(bData);
+            },
+            updateQueueDoc: async function(id, data) { 
+                let lineKey = this.leader.line.replace(/\s+/g, '_');
+                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).update(data); 
+                else { let idx=this.activeQueue.findIndex(q=>q.id===id); if(idx>-1){this.activeQueue[idx]={...this.activeQueue[idx],...data}; this.persistLocal(`activeQueue_${lineKey}`,this.activeQueue); this.renderQueue();} } 
+            }
+        };
+
+        window.onload = () => app.init();
+
+    </script>
 
 </body>
 </html>
