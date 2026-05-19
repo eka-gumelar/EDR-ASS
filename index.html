@@ -262,9 +262,17 @@
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 2" onchange="app.checkLineState()"> L2</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 3" onchange="app.checkLineState()"> L3</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" onchange="app.checkLineState()"> L4</label>
-                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" onchange="app.checkLineState()"> L5</label>                </div>
-                <div class="flex-1 text-right">
-                    <button onclick="app.fetchAdminData(); app.fetchAdminTransactionsPage(false);" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-md uppercase tracking-wider active:scale-95 transition-transform"><i class="fas fa-tv mr-1"></i> Display Data</button>
+                    <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" onchange="app.checkLineState()"> L5</label>                
+                </div>
+                
+                <div class="flex-1 flex justify-end items-center gap-2">
+                    <button onclick="app.fetchAdminData(); app.fetchAdminTransactionsPage(true)" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fas fa-search"></i> Display Data
+                    </button>
+                    
+                    <button onclick="app.forceRefreshAdminData()" class="px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 font-bold rounded-lg shadow-sm transition flex items-center gap-2" title="Unduh ulang data terbaru dari server">
+                        <i class="fas fa-sync-alt"></i> Segarkan Data
+                    </button>
                 </div>
             </div>
 
@@ -344,17 +352,16 @@
                                 <thead class="bg-slate-100 text-slate-600 sticky top-0 z-20 shadow-sm border-b-2 border-slate-200">
                                     <tr class="align-top">
                                         <th class="px-3 py-2 font-bold w-24">Tanggal</th>
-                                        <th class="px-3 py-2 font-bold">Shift / Leader<br><input type="text" id="flt-col-trx-shift" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
                                         <th class="px-3 py-2 font-bold text-blue-600">Serial Number</th>
-                                        <th class="px-3 py-2 font-bold">No Assy<br><input type="text" id="flt-col-trx-assy" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold">No Assy<br><input type="text" id="flt-col-trx-assy" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-300 rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold text-slate-500">WP</th>
+                                        <th class="px-3 py-2 font-bold w-20">Line Output<br><input type="text" id="flt-col-trx-line" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-300 rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold w-20">Shift<br><input type="text" id="flt-col-trx-shift" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-300 rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
                                         <th class="px-3 py-2 font-bold">Manpower / Tim</th>
-                                        <th class="px-3 py-2 font-bold w-20">Line Output<br><input type="text" id="flt-col-trx-line" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
-                                        <th class="px-3 py-2 font-bold text-center">CCT</th>
-                                        <th class="px-3 py-2 font-bold text-center">Durasi (m)</th>
-                                        <th class="px-3 py-2 font-bold text-amber-600 w-40">Detail Downtime</th>
-                                        <th class="px-3 py-2 font-bold text-red-600 w-40">Detail Pending</th>
+                                        <th class="px-3 py-2 font-bold text-slate-600">Durasi (m)</th>
+                                        <th class="px-3 py-2 font-bold text-center">Rasio (%)</th>
                                         <th class="px-3 py-2 font-bold text-center w-16">Status</th>
-                                        <th class="px-3 py-2 font-bold text-center w-16">Aksi</th>
+                                        <th class="px-3 py-2 font-bold text-center w-24 text-amber-600">Aksi & Log</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-trx-tbody" class="text-slate-700 divide-y divide-slate-100 bg-white align-top"></tbody>
@@ -860,6 +867,10 @@
             lastTransactionDoc: null, 
             hasMoreTransactions: true,
             loadedAdminTransactions: [],
+            adminTransactionsCache: [], 
+            lastAdminCacheKey: "",      
+            displayLimitTrx: 50,        
+            // ---------------------------------------
             
             unsubQueue: null, unsubHistory: null, unsubGlobalState: null,
             unsubMasterAssy: null, unsubMasterMP: null, unsubMasterLeader: null, unsubMasterLine: null,
@@ -1622,86 +1633,86 @@
                     if(chkCount < 1) { document.getElementById('qc-error').innerText = "Form verifikasi kualitas tidak diselesaikan!"; return; }
                     const item = this.activeQueue.find(q => q.id === this.activeTaskTmpId); if(!item) return;
                     let qcData = { dim: qcEls[0].checked, mark: qcEls[1].checked, spot: qcEls[2].checked, clip: qcEls[3].checked, tap: qcEls[4].checked, tpo: qcEls[5].checked };
-                const now = Date.now();
-                
-                let totalDt = 0; let totalPd = 0;
-                if(item.downtimes) {
-                    item.downtimes.forEach(dt => {
-                        if(dt.reason.startsWith('PENDING:')) totalPd += dt.duration;
-                        else totalDt += dt.duration;
-                    });
+                    const now = Date.now();
+                    
+                    let totalDt = 0; let totalPd = 0;
+                    if(item.downtimes) {
+                        item.downtimes.forEach(dt => {
+                            if(dt.reason.startsWith('PENDING:')) totalPd += dt.duration;
+                            else totalDt += dt.duration;
+                        });
+                    }
+
+                    let activeMs = (now - item.startTime) - totalDt - totalPd; 
+                    let activeMin = activeMs / 60000;
+                    let dtMin = totalDt / 60000;
+                    let pdMin = totalPd / 60000;
+                    
+                    let batchMultiplier = item.isBatch ? item.batchSize : 1;
+                    let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
+                    
+                    let targetUmh = (item.baseUmh * batchMultiplier) / mpsLength; 
+                    let isOK = activeMin <= targetUmh; 
+                    
+                    let cctPerMp = item.cct / mpsLength; 
+                    let durationPerUnit = activeMin / batchMultiplier; 
+                    let dtPerUnit = dtMin / batchMultiplier;
+                    let pdPerUnit = pdMin / batchMultiplier;
+
+                    // FIX 1: Kalkulasi rasio performa yang sebelumnya hilang
+                    let rPct = durationPerUnit > 0 ? (targetUmh / durationPerUnit) * 100 : 0;
+
+                    let historyDataArray = [];
+                    let baseH = { ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
+                    if(item.isBatch) {
+                        item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
+                    } else { historyDataArray.push(baseH); }
+
+                    let lineKey = this.leader.line.replace(/\s+/g, '_');
+
+                    if(this.db) {
+                        const batch = this.db.batch();
+                        batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
+                        historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
+                        
+                        // --- STRATEGI HEMAT READS: BUKU BESAR (ROLLUP) HARIAN ---
+                        let dStr = this.getProductionDay(now);
+                        let rekapDocId = `${dStr}_${baseH.shift}`; 
+                        let rekapRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`).doc(rekapDocId);
+                        
+                        let inc = firebase.firestore.FieldValue.increment;
+                        let rekapUpdates = { date: dStr, shift: baseH.shift, targetLine: baseH.targetLine, totalCCT: inc(baseH.cct * batchMultiplier), totalQty: inc(batchMultiplier), assys: firebase.firestore.FieldValue.arrayUnion(baseH.noAssy) };
+                        (baseH.mps || []).forEach(m => {
+                            if(!m) return; let mId = m.id || String(m); rekapUpdates[`mp_${mId}_nama`] = m.nama || '-'; rekapUpdates[`mp_${mId}_cct`] = inc(cctPerMp * batchMultiplier); rekapUpdates[`mp_${mId}_trxCount`] = inc(batchMultiplier); rekapUpdates[`mp_${mId}_totRasio`] = inc(rPct * batchMultiplier);
+                        });
+                        batch.set(rekapRef, rekapUpdates, { merge: true });
+
+                        // --- ARSITEKTUR BUKU BESAR DETAIL (BUCKET PATTERN) ---
+                        let bucketRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`detail_harian_${lineKey}`).doc(rekapDocId);
+                        let detailTransaksiIni = {
+                            finishedAt: now, sn: baseH.sn, noAssy: baseH.noAssy, durationMin: baseH.durationMin, finalStatus: baseH.finalStatus,
+                            mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
+                            shift: baseH.shift, cct: baseH.cct || 0, baseUmh: baseH.baseUmh || 0, isBatch: baseH.isBatch || false, batchSize: baseH.batchSize || 1,
+                            wp: baseH.wp || item.wp || "" // Memastikan data WP ikut tersimpan
+                        };
+                        batch.set(bucketRef, {
+                            date: dStr, shift: baseH.shift, list: firebase.firestore.FieldValue.arrayUnion(detailTransaksiIni)
+                        }, { merge: true });
+                        
+                        await batch.commit();
+                    } else {
+                        this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
+                        historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
+                        this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); 
+                        this.persistLocal(`history_${lineKey}`, this.historyReports); 
+                        this.renderQueue();
+                    }
+
+                    this.closeModal('modal-qc'); this.showToast(`Finish: +${(cctPerMp * batchMultiplier).toFixed(1)} CCT/MP`, "success");
+                    document.getElementById('scan-out-input').focus();
+                } finally {
+                    setTimeout(() => { this.isProcessing = false; }, 1000);
                 }
-
-                let activeMs = (now - item.startTime) - totalDt - totalPd; 
-                let activeMin = activeMs / 60000;
-                let dtMin = totalDt / 60000;
-                let pdMin = totalPd / 60000;
-                
-                let batchMultiplier = item.isBatch ? item.batchSize : 1;
-                let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
-                
-                let targetUmh = (item.baseUmh * batchMultiplier) / mpsLength; 
-                let isOK = activeMin <= targetUmh; 
-                
-                let cctPerMp = item.cct / mpsLength; 
-                let durationPerUnit = activeMin / batchMultiplier; 
-                let dtPerUnit = dtMin / batchMultiplier;
-                let pdPerUnit = pdMin / batchMultiplier;
-
-                let historyDataArray = [];
-                let baseH = { ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
-                if(item.isBatch) {
-                    item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
-                } else { historyDataArray.push(baseH); }
-
-                let lineKey = this.leader.line.replace(/\s+/g, '_');
-
-                if(this.db) {
-                    const batch = this.db.batch();
-                    batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
-                    historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
-                    // --- STRATEGI HEMAT READS: BUKU BESAR (ROLLUP) HARIAN ---
-                    let dStr = this.getProductionDay(now);
-                    let rekapDocId = `${dStr}_${baseH.shift}`; // Pisahkan per shift agar filter shift admin tetap jalan
-                    let rekapRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`).doc(rekapDocId);
-                    let inc = firebase.firestore.FieldValue.increment;
-
-                    let rekapUpdates = {
-                        date: dStr,
-                        shift: baseH.shift,
-                        targetLine: item.targetLine,
-                        totalCCT: inc(baseH.cct * batchMultiplier),
-                        totalQty: inc(batchMultiplier),
-                        assys: firebase.firestore.FieldValue.arrayUnion(baseH.noAssy) // arrayUnion otomatis mencegah nama varian ganda
-                    };
-
-                    mps.forEach(m => {
-                        if(!m) return;
-                        let mId = m.id || String(m);
-                        rekapUpdates[`mp_${mId}_nama`] = m.nama || '-';
-                        rekapUpdates[`mp_${mId}_cct`] = inc(cctPerMp * batchMultiplier);
-                        rekapUpdates[`mp_${mId}_trxCount`] = inc(batchMultiplier);
-                        let targetUMH = baseH.baseUmh / mpsLength;
-                        let rPct = durationPerUnit > 0 ? (targetUMH / durationPerUnit) * 100 : 0;
-                        rekapUpdates[`mp_${mId}_totRasio`] = inc(rPct * batchMultiplier);
-                    });
-
-                    batch.set(rekapRef, rekapUpdates, { merge: true });
-                    // --- END BUKU BESAR ---
-                    await batch.commit();
-                } else {
-                    this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
-                    historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
-                    this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); 
-                    this.persistLocal(`history_${lineKey}`, this.historyReports); 
-                    this.renderQueue();
-                }
-
-                this.closeModal('modal-qc'); this.showToast(`Finish: +${(cctPerMp * batchMultiplier).toFixed(1)} CCT/MP`, "success");
-                document.getElementById('scan-out-input').focus();
-            } finally {
-                setTimeout(() => { this.isProcessing = false; }, 1000);
-            }
             },
             
             toggleIstirahat: async function() {
@@ -1878,46 +1889,73 @@
             toggleAllLines: function(el) { document.querySelectorAll('.flt-cb-line').forEach(cb => cb.checked = el.checked); },
             checkLineState: function() { let allChecked = Array.from(document.querySelectorAll('.flt-cb-line')).every(cb => cb.checked); document.getElementById('cb-line-all').checked = allChecked; },
 
+            // FUNGSI UNTUK MEMAKSA UNDUH ULANG DATA TERBARU
+            // FUNGSI UNTUK MEMAKSA UNDUH ULANG DATA TERBARU (DENGAN NOTIFIKASI SELESAI)
+            forceRefreshAdminData: async function() {
+                // 1. Hapus ingatan memori lokal (Cache Keys)
+                this.lastAdminFetch = "";
+                this.lastAdminCacheKey = "";
+                this.adminTransactionsCache = [];
+                
+                // 2. Munculkan notifikasi awal bahwa proses dimulai
+                this.showToast("Mereset memori. Mengambil data terbaru dari server...", "info");
+                
+                try {
+                    // 3. Gunakan 'await' agar JavaScript menunggu hingga proses unduh selesai 100%
+                    await this.fetchAdminData();
+                    await this.fetchAdminTransactionsPage(true);
+                    
+                    // 4. Tampilkan notifikasi sukses tepat setelah data berhasil dirender di layar
+                    this.showToast("Data berhasil diperbarui dari server!", "success");
+                    
+                } catch (error) {
+                    console.error(error);
+                    this.showToast("Gagal menyegarkan data dari server.", "error");
+                }
+            },
+
             fetchAdminData: async function() {
-                let shiftInput = document.getElementById('flt-shift').value;
+                // Mencegah filter tanggal kosong
+                let todayStr = this.getProductionDay(Date.now());
+                let startInput = document.getElementById('flt-date-start')?.value || todayStr;
+                let endInput = document.getElementById('flt-date-end')?.value || startInput; // Jika sampai tanggal kosong, samakan dengan start tanggal
+                let shiftInput = document.getElementById('flt-shift')?.value || "";
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+
                 if (!shiftInput) {
-                    this.showToast("Wajib memilih Shift terlebih dahulu!", "warning"); document.getElementById('flt-shift').focus(); return;
+                    this.showToast("Wajib pilih Shift terlebih dahulu!", "warning");
+                    return;
+                }
+                if (checkedLines.length === 0) {
+                    this.showToast("Pilih minimal 1 Line!", "warning");
+                    return;
                 }
 
-                let startInput = document.getElementById('flt-date-start').value; 
-                let endInput = document.getElementById('flt-date-end').value;
-                if (!startInput) { startInput = this.getProductionDay(Date.now()); document.getElementById('flt-date-start').value = startInput; }
-                if (!endInput) { endInput = startInput; }
-
-                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
-                if (checkedLines.length === 0) { this.showToast("Pilih minimal 1 Line!", "warning"); return; }
-
-                // BIKIN SIGNATURE UNTUK CACHE (Berdasarkan Tanggal & Line)
-                let fetchSignature = `${startInput}_${endInput}_${checkedLines.join(',')}`;
-
+                let fetchSignature = `${startInput}_${endInput}_${shiftInput}_${checkedLines.join(',')}`;
                 document.getElementById('admin-empty-state').classList.add('hide');
 
-                if(!this.db) { this.adminHistoryReports = this.historyReports; this.applyAdminFilter(); return; }
+                if(!this.db) { 
+                    this.adminHistoryReports = []; 
+                    this.applyAdminFilter(); 
+                    return; 
+                }
 
-                // CEK CACHE: Jika pencarian parameter Tanggal & Line sama persis, jangan memanggil Firebase lagi (hemat kuota)
                 if(this.lastAdminFetch === fetchSignature && this.adminHistoryReports.length > 0) {
-                    this.showToast("Menampilkan data Cache tersimpan...", "info");
                     this.applyAdminFilter();
                     return;
                 }
 
-                let loadingToast = document.createElement('div'); loadingToast.className = 'toast info'; loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data dari cloud...'; document.getElementById('toast-container').appendChild(loadingToast);
+                let loadingToast = document.createElement('div'); 
+                loadingToast.className = 'toast info'; 
+                loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data Rekap...'; 
+                document.getElementById('toast-container').appendChild(loadingToast);
 
                 this.adminHistoryReports = [];
                 try {
-                    let startMs = new Date(startInput).setHours(0,0,0,0);
-                    let endMs = new Date(endInput).setHours(23,59,59,999);
-                    
                     for (let line of checkedLines) {
                         let lineKey = line.replace(/\s+/g, '_');
                         let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`);
                         
-                        // Cari berdasarkan tanggal (Bukan milisecond timestamp)
                         let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
                         if (shiftInput !== 'ALL') q = q.where('shift', '==', shiftInput);
                         
@@ -1925,174 +1963,286 @@
                         let rekapData = snap.docs.map(doc => doc.data());
                         this.adminHistoryReports.push(...rekapData);
                     }
-                    // SET CACHE TERCATAT
                     this.lastAdminFetch = fetchSignature;
                     this.applyAdminFilter();
-                } catch(e) { this.showToast("Gagal mengambil data admin", "error"); } finally { loadingToast.remove(); }
+                } catch(e) { 
+                    this.showToast("Gagal mengambil data rekap", "error"); 
+                } finally { 
+                    loadingToast.remove(); 
+                }
             },
 
-            fetchAdminTransactionsPage: async function(isNextPage = false) {
+            fetchAdminTransactionsPage: async function(resetPage = false) {
+                // LOGIKA 7 PAGI - 7 PAGI: Otomatis membaca hari produksi berjalan
+                let todayStr = this.getProductionDay(Date.now());
+                let startInput = document.getElementById('flt-date-start')?.value || todayStr;
+                let endInput = document.getElementById('flt-date-end')?.value || startInput; 
+                let globalShift = document.getElementById('flt-shift')?.value || "ALL";
+                
                 let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
-                if (checkedLines.length === 0) { this.showToast("Pilih minimal 1 Line!", "warning"); return; }
-                
-                // Jika bukan halaman berikutnya (pencarian baru), reset kursor
-                if (!isNextPage) {
-                    this.lastTransactionDoc = null;
-                    this.hasMoreTransactions = true;
-                    this.loadedAdminTransactions = []; // Bersihkan cache lokal transaksi lama
-                    document.getElementById('admin-trx-tbody').innerHTML = ''; // Kosongkan tabel
-                    let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove(); // Hapus paginasi lokal lama
+                let loadBtn = document.getElementById('btn-load-more-trx'); // Kita akan menyembunyikan tombol lama ini
+                let tbody = document.getElementById('admin-trx-tbody');
+
+                if (checkedLines.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-slate-400 italic">Pilih minimal 1 Line untuk melihat transaksi.</td></tr>`;
+                    if(loadBtn) loadBtn.classList.add('hide');
+                    return;
                 }
 
-                if (!this.hasMoreTransactions) {
-                    this.showToast("Semua data sudah ditampilkan", "info"); return;
-                }
+                let currentCacheKey = `${startInput}|${endInput}|${globalShift}|${checkedLines.join(',')}`;
 
-                const loadBtn = document.getElementById('btn-load-more-trx');
-                if (loadBtn) loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
-
-                let shiftInput = document.getElementById('flt-shift').value;
-                let startInput = document.getElementById('flt-date-start').value || this.getProductionDay(Date.now());
-                let endInput = document.getElementById('flt-date-end').value || startInput;
-                
-                // Ambil Line pertama yang di-check untuk paginasi (Karena struktur DB terpisah per Line)
-                let lineKey = checkedLines[0].replace(/\s+/g, '_'); 
-
-                // --- JALUR OFFLINE / LOKAL JIKA FIREBASE DIMATIKAN ---
                 if (!this.db) {
-                    try {
-                        let filtered = this.getFilteredReportsForAdmin();
-                        // Tentukan dari titik mana data harus dipotong (untuk paginasi)
-                        let startIdx = isNextPage ? this.loadedAdminTransactions.length : 0;
-                        let paginated = filtered.slice(startIdx, startIdx + 50);
-
-                        if (paginated.length === 0 && !isNextPage) {
-                            document.getElementById('admin-trx-tbody').innerHTML = `<tr><td colspan="12" class="text-center p-5 text-slate-400 italic">Tidak ada data transaksi di lokal.</td></tr>`;
-                            this.hasMoreTransactions = false;
-                        } else {
-                            this.loadedAdminTransactions.push(...paginated);
-                            this.appendTransactionsToTable(paginated);
-                            this.hasMoreTransactions = (startIdx + 50) < filtered.length;
-                        }
-                    } catch (e) {
-                        this.showToast("Gagal memuat transaksi lokal", "error"); console.error(e);
-                    } finally {
-                        if (loadBtn) {
-                            loadBtn.innerHTML = this.hasMoreTransactions ? 'Muat 50 Transaksi Berikutnya' : 'Semua Data Ditampilkan';
-                            loadBtn.disabled = !this.hasMoreTransactions;
-                            if(!this.hasMoreTransactions) loadBtn.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
-                        }
-                    }
-                    return; // Hentikan eksekusi di sini agar tidak menjalankan kueri Firebase di bawah
+                    tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-slate-400 italic">Firebase dinonaktifkan (Mode Offline). Data cloud tidak dapat dimuat.</td></tr>`;
+                    if(loadBtn) loadBtn.classList.add('hide');
+                    return;
                 }
-                // --- END JALUR OFFLINE ---
 
-                try {
-                    let startMs = new Date(startInput).setHours(0,0,0,0);
-                    let endMs = new Date(endInput).setHours(23,59,59,999);
+                // =========================================================================
+                // FASE 1: PROSES UNDUH DOKUMEN BUCKET (Jika Filter Utama Berubah)
+                // =========================================================================
+                if (this.lastAdminCacheKey !== currentCacheKey) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="11" class="text-center p-10 bg-slate-50">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
+                                    <span class="text-xs font-semibold text-slate-500 animate-pulse">Mengunduh & merangkum dokumen detail dari Cloud...</span>
+                                </div>
+                            </td>
+                        </tr>`;
+                    if(loadBtn) loadBtn.classList.add('hide');
 
-                    // Kueri Server-Side dengan LIMIT 50
-                    let query = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data')
-                                       .collection(`history_${lineKey}`)
-                                       .where('finishedAt', '>=', startMs)
-                                       .where('finishedAt', '<=', endMs)
-                                       .orderBy('finishedAt', 'desc')
-                                       .limit(50);
+                    try {
+                        let compiledList = [];
 
-                    if (shiftInput && shiftInput !== 'ALL') {
-                        query = query.where('shift', '==', shiftInput);
+                        for (let line of checkedLines) {
+                            let lineKey = line.replace(/\s+/g, '_');
+                            let ref = this.db.collection('artifacts').doc(this.appId)
+                                                 .collection('public').doc('data')
+                                                 .collection(`detail_harian_${lineKey}`);
+                            
+                            let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
+                            if (globalShift !== 'ALL') {
+                                q = q.where('shift', '==', globalShift);
+                            }
+
+                            let snap = await q.get();
+                            snap.docs.forEach(doc => {
+                                let data = doc.data();
+                                if (data.list) {
+                                    compiledList.push(...data.list);
+                                }
+                            });
+                        }
+
+                        compiledList.sort((a, b) => {
+                            let tA = a.finishedAt?.seconds ? a.finishedAt.seconds * 1000 : new Date(a.finishedAt).getTime();
+                            let tB = b.finishedAt?.seconds ? b.finishedAt.seconds * 1000 : new Date(b.finishedAt).getTime();
+                            return tB - tA;
+                        });
+
+                        this.adminTransactionsCache = compiledList;
+                        this.lastAdminCacheKey = currentCacheKey;
+                        resetPage = true; // Paksa kembali ke halaman 1 jika unduh data baru
+
+                    } catch (error) {
+                        tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-red-500 font-bold">Gagal memuat data detail. Firebase mungkin Overquota.</td></tr>`;
+                        console.error(error);
+                        return;
                     }
+                }
 
-                    // Kursor Mulai Setelah Dokumen Terakhir
-                    if (isNextPage && this.lastTransactionDoc) {
-                        query = query.startAfter(this.lastTransactionDoc);
-                    }
+                // =========================================================================
+                // FASE 2: FILTER DATA LOKAL & PAGINASI HALAMAN
+                // =========================================================================
+                let searchTxt = (document.getElementById('admin-trx-search')?.value || "").trim().toLowerCase();
+                let fltShift = (document.getElementById('flt-col-trx-shift')?.value || "").trim().toLowerCase();
+                let fltAssy = (document.getElementById('flt-col-trx-assy')?.value || "").trim().toLowerCase();
+                let fltLine = (document.getElementById('flt-col-trx-line')?.value || "").trim().toLowerCase();
 
-                    const snap = await query.get();
+                // Kecerdasan Reset Paginasi: Jika Admin mengetik huruf baru di filter, paksa kembali ke Halaman 1
+                let currentFilterHash = `${searchTxt}|${fltShift}|${fltAssy}|${fltLine}`;
+                if (this.lastAdminFilterHash !== currentFilterHash || resetPage === true) {
+                    this.adminPageTrx = 1;
+                    this.lastAdminFilterHash = currentFilterHash;
+                }
 
-                    if (snap.empty) {
-                        this.hasMoreTransactions = false;
-                        if (!isNextPage) document.getElementById('admin-trx-tbody').innerHTML = `<tr><td colspan="11" class="text-center p-5 text-slate-400">Tidak ada data transaksi.</td></tr>`;
-                    } else {
-                        this.lastTransactionDoc = snap.docs[snap.docs.length - 1];
-                        let dataBatch = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        
-                        this.loadedAdminTransactions.push(...dataBatch); // Kunci data transaksi ke lokal untuk export 0 Reads
-                        this.appendTransactionsToTable(dataBatch); // Render data
+                let localFiltered = this.adminTransactionsCache.filter(item => {
+                    let matchSearch = !searchTxt || (item.sn || "").toLowerCase().includes(searchTxt);
+                    let matchShift = !fltShift || (item.shift || "").toLowerCase().includes(fltShift);
+                    let matchAssy = !fltAssy || (item.noAssy || "").toLowerCase().includes(fltAssy);
+                    let matchLine = !fltLine || (item.lineOutput || "").toLowerCase().includes(fltLine);
+                    return matchSearch && matchShift && matchAssy && matchLine;
+                });
 
-                        if (snap.docs.length < 50) this.hasMoreTransactions = false;
-                    }
-                } catch (error) {
-                    this.showToast("Gagal memuat transaksi", "error"); console.error(error);
-                } finally {
-                    if (loadBtn) {
-                        loadBtn.innerHTML = this.hasMoreTransactions ? 'Muat 50 Transaksi Berikutnya' : 'Semua Data Ditampilkan';
-                        loadBtn.disabled = !this.hasMoreTransactions;
-                        if(!this.hasMoreTransactions) loadBtn.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
-                    }
+                // FIX EXCEL: Simpan data yang sudah disaring ke variabel baru agar Excel bisa membacanya
+                this.currentFilteredTransactions = localFiltered;
+
+                if (localFiltered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-slate-400 italic">Tidak ada transaksi detail yang cocok dengan filter.</td></tr>`;
+                    if(loadBtn) loadBtn.classList.add('hide');
+                    let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove();
+                    return;
+                }
+
+                // Hitung Paginasi Logis
+                let totalData = localFiltered.length;
+                let maxPage = Math.ceil(totalData / 50) || 1;
+                if (this.adminPageTrx > maxPage) this.adminPageTrx = maxPage;
+                if (this.adminPageTrx < 1) this.adminPageTrx = 1;
+
+                // Potong hanya 50 data sesuai halaman saat ini
+                let paginatedData = localFiltered.slice((this.adminPageTrx - 1) * 50, this.adminPageTrx * 50);
+                
+                // Render Tabel
+                this.appendTransactionsToTable(paginatedData);
+
+                // Sembunyikan tombol Load More bawaan HTML
+                if(loadBtn) loadBtn.classList.add('hide');
+
+                // Sisipkan Baris Navigasi Halaman (Prev / Next)
+                let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove();
+                
+                let pageHtml = `
+                <div id="admin-pagination-box" class="flex justify-between items-center p-3 text-xs bg-slate-50 border-t w-full">
+                    <button onclick="app.adminPageTrx = Math.max(1, app.adminPageTrx - 1); app.fetchAdminTransactionsPage(false)" class="px-5 py-1.5 border border-slate-300 hover:bg-slate-200 rounded-lg bg-white shadow-sm font-bold text-slate-700 transition"><i class="fas fa-chevron-left mr-1"></i> Prev</button>
+                    <span class="font-bold text-slate-600 tracking-wide">Halaman <span class="text-blue-600 text-sm mx-1">${this.adminPageTrx}</span> dari ${maxPage} <span class="font-normal text-slate-400 ml-1">(${totalData} Data)</span></span>
+                    <button onclick="app.adminPageTrx = Math.min(${maxPage}, app.adminPageTrx + 1); app.fetchAdminTransactionsPage(false)" class="px-5 py-1.5 border border-slate-300 hover:bg-slate-200 rounded-lg bg-white shadow-sm font-bold text-slate-700 transition">Next <i class="fas fa-chevron-right ml-1"></i></button>
+                </div>`;
+                
+                tbody.parentElement.insertAdjacentHTML('afterend', pageHtml);
+            },
+
+            toggleDowntimeDetail: function(rowId) {
+                let el = document.getElementById(rowId);
+                if (el) {
+                    el.classList.toggle('hide');
                 }
             },
 
-            appendTransactionsToTable: function(dataBatch) {
-                const tbody = document.getElementById('admin-trx-tbody');
+            appendTransactionsToTable: function(paginatedData) {
+                let tbody = document.getElementById('admin-trx-tbody');
+                let html = "";
                 
-                dataBatch.forEach(h => {
-                    let mps = h.mps || [];
-                    let mpStr = mps.map(m => {
-                        if (!m) return '';
-                        let id = m.id || String(m); let nama = m.nama || '-';
-                        return `<b>${nama}</b> <span class="text-[9px]">(${id})</span>`;
-                    }).join('<br>');
+                paginatedData.forEach((item, index) => {
+                    let uniqueIdx = `dt-row-${Date.now()}-${index}`;
+                    let finishedTime = item.finishedAt?.seconds ? new Date(item.finishedAt.seconds * 1000) : new Date(item.finishedAt);
+                    let timeStr = finishedTime.toLocaleTimeString('id-ID');
+                    let dateStr = finishedTime.toISOString().split('T')[0];
+                    
+                    let lineName = item.lineOutput || item.targetLine || item.line || "-";
+                    let batchMultiplier = item.isBatch ? (item.batchSize || 1) : 1;
+                    let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
+                    
+                    let targetMin = ((item.baseUmh || 0) * batchMultiplier) / mpsLength;
+                    let targetTotalSec = Math.floor(targetMin * 60);
+                    let tarH = Math.floor(targetTotalSec / 3600);
+                    let tarM = Math.floor((targetTotalSec % 3600) / 60);
+                    let tarS = targetTotalSec % 60;
+                    let targetHms = `${String(tarH).padStart(2,'0')}:${String(tarM).padStart(2,'0')}:${String(tarS).padStart(2,'0')}`;
+                    
+                    let actualMin = item.durationMin || 0;
+                    let actualTotalSec = Math.floor(actualMin * 60);
+                    let actH = Math.floor(actualTotalSec / 3600);
+                    let actM = Math.floor((actualTotalSec % 3600) / 60);
+                    let actS = actualTotalSec % 60;
+                    let actualHms = `${String(actH).padStart(2,'0')}:${String(actM).padStart(2,'0')}:${String(actS).padStart(2,'0')}`;
+                    
+                    let ratioPct = actualMin > 0 ? (targetMin / actualMin) * 100 : 100;
+                    let ratioColor = ratioPct >= 100 ? "text-green-600 font-bold" : "text-red-500 font-bold";
+                    let opNames = (item.mps || []).map(m => m.nama || m).join(', ') || '-';
 
-                    let dtHtml = ''; let pdHtml = '';
-                    if(h.downtimes && h.downtimes.length > 0) {
-                        h.downtimes.forEach(dt => { 
-                            if(dt.duration > 0) {
-                                if(dt.reason.startsWith('PENDING:')) pdHtml += `<div class="text-[9px] border-b border-dashed border-red-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason.replace('PENDING: ','')}</span>: ${this.formatMs(dt.duration)}</div>`;
-                                else dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`;
+                    let totalDtMs = 0;
+                    let totalPdMs = 0;
+                    let breakdownHtml = "";
+
+                    if (item.downtimes && Array.isArray(item.downtimes)) {
+                        item.downtimes.forEach(dt => {
+                            let itemSec = Math.floor((dt.duration || 0) / 1000);
+                            let itemH = Math.floor(itemSec / 3600);
+                            let itemM = Math.floor((itemSec % 3600) / 60);
+                            let itemS = itemSec % 60;
+                            let itemHms = `${String(itemH).padStart(2,'0')}:${String(itemM).padStart(2,'0')}:${String(itemS).padStart(2,'0')}`;
+
+                            if (dt.reason.startsWith('PENDING:')) {
+                                totalPdMs += (dt.duration || 0);
+                                breakdownHtml += `<li class="text-amber-600 font-mono"><span class="font-semibold text-slate-500">[PENDING]</span> ${dt.reason.replace('PENDING:', '')} → <span class="font-bold">+${itemHms}</span></li>`;
+                            } else {
+                                totalDtMs += (dt.duration || 0);
+                                breakdownHtml += `<li class="text-red-500 font-mono"><span class="font-semibold text-slate-500">[DOWNTIME]</span> ${dt.reason} → <span class="font-bold">+${itemHms}</span></li>`;
                             }
                         });
                     }
-                    if(!dtHtml) dtHtml = '<span class="text-slate-300">-</span>';
-                    if(!pdHtml) pdHtml = '<span class="text-slate-300">-</span>';
-                    
-                    let statClass = h.finalStatus === 'OK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
-                    let cctDisplay = mps.length > 1 
-                        ? `<span class="font-bold text-indigo-600">${h.cct}</span><div class="text-[9px] text-slate-400">@ ${(h.cct/mps.length).toFixed(1)}</div>` 
-                        : `<span class="font-bold text-indigo-600">${h.cct}</span>`;
 
-                    let tr = `
-                    <tr class="hover:bg-indigo-50 transition">
-                        <td class="px-3 py-2 border-r border-slate-100">${new Date(h.finishedAt).toLocaleString()}</td>
-                        <td class="px-3 py-2 border-r">${h.shift} - ${h.leaderName||'-'}</td>
-                        <td class="px-3 py-2 border-r font-mono font-bold text-blue-600">${h.sn}</td>
-                        <td class="px-3 py-2 border-r">${h.noAssy}</td>
-                        <td class="px-3 py-2 border-r leading-tight">${mpStr}</td>
-                        <td class="px-3 py-2 border-r font-bold text-slate-600 text-center">${h.targetLine}</td>
-                        <td class="px-3 py-2 border-r text-center">${cctDisplay}</td>
-                        <td class="px-3 py-2 border-r font-timer text-center">${(h.durationMin || 0).toFixed(2)}</td>
-                        <td class="px-3 py-2 border-r font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-100 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
-                        <td class="px-3 py-2 border-r font-mono text-red-600">${pdHtml}<div class="font-bold text-red-700 mt-1 pt-1 border-t border-red-100 text-right">Tot: ${(h.pendingMin || 0).toFixed(2)}m</div></td>
-                        <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statClass}">${h.finalStatus}</span></td>
-                        <td class="px-3 py-2 text-center"><button onclick="app.promptDeleteTrx('${h.id}', '${h.sn}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200"><i class="fas fa-trash"></i></button></td>
-                    </tr>`;
-                    
-                    // Suntikkan tanpa me-refresh ulang seluruh tabel
-                    const tbody = document.getElementById('admin-trx-tbody');
-                    tbody.insertAdjacentHTML('beforeend', tr);
+                    if (breakdownHtml === "") breakdownHtml = `<li class="text-slate-400 italic text-[11px]">Tidak ada catatan downtime atau pending pada unit ini.</li>`;
+
+                    let totalLossSec = Math.floor((totalDtMs + totalPdMs) / 1000);
+                    let lossH = Math.floor(totalLossSec / 3600);
+                    let lossM = Math.floor((totalLossSec % 3600) / 60);
+                    let lossS = totalLossSec % 60;
+                    let hmsString = `${String(lossH).padStart(2,'0')}:${String(lossM).padStart(2,'0')}:${String(lossS).padStart(2,'0')}`;
+
+                    html += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 text-xs text-slate-700 transition">
+                            <td class="p-3 font-medium text-slate-500 border-r border-slate-100">${dateStr} <span class="text-[10px] block text-slate-400">${timeStr}</span></td>
+                            <td class="p-3 font-semibold text-blue-600 font-mono border-r border-slate-100">${item.sn || '-'}</td>
+                            <td class="p-3 font-medium text-slate-900 font-mono border-r border-slate-100">${item.noAssy || '-'}</td>
+                            <td class="p-3 bg-blue-50/50 font-bold text-slate-700 font-mono border-r border-slate-100">${item.wp || '-'}</td>
+                            <td class="p-3 text-center border-r border-slate-100"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[11px] font-medium">${lineName}</span></td>
+                            <td class="p-3 text-center font-mono font-medium border-r border-slate-100">${item.shift || '-'}</td>
+                            <td class="p-3 max-w-[150px] truncate border-r border-slate-100" title="${opNames}">${opNames}</td>
+                            <td class="p-3 bg-slate-50/50 border-r border-slate-100">
+                                <div class="flex flex-col gap-0.5 font-mono text-[11px]">
+                                    <div>Target: <span class="font-semibold text-slate-600">${targetHms}</span></div>
+                                    <div>Aktual: <span class="font-semibold text-slate-600">${actualHms}</span></div>
+                                </div>
+                            </td>
+                            <td class="p-3 text-center ${ratioColor} bg-slate-50/50 text-[12px] font-mono border-r border-slate-100">${ratioPct.toFixed(1)}%</td>
+                            <td class="p-3 text-center border-r border-slate-100">
+                                <span class="px-2 py-0.5 ${item.finalStatus === 'OK' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} rounded-full text-[10px] font-bold">
+                                    ${item.finalStatus || 'OK'}
+                                </span>
+                            </td>
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-1">
+                                    <button onclick="app.toggleDowntimeDetail('${uniqueIdx}')" class="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-700 rounded hover:bg-amber-100 transition shadow-sm flex items-center gap-1" title="Lihat Rincian Kendala">
+                                        <i class="fas fa-clock text-[10px]"></i> <span class="font-mono font-bold text-[10px]">${hmsString}</span>
+                                    </button>
+                                    <button onclick="app.promptDeleteTrx('${item.id}', '${item.sn}')" class="px-2 py-1 bg-red-50 border border-red-200 text-red-500 rounded hover:bg-red-100 hover:text-red-700 transition shadow-sm" title="Hapus Transaksi Permanen">
+                                        <i class="fas fa-trash text-[10px]"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="${uniqueIdx}" class="hide bg-slate-50 border-b border-slate-100">
+                            <td colspan="11" class="p-4 bg-amber-50/30">
+                                <div class="bg-white p-3 rounded-lg border border-amber-100/70 shadow-inner max-w-2xl">
+                                    <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <i class="fas fa-list text-amber-500"></i> Log Kronologi Kendala Kerja (Format JJ:MM:DD)
+                                    </div>
+                                    <ul class="list-disc list-inside space-y-1 text-xs text-slate-600 pl-1">
+                                        ${breakdownHtml}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
                 });
+
+                tbody.innerHTML = html; // Karena kita menggunakan paginasi "Prev/Next", tabel selalu di-replace
             },
 
             getFilteredReportsForAdmin: function() {
-                let startInput = document.getElementById('flt-date-start').value; 
-                let endInput = document.getElementById('flt-date-end').value;
-                let shiftInput = document.getElementById('flt-shift').value;
+                let startInput = document.getElementById('flt-date-start')?.value || ""; 
+                let endInput = document.getElementById('flt-date-end')?.value || "";
+                let shiftInput = document.getElementById('flt-shift')?.value || "ALL";
                 let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
                 
                 let filtered = this.adminHistoryReports || [];
                 
-                if(startInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) >= startInput); }
-                if(endInput) { filtered = filtered.filter(h => this.getProductionDay(h.finishedAt) <= endInput); }
+                // Perbaikan pencocokan data langsung menggunakan properti .date Buku Besar
+                if(startInput) { filtered = filtered.filter(h => h.date >= startInput); }
+                if(endInput) { filtered = filtered.filter(h => h.date <= endInput); }
                 if(shiftInput !== 'ALL' && shiftInput !== "") { filtered = filtered.filter(h => h.shift === shiftInput); }
                 filtered = filtered.filter(h => checkedLines.includes(h.targetLine));
                 
@@ -2267,7 +2417,7 @@
 
             renderRekapLine: function() {
                 const container = document.getElementById('rekap-line-container'); let data = this.getFilteredReportsForAdmin();
-                let dateKeys = [...new Set(data.map(d => new Date(d.finishedAt).toISOString().split('T')[0]))].sort();
+                let dateKeys = [...new Set(data.map(d => d.date))].sort();
                 let pivot = {};
                 data.forEach(day => {
                     let dKey = day.date;
@@ -2293,7 +2443,7 @@
             renderRekapMP: function() {
                 const container = document.getElementById('rekap-mp-container'); 
                 let data = this.getFilteredReportsForAdmin();
-                let dateKeys = [...new Set(data.map(d => new Date(d.finishedAt).toISOString().split('T')[0]))].sort();
+                let dateKeys = [...new Set(data.map(d => d.date))].sort();
                 
                 if (!this.rekapMpFilterVals) this.rekapMpFilterVals = { nama: '', line: '' };
                 
@@ -2982,42 +3132,57 @@
             },
             
             exportDailyReport: function() {
-                let todayMs = new Date().setHours(0,0,0,0); let data = this.historyReports.filter(h => h.finishedAt >= todayMs);
-                if(data.length === 0) return;
+                let todayMs = new Date().setHours(0,0,0,0); 
+                let data = this.historyReports.filter(h => h.finishedAt >= todayMs);
+                if(data.length === 0) {
+                    this.showToast("Tidak ada data untuk hari ini.", "warning"); return;
+                }
                 
-                let exportData = data.map(h => {
+                // MENGADOPSI FILTER DARI LAYAR AGAR EXCEL SAMA DENGAN TABEL YANG DILIHAT
+                let filterLine = document.getElementById('report-line-filter')?.value || 'ALL';
+                let filterLeader = (document.getElementById('flt-col-rep-leader')?.value || '').toLowerCase();
+                let filterSn = (document.getElementById('flt-col-rep-sn')?.value || '').toLowerCase();
+                let filterAssy = (document.getElementById('flt-col-rep-assy')?.value || '').toLowerCase();
+                let filterStatus = document.getElementById('flt-col-rep-status')?.value || '';
+
+                let filteredData = data.filter(h => {
+                    let matchLeader = (h.leaderName || '').toLowerCase().includes(filterLeader);
+                    let matchSn = h.sn.toLowerCase().includes(filterSn);
+                    let matchAssy = h.noAssy.toLowerCase().includes(filterAssy);
+                    let matchStatus = filterStatus === '' || h.finalStatus === filterStatus;
+                    let matchLine = filterLine === 'ALL' || h.targetLine === filterLine;
+                    return matchLeader && matchSn && matchAssy && matchStatus && matchLine;
+                });
+
+                if(filteredData.length === 0) {
+                    this.showToast("Tidak ada data yang cocok dengan filter saat ini.", "warning"); return;
+                }
+
+                let exportData = filteredData.map(h => {
                     let mps = h.mps || [];
-                    let mp1 = mps[0] ? (mps[0].nama || String(mps[0])) : '-';
-                    let mp2 = mps[1] ? (mps[1].nama || String(mps[1])) : '-';
-                    let mp3 = mps.length > 2 ? mps.slice(2).map(m => m.nama || String(m)).join(' & ') : '-';
+                    let mpStr = mps.map(m => m ? (m.nama || String(m)) : '-').join(', ');
                     
+                    // SUSUNAN KOLOM EXCEL (Persis 100% dengan tampilan Web Realtime Report Modal)
                     return {
-                        "Tanggal": new Date(h.finishedAt).toLocaleString(),
-                        "Leader": h.leaderName || '-',
+                        "Waktu Selesai": new Date(h.finishedAt).toLocaleString('id-ID'),
+                        "Leader Penanggungjawab": h.leaderName || '-',
                         "Serial Number": h.sn,
                         "No Assy": h.noAssy,
-                        "Target Line": h.targetLine,
-                        "Total CCT": h.cct,
-                        "WP": String(h.wp),
-                        "MP 1": mp1,
-                        "MP 2": mp2,
-                        "MP 3 (Lainnya)": mp3,
-                        "Durasi (m)": Number(h.durationMin.toFixed(2)),
+                        "Output CCT": h.cct,
+                        "Line Area": h.targetLine || '-',
+                        "MP Terlibat": mpStr,
+                        "Durasi Aktif (m)": Number((h.durationMin || 0).toFixed(2)),
                         "Downtime (m)": Number((h.downtimeMin || 0).toFixed(2)),
-                        "Status": h.finalStatus,
-                        "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-',
-                        "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-',
-                        "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
-                        "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-',
-                        "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-',
-                        "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
+                        "Pending (m)": Number((h.pendingMin || 0).toFixed(2)),
+                        "Status Target": h.finalStatus || '-'
                     };
                 });
 
                 let ws = XLSX.utils.json_to_sheet(exportData);
                 let wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
-                XLSX.writeFile(wb, "Daily_Assembling_Report.xlsx");
+                XLSX.writeFile(wb, `Daily_Assembling_Report_${Date.now()}.xlsx`);
+                this.showToast(`Export ${exportData.length} baris Real-time Report berhasil.`, "success");
             },
 
             exportOverviewExcel: function() {
@@ -3152,34 +3317,72 @@
             },
 
             exportTransactionsExcel: function() {
-                if(!this.loadedAdminTransactions || this.loadedAdminTransactions.length === 0) {
-                    this.showToast("Klik 'Display Data' terlebih dahulu untuk memuat data riwayat ke layar!", "warning"); return;
+                if(!this.currentFilteredTransactions || this.currentFilteredTransactions.length === 0) {
+                    this.showToast("Tidak ada data untuk diekspor. Pastikan filter/tanggal sudah benar.", "warning"); return;
                 }
                 
-                let exportData = this.loadedAdminTransactions.map(h => {
+                let exportData = this.currentFilteredTransactions.map(h => {
+                    // Ekstrak Nama MP
                     let mps = h.mps || [];
                     let mpStr = mps.map(m => m ? (m.nama || String(m)) : '-').join(', ');
-                    let dtStr = (h.downtimes || []).map(d => `${d.reason}: ${(d.duration/60000).toFixed(1)}m`).join(' | ');
                     
+                    // Format Tanggal dan Waktu
+                    let finishedTime = h.finishedAt?.seconds ? new Date(h.finishedAt.seconds * 1000) : new Date(h.finishedAt);
+                    let dateStr = finishedTime.toISOString().split('T')[0];
+                    let timeStr = finishedTime.toLocaleTimeString('id-ID');
+
+                    // Kalkulasi Durasi Target & Aktual (Format JJ:MM:DD persis seperti di web)
+                    let batchMultiplier = h.isBatch ? (h.batchSize || 1) : 1;
+                    let mpsLength = mps.length > 0 ? mps.length : 1;
+                    
+                    let targetMin = ((h.baseUmh || 0) * batchMultiplier) / mpsLength;
+                    let targetSec = Math.floor(targetMin * 60);
+                    let targetHms = `${String(Math.floor(targetSec/3600)).padStart(2,'0')}:${String(Math.floor((targetSec%3600)/60)).padStart(2,'0')}:${String(targetSec%60).padStart(2,'0')}`;
+                    
+                    let actualMin = h.durationMin || 0;
+                    let actualSec = Math.floor(actualMin * 60);
+                    let actualHms = `${String(Math.floor(actualSec/3600)).padStart(2,'0')}:${String(Math.floor((actualSec%3600)/60)).padStart(2,'0')}:${String(actualSec%60).padStart(2,'0')}`;
+                    
+                    // Rasio
+                    let ratioPct = actualMin > 0 ? (targetMin / actualMin) * 100 : 100;
+
+                    // Logika Breakdown Downtime & Pending
+                    let totalDtMs = 0; let totalPdMs = 0;
+                    let logKendala = [];
+                    if (h.downtimes && Array.isArray(h.downtimes)) {
+                        h.downtimes.forEach(dt => {
+                            let itemSec = Math.floor((dt.duration || 0) / 1000);
+                            let itemHms = `${String(Math.floor(itemSec/3600)).padStart(2,'0')}:${String(Math.floor((itemSec%3600)/60)).padStart(2,'0')}:${String(itemSec%60).padStart(2,'0')}`;
+                            if (dt.reason.startsWith('PENDING:')) {
+                                totalPdMs += (dt.duration || 0);
+                                logKendala.push(`[PENDING] ${dt.reason.replace('PENDING:', '')} (+${itemHms})`);
+                            } else {
+                                totalDtMs += (dt.duration || 0);
+                                logKendala.push(`[DOWNTIME] ${dt.reason} (+${itemHms})`);
+                            }
+                        });
+                    }
+                    let totalLossSec = Math.floor((totalDtMs + totalPdMs) / 1000);
+                    let lossHms = `${String(Math.floor(totalLossSec/3600)).padStart(2,'0')}:${String(Math.floor((totalLossSec%3600)/60)).padStart(2,'0')}:${String(totalLossSec%60).padStart(2,'0')}`;
+
+                    // SUSUNAN KOLOM EXCEL (Persis 100% dengan tampilan Web Detail Transactions)
                     return {
-                        "Waktu Selesai (Timestamp)": new Date(h.finishedAt).toLocaleString(),
-                        "Shift": h.shift,
-                        "Leader Penanggungjawab": h.leaderName || '-',
+                        "Tanggal": dateStr,
+                        "Waktu Selesai": timeStr,
                         "Serial Number": h.sn,
                         "No Assy": h.noAssy,
-                        "Line Output": h.targetLine,
-                        "Total Output CCT": h.cct,
-                        "Durasi Kerja Aktif (m)": Number(h.durationMin.toFixed(2)),
-                        "Downtime Kerja (m)": Number((h.downtimeMin || 0).toFixed(2)),
-                        "Pending Kerja (m)": Number((h.pendingMin || 0).toFixed(2)),
-                        "Kronologi Log Jeda Kendala": dtStr || '-',
-                        "Status Target": h.finalStatus,
-                        "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-',
-                        "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-',
-                        "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
-                        "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-',
-                        "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-',
-                        "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
+                        "WP": h.wp || '-',
+                        "Line Output": h.targetLine || h.lineOutput || '-',
+                        "Shift": h.shift || '-',
+                        "Leader Penanggungjawab": h.leaderName || '-',
+                        "Manpower / Tim": mpStr,
+                        "CCT": h.cct || 0,
+                        "Durasi Target": targetHms,
+                        "Durasi Aktual": actualHms,
+                        "Rasio (%)": Number(ratioPct.toFixed(1)),
+                        "Status Target": h.finalStatus || '-',
+                        "Total Loss Time": lossHms,
+                        "Rincian Log Kendala": logKendala.length > 0 ? logKendala.join(' | ') : 'Tidak ada catatan'
                     };
                 });
 
@@ -3187,7 +3390,7 @@
                 let wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Audit Detail Transaksi");
                 XLSX.writeFile(wb, `Detail_Transactions_Report_${Date.now()}.xlsx`);
-                this.showToast(`Berhasil mengekspor ${exportData.length} baris riwayat detail transaksi (0 Server Reads)!`, "success");
+                this.showToast(`Berhasil mengekspor ${exportData.length} baris riwayat detail transaksi!`, "success");
             },
 
             filterWpList: function(inputEl) {
