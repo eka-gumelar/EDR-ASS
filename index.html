@@ -980,11 +980,19 @@
                 }, err => { this.showToast("Gagal menyinkronisasi antrian", "error"); });
                 
                 if(this.unsubHistory) this.unsubHistory();
-                this.unsubHistory = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).onSnapshot(snap => {
-                    let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    allData.sort((a,b) => b.finishedAt - a.finishedAt);
-                    this.historyReports = allData.slice(0, 2000); 
-                }, err => {});
+                
+                // --- PERBAIKAN KEBOCORAN READS (LEAK FIX) ---
+                // Hanya download transaksi hari ini. Data lama biarkan diurus oleh Bucket Admin.
+                let todayMs = new Date().setHours(0,0,0,0);
+
+                this.unsubHistory = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data')
+                    .collection(`history_${lineKey}`)
+                    .where('finishedAt', '>=', todayMs) // <- INI ADALAH KUNCI PENGHEMATANNYA
+                    .onSnapshot(snap => {
+                        let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        allData.sort((a,b) => b.finishedAt - a.finishedAt);
+                        this.historyReports = allData; // Hapus batasan slice(0, 2000) karena data harian pasti kecil
+                }, err => { console.error("History sync error", err); });
 
                 if(this.unsubGlobalState) this.unsubGlobalState();
                 this.unsubGlobalState = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('line_states').doc(lineKey).onSnapshot(doc => {
@@ -2021,6 +2029,7 @@
                                                  .collection('public').doc('data')
                                                  .collection(`detail_harian_${lineKey}`);
                             
+                            // MENGGUNAKAN QUERY YANG SAMA PERSIS DENGAN OVERVIEW (100% Cocok & Hemat)
                             let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
                             if (globalShift !== 'ALL') {
                                 q = q.where('shift', '==', globalShift);
@@ -2043,7 +2052,7 @@
 
                         this.adminTransactionsCache = compiledList;
                         this.lastAdminCacheKey = currentCacheKey;
-                        resetPage = true; // Paksa kembali ke halaman 1 jika unduh data baru
+                        resetPage = true; 
 
                     } catch (error) {
                         tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-red-500 font-bold">Gagal memuat data detail. Firebase mungkin Overquota.</td></tr>`;
