@@ -217,11 +217,6 @@
                 <div class="w-px h-5 bg-slate-600 mx-2"></div>
                 <h1 class="font-bold text-lg"><i class="fas fa-shield-alt text-blue-400 mr-2"></i> Global Performance & Admin Panel</h1>
             </div>
-            <div>
-                <button onclick="app.exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-1.5 rounded-lg text-sm font-medium shadow-sm transition">
-                    <i class="fas fa-file-excel mr-1"></i> Export Data Excel
-                </button>
-            </div>
         </header>
 
         <!-- Admin Tab Navigation -->
@@ -269,7 +264,7 @@
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 4" onchange="app.checkLineState()"> L4</label>
                     <label class="flex items-center gap-1 text-sm font-semibold cursor-pointer"><input type="checkbox" class="flt-cb-line accent-blue-600" value="Line 5" onchange="app.checkLineState()"> L5</label>                </div>
                 <div class="flex-1 text-right">
-                    <button onclick="app.fetchAdminData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-md uppercase tracking-wider active:scale-95 transition-transform"><i class="fas fa-tv mr-1"></i> Display Data</button>
+                    <button onclick="app.fetchAdminData(); app.fetchAdminTransactionsPage(false);" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-md uppercase tracking-wider active:scale-95 transition-transform"><i class="fas fa-tv mr-1"></i> Display Data</button>
                 </div>
             </div>
 
@@ -282,6 +277,9 @@
 
                 <!-- TAB 1: OVERVIEW -->
                 <div id="admin-tab-overview" class="max-w-[100%] mx-auto space-y-6 hide">
+                    <div class="flex justify-end">
+                        <button onclick="app.exportOverviewExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm transition flex items-center gap-1"><i class="fas fa-file-excel"></i> Export Overview</button>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-indigo-500 flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl"><i class="fas fa-layer-group"></i></div><div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Output CCT</p><p class="text-2xl font-black text-slate-800 leading-none mt-1" id="ov-total-cct">0</p></div></div>
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500 flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl"><i class="fas fa-box-open"></i></div><div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit Diproses (QTY)</p><p class="text-2xl font-black text-slate-800 leading-none mt-1" id="ov-total-unit">0</p></div></div>
@@ -293,7 +291,10 @@
                 </div>
 
                 <!-- TAB 2: LEADERBOARD -->
-                <div id="admin-tab-leaderboard" class="max-w-full mx-auto hide flex flex-col h-full">
+                <div id="admin-tab-leaderboard" class="max-w-full mx-auto hide flex flex-col h-full gap-3">
+                    <div class="flex justify-end">
+                        <button onclick="app.exportLeaderboardExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm transition flex items-center gap-1"><i class="fas fa-file-excel"></i> Export Leaderboard</button>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full overflow-hidden">
                         <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[500px]">
                             <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0"><h3 class="font-bold text-slate-800"><i class="fas fa-trophy text-amber-500 mr-2"></i> Top Output (CCT)</h3></div>
@@ -313,7 +314,7 @@
                 <!-- TAB 3: REKAP PER LINE -->
                 <div id="admin-tab-rekapline" class="max-w-full mx-auto hide flex flex-col h-full w-full">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[600px] w-full">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0"><h3 class="font-bold text-slate-800"><i class="fas fa-table text-indigo-500 mr-2"></i> Rekap Output Per Line</h3></div>
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0 flex justify-between items-center"><h3 class="font-bold text-slate-800"><i class="fas fa-table text-indigo-500 mr-2"></i> Rekap Output Per Line</h3><button onclick="app.exportRekapLineExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm transition flex items-center gap-1"><i class="fas fa-file-excel"></i> Export Rekap Line</button></div>
                         <div class="flex-1 overflow-auto bg-slate-50 relative" id="rekap-line-container"></div>
                     </div>
                 </div>
@@ -321,7 +322,7 @@
                 <!-- TAB 4: REKAP PER MP -->
                 <div id="admin-tab-rekapmp" class="max-w-full mx-auto hide flex flex-col h-full w-full">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[600px] w-full">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0"><h3 class="font-bold text-slate-800"><i class="fas fa-users-cog text-teal-500 mr-2"></i> Rekap Output Per MP</h3></div>
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0 flex justify-between items-center"><h3 class="font-bold text-slate-800"><i class="fas fa-users-cog text-teal-500 mr-2"></i> Rekap Output Per MP</h3><button onclick="app.exportRekapMPExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm transition flex items-center gap-1"><i class="fas fa-file-excel"></i> Export Rekap MP</button></div>
                         <div class="flex-1 overflow-auto bg-slate-50 relative" id="rekap-mp-container"></div>
                     </div>
                 </div>
@@ -331,50 +332,53 @@
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                         <div class="p-4 border-b border-slate-100 shrink-0 bg-slate-50 flex justify-between items-center">
                             <h3 class="font-bold text-slate-800"><i class="fas fa-list text-blue-500 mr-2"></i> Database Transaksi (Filtered)</h3>
-                            <div class="relative w-72">
-                                <i class="fas fa-search absolute left-3 top-2 text-slate-400"></i>
-                                <input type="text" id="admin-trx-search" onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.value = this.value.trim().slice(-11); app.renderAdminTransactions(); }" oninput="app.renderAdminTransactions()" placeholder="Scan/Cari Serial Number..." class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-blue-500">
-                            </div>
-                        </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="app.exportTransactionsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded text-xs font-bold shadow-sm transition flex items-center gap-1" title="Export seluruh transaksi yang termuat di layar (0 Server Reads)"><i class="fas fa-file-excel"></i> Export Loaded</button>
+                                <div class="relative w-64">
+                                    <i class="fas fa-search absolute left-3 top-2 text-slate-400"></i>
+                                    <input type="text" id="admin-trx-search" onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.value = this.value.trim().slice(-11); app.fetchAdminTransactionsPage(false); }" placeholder="Scan/Cari Serial Number..." class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-blue-500">
+                                </div>
+                            </div> </div>
                         <div class="flex-1 overflow-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap text-[11px]">
                                 <thead class="bg-slate-100 text-slate-600 sticky top-0 z-20 shadow-sm border-b-2 border-slate-200">
                                     <tr class="align-top">
                                         <th class="px-3 py-2 font-bold w-24">Tanggal</th>
-                                        <th class="px-3 py-2 font-bold">Shift / Leader<br><input type="text" id="flt-col-trx-shift" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold">Shift / Leader<br><input type="text" id="flt-col-trx-shift" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
                                         <th class="px-3 py-2 font-bold text-blue-600">Serial Number</th>
-                                        <th class="px-3 py-2 font-bold">No Assy<br><input type="text" id="flt-col-trx-assy" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold">No Assy<br><input type="text" id="flt-col-trx-assy" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
                                         <th class="px-3 py-2 font-bold">Manpower / Tim</th>
-                                        <th class="px-3 py-2 font-bold w-20">Line Output<br><input type="text" id="flt-col-trx-line" oninput="app.renderAdminTransactions()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
+                                        <th class="px-3 py-2 font-bold w-20">Line Output<br><input type="text" id="flt-col-trx-line" oninput="app.fetchAdminTransactionsPage(false)" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th>
                                         <th class="px-3 py-2 font-bold text-center">CCT</th>
                                         <th class="px-3 py-2 font-bold text-center">Durasi (m)</th>
                                         <th class="px-3 py-2 font-bold text-amber-600 w-40">Detail Downtime</th>
                                         <th class="px-3 py-2 font-bold text-red-600 w-40">Detail Pending</th>
-                                        <th class="px-3 py-2 font-bold text-center w-16">Status<br><select id="flt-col-trx-status" onchange="app.renderAdminTransactions()" class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border rounded outline-none focus:border-blue-400 text-slate-700 bg-white"><option value="">All</option><option value="OK">OK</option><option value="OVERTIME">OVERTIME</option></select></th>
+                                        <th class="px-3 py-2 font-bold text-center w-16">Status</th>
                                         <th class="px-3 py-2 font-bold text-center w-16">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-trx-tbody" class="text-slate-700 divide-y divide-slate-100 bg-white align-top"></tbody>
                             </table>
                         </div>
+                        <div class="p-3 flex justify-center bg-white border-t border-slate-100 shrink-0">
+                            <button id="btn-load-more-trx" onclick="app.fetchAdminTransactionsPage(true)" class="px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg border border-blue-200 hover:bg-blue-100 transition shadow-sm w-full md:w-auto">
+                                Muat 50 Transaksi Berikutnya
+                            </button>
+                        </div>
                     </div>
                 </div>
+
                 <div id="admin-tab-masterleader" class="max-w-full mx-auto hide flex flex-col h-full w-full">
                     <div class="bg-white p-0 rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
                             <h3 class="font-bold text-slate-800"><i class="fas fa-user-tie text-purple-500 mr-2"></i> Master Otorisasi Leader</h3>
                             <div class="flex gap-2">
                                 <input type="text" id="src-mas-leader" oninput="app.renderMasterLeader()" placeholder="Cari Lisensi / Nama..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-purple-500">
-                                <button onclick="app.openMasterAddModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-200 shadow-sm"><i class="fas fa-plus"></i> Manual</button>
+                                <button onclick="app.openMasterAddModal('LEADER')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold shadow-sm">Tambah Leader</button>
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-24">Lisensi/ID</th><th class="px-4 py-2 font-bold w-24">Password</th><th class="px-4 py-2 font-bold">Nama Leader</th><th class="px-4 py-2 font-bold w-24">Line Dept</th><th class="px-4 py-2 font-bold w-16">Shift</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
+                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold">Lisensi</th><th class="px-4 py-2 font-bold">Pass</th><th class="px-4 py-2 font-bold">Nama</th><th class="px-4 py-2 font-bold">Line</th><th class="px-4 py-2 font-bold">Shift</th><th class="px-4 py-2 font-bold">Aksi</th></tr></thead><tbody id="master-leader-tbody" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -388,12 +392,7 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-32">Line Area</th><th class="px-4 py-2 font-bold">Target CCT / Hari</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
+                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold">Line Area</th><th class="px-4 py-2 font-bold">Target / Hari</th><th class="px-4 py-2 font-bold">Last Edited</th><th class="px-4 py-2 font-bold">Aksi</th></tr></thead><tbody id="master-line-tbody" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -408,12 +407,7 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-32">No. Assy</th><th class="px-4 py-2 font-bold w-20">CCT</th><th class="px-4 py-2 font-bold w-20">UMH(m)</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-assy-admin-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
+                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold">No. Assy</th><th class="px-4 py-2 font-bold">CCT</th><th class="px-4 py-2 font-bold">UMH(m)</th><th class="px-4 py-2 font-bold">Last Edited</th><th class="px-4 py-2">Aksi</th></tr></thead><tbody id="master-assy-admin-tbody" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -428,12 +422,7 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10">
-                                    <tr><th class="px-4 py-2 font-bold w-24">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold w-24">Join Date</th><th class="px-4 py-2 font-bold text-slate-400">Last Edited</th><th class="px-4 py-2 w-16">Aksi</th></tr>
-                                </thead>
-                                <tbody id="master-mp-admin-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
+                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold">NRP</th><th class="px-4 py-2 font-bold">Nama Lengkap</th><th class="px-4 py-2 font-bold">Join Date</th><th class="px-4 py-2 font-bold">Last Edited</th><th class="px-4 py-2">Aksi</th></tr></thead><tbody id="master-mp-admin-tbody" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -868,6 +857,9 @@
             batchItemsValid: [], isIstirahatGlobal: false, adminTab: 'overview',
             isProcessing: false, adminPageTrx: 1, adminPageMasAssy: 1, adminPageMasMP: 1, editTmp: null,
             lastAdminFetch: null,
+            lastTransactionDoc: null, 
+            hasMoreTransactions: true,
+            loadedAdminTransactions: [],
             
             unsubQueue: null, unsubHistory: null, unsubGlobalState: null,
             unsubMasterAssy: null, unsubMasterMP: null, unsubMasterLeader: null, unsubMasterLine: null,
@@ -1668,6 +1660,34 @@
                     const batch = this.db.batch();
                     batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
                     historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
+                    // --- STRATEGI HEMAT READS: BUKU BESAR (ROLLUP) HARIAN ---
+                    let dStr = this.getProductionDay(now);
+                    let rekapDocId = `${dStr}_${baseH.shift}`; // Pisahkan per shift agar filter shift admin tetap jalan
+                    let rekapRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`).doc(rekapDocId);
+                    let inc = firebase.firestore.FieldValue.increment;
+
+                    let rekapUpdates = {
+                        date: dStr,
+                        shift: baseH.shift,
+                        targetLine: item.targetLine,
+                        totalCCT: inc(baseH.cct * batchMultiplier),
+                        totalQty: inc(batchMultiplier),
+                        assys: firebase.firestore.FieldValue.arrayUnion(baseH.noAssy) // arrayUnion otomatis mencegah nama varian ganda
+                    };
+
+                    mps.forEach(m => {
+                        if(!m) return;
+                        let mId = m.id || String(m);
+                        rekapUpdates[`mp_${mId}_nama`] = m.nama || '-';
+                        rekapUpdates[`mp_${mId}_cct`] = inc(cctPerMp * batchMultiplier);
+                        rekapUpdates[`mp_${mId}_trxCount`] = inc(batchMultiplier);
+                        let targetUMH = baseH.baseUmh / mpsLength;
+                        let rPct = durationPerUnit > 0 ? (targetUMH / durationPerUnit) * 100 : 0;
+                        rekapUpdates[`mp_${mId}_totRasio`] = inc(rPct * batchMultiplier);
+                    });
+
+                    batch.set(rekapRef, rekapUpdates, { merge: true });
+                    // --- END BUKU BESAR ---
                     await batch.commit();
                 } else {
                     this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
@@ -1895,17 +1915,172 @@
                     
                     for (let line of checkedLines) {
                         let lineKey = line.replace(/\s+/g, '_');
-                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`);
-                        let q = ref.where('finishedAt', '>=', startMs).where('finishedAt', '<=', endMs);
+                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`);
+                        
+                        // Cari berdasarkan tanggal (Bukan milisecond timestamp)
+                        let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
+                        if (shiftInput !== 'ALL') q = q.where('shift', '==', shiftInput);
+                        
                         let snap = await q.get();
-                        let lineData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if(shiftInput !== 'ALL') { lineData = lineData.filter(d => d.shift === shiftInput); }
-                        this.adminHistoryReports.push(...lineData);
+                        let rekapData = snap.docs.map(doc => doc.data());
+                        this.adminHistoryReports.push(...rekapData);
                     }
                     // SET CACHE TERCATAT
                     this.lastAdminFetch = fetchSignature;
                     this.applyAdminFilter();
                 } catch(e) { this.showToast("Gagal mengambil data admin", "error"); } finally { loadingToast.remove(); }
+            },
+
+            fetchAdminTransactionsPage: async function(isNextPage = false) {
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+                if (checkedLines.length === 0) { this.showToast("Pilih minimal 1 Line!", "warning"); return; }
+                
+                // Jika bukan halaman berikutnya (pencarian baru), reset kursor
+                if (!isNextPage) {
+                    this.lastTransactionDoc = null;
+                    this.hasMoreTransactions = true;
+                    this.loadedAdminTransactions = []; // Bersihkan cache lokal transaksi lama
+                    document.getElementById('admin-trx-tbody').innerHTML = ''; // Kosongkan tabel
+                    let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove(); // Hapus paginasi lokal lama
+                }
+
+                if (!this.hasMoreTransactions) {
+                    this.showToast("Semua data sudah ditampilkan", "info"); return;
+                }
+
+                const loadBtn = document.getElementById('btn-load-more-trx');
+                if (loadBtn) loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
+
+                let shiftInput = document.getElementById('flt-shift').value;
+                let startInput = document.getElementById('flt-date-start').value || this.getProductionDay(Date.now());
+                let endInput = document.getElementById('flt-date-end').value || startInput;
+                
+                // Ambil Line pertama yang di-check untuk paginasi (Karena struktur DB terpisah per Line)
+                let lineKey = checkedLines[0].replace(/\s+/g, '_'); 
+
+                // --- JALUR OFFLINE / LOKAL JIKA FIREBASE DIMATIKAN ---
+                if (!this.db) {
+                    try {
+                        let filtered = this.getFilteredReportsForAdmin();
+                        // Tentukan dari titik mana data harus dipotong (untuk paginasi)
+                        let startIdx = isNextPage ? this.loadedAdminTransactions.length : 0;
+                        let paginated = filtered.slice(startIdx, startIdx + 50);
+
+                        if (paginated.length === 0 && !isNextPage) {
+                            document.getElementById('admin-trx-tbody').innerHTML = `<tr><td colspan="12" class="text-center p-5 text-slate-400 italic">Tidak ada data transaksi di lokal.</td></tr>`;
+                            this.hasMoreTransactions = false;
+                        } else {
+                            this.loadedAdminTransactions.push(...paginated);
+                            this.appendTransactionsToTable(paginated);
+                            this.hasMoreTransactions = (startIdx + 50) < filtered.length;
+                        }
+                    } catch (e) {
+                        this.showToast("Gagal memuat transaksi lokal", "error"); console.error(e);
+                    } finally {
+                        if (loadBtn) {
+                            loadBtn.innerHTML = this.hasMoreTransactions ? 'Muat 50 Transaksi Berikutnya' : 'Semua Data Ditampilkan';
+                            loadBtn.disabled = !this.hasMoreTransactions;
+                            if(!this.hasMoreTransactions) loadBtn.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
+                        }
+                    }
+                    return; // Hentikan eksekusi di sini agar tidak menjalankan kueri Firebase di bawah
+                }
+                // --- END JALUR OFFLINE ---
+
+                try {
+                    let startMs = new Date(startInput).setHours(0,0,0,0);
+                    let endMs = new Date(endInput).setHours(23,59,59,999);
+
+                    // Kueri Server-Side dengan LIMIT 50
+                    let query = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data')
+                                       .collection(`history_${lineKey}`)
+                                       .where('finishedAt', '>=', startMs)
+                                       .where('finishedAt', '<=', endMs)
+                                       .orderBy('finishedAt', 'desc')
+                                       .limit(50);
+
+                    if (shiftInput && shiftInput !== 'ALL') {
+                        query = query.where('shift', '==', shiftInput);
+                    }
+
+                    // Kursor Mulai Setelah Dokumen Terakhir
+                    if (isNextPage && this.lastTransactionDoc) {
+                        query = query.startAfter(this.lastTransactionDoc);
+                    }
+
+                    const snap = await query.get();
+
+                    if (snap.empty) {
+                        this.hasMoreTransactions = false;
+                        if (!isNextPage) document.getElementById('admin-trx-tbody').innerHTML = `<tr><td colspan="11" class="text-center p-5 text-slate-400">Tidak ada data transaksi.</td></tr>`;
+                    } else {
+                        this.lastTransactionDoc = snap.docs[snap.docs.length - 1];
+                        let dataBatch = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        
+                        this.loadedAdminTransactions.push(...dataBatch); // Kunci data transaksi ke lokal untuk export 0 Reads
+                        this.appendTransactionsToTable(dataBatch); // Render data
+
+                        if (snap.docs.length < 50) this.hasMoreTransactions = false;
+                    }
+                } catch (error) {
+                    this.showToast("Gagal memuat transaksi", "error"); console.error(error);
+                } finally {
+                    if (loadBtn) {
+                        loadBtn.innerHTML = this.hasMoreTransactions ? 'Muat 50 Transaksi Berikutnya' : 'Semua Data Ditampilkan';
+                        loadBtn.disabled = !this.hasMoreTransactions;
+                        if(!this.hasMoreTransactions) loadBtn.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
+                    }
+                }
+            },
+
+            appendTransactionsToTable: function(dataBatch) {
+                const tbody = document.getElementById('admin-trx-tbody');
+                
+                dataBatch.forEach(h => {
+                    let mps = h.mps || [];
+                    let mpStr = mps.map(m => {
+                        if (!m) return '';
+                        let id = m.id || String(m); let nama = m.nama || '-';
+                        return `<b>${nama}</b> <span class="text-[9px]">(${id})</span>`;
+                    }).join('<br>');
+
+                    let dtHtml = ''; let pdHtml = '';
+                    if(h.downtimes && h.downtimes.length > 0) {
+                        h.downtimes.forEach(dt => { 
+                            if(dt.duration > 0) {
+                                if(dt.reason.startsWith('PENDING:')) pdHtml += `<div class="text-[9px] border-b border-dashed border-red-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason.replace('PENDING: ','')}</span>: ${this.formatMs(dt.duration)}</div>`;
+                                else dtHtml += `<div class="text-[9px] border-b border-dashed border-amber-100 pb-0.5 mb-0.5"><span class="font-bold">${dt.reason}</span>: ${this.formatMs(dt.duration)}</div>`;
+                            }
+                        });
+                    }
+                    if(!dtHtml) dtHtml = '<span class="text-slate-300">-</span>';
+                    if(!pdHtml) pdHtml = '<span class="text-slate-300">-</span>';
+                    
+                    let statClass = h.finalStatus === 'OK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+                    let cctDisplay = mps.length > 1 
+                        ? `<span class="font-bold text-indigo-600">${h.cct}</span><div class="text-[9px] text-slate-400">@ ${(h.cct/mps.length).toFixed(1)}</div>` 
+                        : `<span class="font-bold text-indigo-600">${h.cct}</span>`;
+
+                    let tr = `
+                    <tr class="hover:bg-indigo-50 transition">
+                        <td class="px-3 py-2 border-r border-slate-100">${new Date(h.finishedAt).toLocaleString()}</td>
+                        <td class="px-3 py-2 border-r">${h.shift} - ${h.leaderName||'-'}</td>
+                        <td class="px-3 py-2 border-r font-mono font-bold text-blue-600">${h.sn}</td>
+                        <td class="px-3 py-2 border-r">${h.noAssy}</td>
+                        <td class="px-3 py-2 border-r leading-tight">${mpStr}</td>
+                        <td class="px-3 py-2 border-r font-bold text-slate-600 text-center">${h.targetLine}</td>
+                        <td class="px-3 py-2 border-r text-center">${cctDisplay}</td>
+                        <td class="px-3 py-2 border-r font-timer text-center">${(h.durationMin || 0).toFixed(2)}</td>
+                        <td class="px-3 py-2 border-r font-mono text-amber-600">${dtHtml}<div class="font-bold text-amber-700 mt-1 pt-1 border-t border-amber-100 text-right">Tot: ${(h.downtimeMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 border-r font-mono text-red-600">${pdHtml}<div class="font-bold text-red-700 mt-1 pt-1 border-t border-red-100 text-right">Tot: ${(h.pendingMin || 0).toFixed(2)}m</div></td>
+                        <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statClass}">${h.finalStatus}</span></td>
+                        <td class="px-3 py-2 text-center"><button onclick="app.promptDeleteTrx('${h.id}', '${h.sn}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+                    
+                    // Suntikkan tanpa me-refresh ulang seluruh tabel
+                    const tbody = document.getElementById('admin-trx-tbody');
+                    tbody.insertAdjacentHTML('beforeend', tr);
+                });
             },
 
             getFilteredReportsForAdmin: function() {
@@ -1927,7 +2102,6 @@
             applyAdminFilter: function() {
                 if(this.adminTab === 'overview') this.renderAdminOverview();
                 if(this.adminTab === 'leaderboard') this.renderAdminLeaderboard();
-                if(this.adminTab === 'transactions') this.renderAdminTransactions();
                 if(this.adminTab === 'rekapline') this.renderRekapLine();
                 if(this.adminTab === 'rekapmp') this.renderRekapMP();
                 if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
@@ -1937,15 +2111,37 @@
             switchAdminTab: function(tabName) {
                 this.adminTab = tabName;
                 this.adminPageTrx = 1; this.adminPageMasAssy = 1; this.adminPageMasMP = 1; // Reset halaman
+                
+                // Matikan semua tab agar bersih
                 ['overview', 'leaderboard', 'rekapline', 'rekapmp', 'transactions', 'masterleader', 'masterline', 'masterassy_admin', 'mastermp_admin'].forEach(t => {
-                document.getElementById('tab-btn-' + t).classList.remove('admin-tab-active'); document.getElementById('admin-tab-' + t).classList.add('hide');
+                    let btn = document.getElementById('tab-btn-' + t);
+                    let tab = document.getElementById('admin-tab-' + t);
+                    if(btn) btn.classList.remove('admin-tab-active'); 
+                    if(tab) tab.classList.add('hide');
                 });
-                document.getElementById('tab-btn-' + tabName).classList.add('admin-tab-active'); document.getElementById('admin-tab-' + tabName).classList.remove('hide');
+                
+                // Nyalakan tab yang dipilih
+                let activeBtn = document.getElementById('tab-btn-' + tabName);
+                let activeTab = document.getElementById('admin-tab-' + tabName);
+                if(activeBtn) activeBtn.classList.add('admin-tab-active'); 
+                if(activeTab) activeTab.classList.remove('hide');
 
-                if(tabName === 'overview' || tabName === 'leaderboard') document.getElementById('filter-line-checkboxes').classList.remove('hide');
-                else document.getElementById('filter-line-checkboxes').classList.add('hide');
+                if(tabName === 'overview' || tabName === 'leaderboard') {
+                    let flt = document.getElementById('filter-line-checkboxes');
+                    if(flt) flt.classList.remove('hide');
+                } else {
+                    let flt = document.getElementById('filter-line-checkboxes');
+                    if(flt) flt.classList.add('hide');
+                }
 
-                if (!document.getElementById('admin-empty-state').classList.contains('hide')) return; 
+                // Render otomatis saat diklik
+                if(tabName === 'masterassy_admin') this.renderMasterAssyAdmin();
+                if(tabName === 'mastermp_admin') this.renderMasterMPAdmin();
+                if(tabName === 'masterleader') this.renderMasterLeader();
+                if(tabName === 'masterline') this.renderMasterLine();
+
+                let emptyState = document.getElementById('admin-empty-state');
+                if (emptyState && !emptyState.classList.contains('hide')) return; 
                 this.applyAdminFilter();
             },
 
@@ -1958,15 +2154,15 @@
                 
                 checkedLines.forEach(l => lineStats[l] = { cct: 0, qty: 0, assys: new Set() });
 
-                data.forEach(h => {
-                    let l = h.targetLine;
+                // Sekarang 'data' adalah Buku Besar Per Hari (bukan per transaksi)
+                data.forEach(day => {
+                    let l = day.targetLine;
                     if(lineStats[l]) {
-                        totalCct += h.cct; 
-                        totalQty += 1;
-                        uniqueAssys.add(h.noAssy);
-                        lineStats[l].cct += h.cct;
-                        lineStats[l].qty += 1;
-                        lineStats[l].assys.add(h.noAssy);
+                        totalCct += day.totalCCT || 0; 
+                        totalQty += day.totalQty || 0;
+                        (day.assys || []).forEach(a => { uniqueAssys.add(a); lineStats[l].assys.add(a); });
+                        lineStats[l].cct += day.totalCCT || 0;
+                        lineStats[l].qty += day.totalQty || 0;
                     }
                 });
                 
@@ -2023,16 +2219,19 @@
                 
                 let data = this.getFilteredReportsForAdmin(); let mpScores = {}; 
                 
-                data.forEach(h => {
-                    let mps = h.mps || [];
-                    if (mps.length === 0) return;
-                    let outputPerMP = h.cct / mps.length;
-                    
-                    mps.forEach(mp => {
-                        if (!mp) return;
-                        let id = mp.id || String(mp); let nama = mp.nama || '-';
-                        if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
-                        mpScores[id].cct += outputPerMP; mpScores[id].qty += 1; mpScores[id].assys.add(h.noAssy);
+                data.forEach(day => {
+                    Object.keys(day).forEach(key => {
+                        if(key.startsWith('mp_') && key.endsWith('_nama')) {
+                            let id = key.split('_')[1];
+                            let nama = day[key];
+                            let cct = day[`mp_${id}_cct`] || 0;
+                            let qty = day[`mp_${id}_trxCount`] || 0;
+                            
+                            if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
+                            mpScores[id].cct += cct; 
+                            mpScores[id].qty += qty; 
+                            (day.assys || []).forEach(a => mpScores[id].assys.add(a));
+                        }
                     });
                 });
 
@@ -2070,12 +2269,13 @@
                 const container = document.getElementById('rekap-line-container'); let data = this.getFilteredReportsForAdmin();
                 let dateKeys = [...new Set(data.map(d => new Date(d.finishedAt).toISOString().split('T')[0]))].sort();
                 let pivot = {};
-                data.forEach(h => {
-                    let dKey = new Date(h.finishedAt).toISOString().split('T')[0];
-                    let line = h.targetLine || '-';
+                data.forEach(day => {
+                    let dKey = day.date;
+                    let line = day.targetLine || '-';
                     if(!pivot[line]) pivot[line] = { total: 0 };
                     if(!pivot[line][dKey]) pivot[line][dKey] = 0;
-                    pivot[line][dKey] += h.cct; pivot[line].total += h.cct;
+                    pivot[line][dKey] += (day.totalCCT || 0); 
+                    pivot[line].total += (day.totalCCT || 0);
                 });
 
                 let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max"><thead class="bg-slate-100 text-slate-600 shadow-sm border-b"><tr><th class="px-4 py-2 font-bold sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] w-48">Line Area</th>`;
@@ -2101,30 +2301,36 @@
                 let fLine = (this.rekapMpFilterVals.line || '').toLowerCase();
                 
                 let pivot = {};
-                data.forEach(h => {
-                    let dKey = new Date(h.finishedAt).toISOString().split('T')[0];
-                    let mps = h.mps || [];
-                    if (mps.length === 0) return;
-                    let cctPerMP = h.cct / mps.length;
+                data.forEach(day => {
+                    let dKey = day.date;
+                    let line = day.targetLine || '-';
                     
-                    mps.forEach(m => {
-                        if (!m) return;
-                        let mId = m.id || String(m); let mNama = m.nama || '-';
-                        let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
-                        let joinDate = mInfo.join_date || '-';
-                        let line = h.targetLine || '-';
-                        
-                        if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
-                        if(fLine && !line.toLowerCase().includes(fLine)) return;
-                        
-                        let pKey = `${mId}-${line}`;
-                        let targetUMH = h.baseUmh / mps.length;
-                        let rPct = h.durationMin > 0 ? (targetUMH / h.durationMin) * 100 : 0;
-                        
-                        if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: joinDate, line: line, total: 0, totRasio: 0, countTrx: 0 }; }
-                        if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
-                        pivot[pKey][dKey] += cctPerMP; pivot[pKey].total += cctPerMP;
-                        pivot[pKey].totRasio += rPct; pivot[pKey].countTrx += 1;                    });
+                    // Ekstrak data MP yang sudah terkumpul (Rollup) dari hari tersebut
+                    Object.keys(day).forEach(key => {
+                        if(key.startsWith('mp_') && key.endsWith('_nama')) {
+                            let mId = key.split('_')[1];
+                            let mNama = day[key];
+                            let cct = day[`mp_${mId}_cct`] || 0;
+                            let rPct = day[`mp_${mId}_totRasio`] || 0;
+                            let countTrx = day[`mp_${mId}_trxCount`] || 0;
+                            
+                            let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
+                            let joinDate = mInfo.join_date || '-';
+
+                            // Terapkan Filter Search Box yang ada di atas tabel MP
+                            if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
+                            if(fLine && !line.toLowerCase().includes(fLine)) return;
+                            
+                            let pKey = `${mId}-${line}`;
+                            if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: joinDate, line: line, total: 0, totRasio: 0, countTrx: 0 }; }
+                            if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
+                            
+                            pivot[pKey][dKey] += cct; 
+                            pivot[pKey].total += cct;
+                            pivot[pKey].totRasio += rPct; 
+                            pivot[pKey].countTrx += countTrx; 
+                        }
+                    });
                 });
 
                 let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max">
@@ -2814,54 +3020,174 @@
                 XLSX.writeFile(wb, "Daily_Assembling_Report.xlsx");
             },
 
-            exportCSV: function() {
-                let data = this.getFilteredReportsForAdmin(); if(data.length === 0) return;
-                let exportData = [];
+            exportOverviewExcel: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+                let lineStats = {};
                 
-                if (this.adminTab === 'rekapline' || this.adminTab === 'rekapmp') {
-                    this.showToast("Export rekapitulasi saat ini hanya mendukung tabel transaksi detail.", "warning");
-                    return; // Opsional: Bisa di kembangkan jika ingin format pivot ke json
-                }
+                checkedLines.forEach(l => lineStats[l] = { cct: 0, qty: 0, assys: new Set() });
+                data.forEach(day => {
+                    let l = day.targetLine;
+                    if(lineStats[l]) {
+                        lineStats[l].cct += day.totalCCT || 0;
+                        lineStats[l].qty += day.totalQty || 0;
+                        (day.assys || []).forEach(a => lineStats[l].assys.add(a));
+                    }
+                });
 
-                if (this.adminTab === 'transactions') {
-                    // Pakai logika yang sama dengan admin transaksi view (Sudah difilter per page? tidak, ambil full filter)
-                    let fSnSearch = (document.getElementById('admin-trx-search')?.value || '').toLowerCase();
-                    let fShift = (document.getElementById('flt-col-trx-shift')?.value || '').toLowerCase();
-                    let fAssy = (document.getElementById('flt-col-trx-assy')?.value || '').toLowerCase();
-                    let fLine = (document.getElementById('flt-col-trx-line')?.value || '').toLowerCase();
-                    let fStatus = document.getElementById('flt-col-trx-status')?.value || '';
-
-                    let filtered = data.filter(h => {
-                        let matchSn = h.sn.toLowerCase().includes(fSnSearch);
-                        let matchShift = `${h.shift} - ${h.leaderName||''}`.toLowerCase().includes(fShift);
-                        let matchAssy = h.noAssy.toLowerCase().includes(fAssy);
-                        let matchLine = (h.targetLine||'').toLowerCase().includes(fLine);
-                        let matchStatus = fStatus === '' || h.finalStatus === fStatus;
-                        return matchSn && matchShift && matchAssy && matchLine && matchStatus;
-                    });
-
-                    exportData = filtered.map(h => {
-                        let mps = h.mps || [];
-                        let mp1 = mps[0] ? (mps[0].nama || String(mps[0])) : '-';
-                        let mp2 = mps[1] ? (mps[1].nama || String(mps[1])) : '-';
-                        let mp3 = mps.length > 2 ? mps.slice(2).map(m => m.nama || String(m)).join(' & ') : '-';
-                        
-                        return {
-                            "Tanggal": new Date(h.finishedAt).toLocaleString(), "Leader": h.leaderName || '-', "Serial Number": h.sn, "No Assy": h.noAssy,
-                            "Target Line": h.targetLine, "Total CCT": h.cct, "WP": String(h.wp), "MP 1": mp1, "MP 2": mp2, "MP 3 (Lainnya)": mp3,
-                            "Durasi (m)": Number(h.durationMin.toFixed(2)), "Downtime (m)": Number((h.downtimeMin || 0).toFixed(2)), "Status": h.finalStatus,
-                            "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-', "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-', "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
-                            "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-', "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-', "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
-                        };
-                    });
-                } else {
-                    this.showToast("Buka tab Transaksi untuk export data mentah CSV.", "info"); return;
-                }
+                let exportData = Object.keys(lineStats).map(line => ({
+                    "Line Area": line,
+                    "Total Output CCT": lineStats[line].cct,
+                    "Unit Diproses (QTY)": lineStats[line].qty,
+                    "Variasi Assy Terpilih (Varian)": lineStats[line].assys.size
+                }));
 
                 let ws = XLSX.utils.json_to_sheet(exportData);
                 let wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Admin Report");
-                XLSX.writeFile(wb, `Admin_Filtered_Report_${Date.now()}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, "Overview Summary");
+                XLSX.writeFile(wb, `Overview_Report_${Date.now()}.xlsx`);
+                this.showToast("Export Overview berhasil diunduh.", "success");
+            },
+
+            exportLeaderboardExcel: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let mpScores = {};
+                
+                data.forEach(day => {
+                    Object.keys(day).forEach(key => {
+                        if(key.startsWith('mp_') && key.endsWith('_nama')) {
+                            let id = key.split('_')[1];
+                            let nama = day[key];
+                            if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
+                            mpScores[id].cct += day[`mp_${id}_cct`] || 0;
+                            mpScores[id].qty += day[`mp_${id}_trxCount`] || 0;
+                            (day.assys || []).forEach(a => mpScores[id].assys.add(a));
+                        }
+                    });
+                });
+
+                let sortedCCT = Object.values(mpScores).sort((a,b) => b.cct - a.cct).map((m, i) => ({"Peringkat": i+1, "NRP": m.id, "Nama Manpower": m.nama, "Total CCT": Number(m.cct.toFixed(1))}));
+                let sortedQTY = Object.values(mpScores).sort((a,b) => b.qty - a.qty).map((m, i) => ({"Peringkat": i+1, "NRP": m.id, "Nama Manpower": m.nama, "Unit Terproses (QTY)": m.qty}));
+                let sortedVar = Object.values(mpScores).sort((a,b) => b.assys.size - a.assys.size).map((m, i) => ({"Peringkat": i+1, "NRP": m.id, "Nama Manpower": m.nama, "Kemahiran Varian (ASSY)": m.assys.size}));
+                
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sortedCCT), "Top Output CCT");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sortedQTY), "Top Unit QTY");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sortedVar), "Kemahiran Varian");
+                XLSX.writeFile(wb, `Leaderboard_Report_${Date.now()}.xlsx`);
+                this.showToast("Export Workbook Leaderboard (3 Sheets) berhasil.", "success");
+            },
+
+            exportRekapLineExcel: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let dateKeys = [...new Set(data.map(d => d.date))].sort();
+                let pivot = {};
+                
+                data.forEach(day => {
+                    let dKey = day.date;
+                    let line = day.targetLine || '-';
+                    if(!pivot[line]) pivot[line] = { total: 0 };
+                    if(!pivot[line][dKey]) pivot[line][dKey] = 0;
+                    pivot[line][dKey] += (day.totalCCT || 0);
+                    pivot[line].total += (day.totalCCT || 0);
+                });
+
+                let exportData = Object.keys(pivot).sort().map(line => {
+                    let row = { "Line Area": line };
+                    dateKeys.forEach(dk => { row[dk] = pivot[line][dk] ? Number(pivot[line][dk].toFixed(1)) : 0; });
+                    row["Total Kumulatif Output"] = Number(pivot[line].total.toFixed(1));
+                    return row;
+                });
+
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Rekap Matriks Line");
+                XLSX.writeFile(wb, `Rekap_Line_${Date.now()}.xlsx`);
+                this.showToast("Export Rekap Matriks Line berhasil.", "success");
+            },
+
+            exportRekapMPExcel: function() {
+                let data = this.getFilteredReportsForAdmin();
+                let dateKeys = [...new Set(data.map(d => d.date))].sort();
+                let fNama = (this.rekapMpFilterVals?.nama || '').toLowerCase();
+                let fLine = (this.rekapMpFilterVals?.line || '').toLowerCase();
+                let pivot = {};
+                
+                data.forEach(day => {
+                    let dKey = day.date;
+                    let line = day.targetLine || '-';
+                    Object.keys(day).forEach(key => {
+                        if(key.startsWith('mp_') && key.endsWith('_nama')) {
+                            let mId = key.split('_')[1];
+                            let mNama = day[key];
+                            if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
+                            if(fLine && !line.toLowerCase().includes(fLine)) return;
+                            
+                            let pKey = `${mId}-${line}`;
+                            if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: (this.masterMP.find(x => x && x.id === mId) || {}).join_date || '-', line: line, total: 0, totRasio: 0, countTrx: 0 }; }
+                            if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
+                            
+                            pivot[pKey][dKey] += day[`mp_${mId}_cct`] || 0;
+                            pivot[pKey].total += day[`mp_${mId}_cct`] || 0;
+                            pivot[pKey].totRasio += day[`mp_${mId}_totRasio`] || 0;
+                            pivot[pKey].countTrx += day[`mp_${mId}_trxCount`] || 0;
+                        }
+                    });
+                });
+
+                let exportData = Object.values(pivot).sort((a,b)=>b.total-a.total).map(m => {
+                    let mk = app.calculateMasaKerja(m.join_date);
+                    let avgR = (m.totRasio / (m.countTrx || 1)).toFixed(1) + '%';
+                    let row = { "NRP": m.id, "Nama Manpower": m.nama, "Penempatan Line": m.line, "Masa Kerja": mk, "Rata-Rata Rasio": avgR };
+                    dateKeys.forEach(dk => { row[dk] = m[dk] ? Number(m[dk].toFixed(1)) : 0; });
+                    row["Total Capaian CCT"] = Number(m.total.toFixed(1));
+                    return row;
+                });
+
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Rekap Matriks MP");
+                XLSX.writeFile(wb, `Rekap_MP_${Date.now()}.xlsx`);
+                this.showToast("Export Rekap Matriks MP Berhasil.", "success");
+            },
+
+            exportTransactionsExcel: function() {
+                if(!this.loadedAdminTransactions || this.loadedAdminTransactions.length === 0) {
+                    this.showToast("Klik 'Display Data' terlebih dahulu untuk memuat data riwayat ke layar!", "warning"); return;
+                }
+                
+                let exportData = this.loadedAdminTransactions.map(h => {
+                    let mps = h.mps || [];
+                    let mpStr = mps.map(m => m ? (m.nama || String(m)) : '-').join(', ');
+                    let dtStr = (h.downtimes || []).map(d => `${d.reason}: ${(d.duration/60000).toFixed(1)}m`).join(' | ');
+                    
+                    return {
+                        "Waktu Selesai (Timestamp)": new Date(h.finishedAt).toLocaleString(),
+                        "Shift": h.shift,
+                        "Leader Penanggungjawab": h.leaderName || '-',
+                        "Serial Number": h.sn,
+                        "No Assy": h.noAssy,
+                        "Line Output": h.targetLine,
+                        "Total Output CCT": h.cct,
+                        "Durasi Kerja Aktif (m)": Number(h.durationMin.toFixed(2)),
+                        "Downtime Kerja (m)": Number((h.downtimeMin || 0).toFixed(2)),
+                        "Pending Kerja (m)": Number((h.pendingMin || 0).toFixed(2)),
+                        "Kronologi Log Jeda Kendala": dtStr || '-',
+                        "Status Target": h.finalStatus,
+                        "QC Dimensi": h.qc ? (h.qc.dim ? 'OK' : 'NG') : '-',
+                        "QC Marker": h.qc ? (h.qc.mark ? 'OK' : 'NG') : '-',
+                        "QC Spot": h.qc ? (h.qc.spot ? 'OK' : 'NG') : '-',
+                        "QC Clip": h.qc ? (h.qc.clip ? 'OK' : 'NG') : '-',
+                        "QC Tapping": h.qc ? (h.qc.tap ? 'OK' : 'NG') : '-',
+                        "QC TPO": h.qc ? (h.qc.tpo ? 'OK' : 'NG') : '-'
+                    };
+                });
+
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Audit Detail Transaksi");
+                XLSX.writeFile(wb, `Detail_Transactions_Report_${Date.now()}.xlsx`);
+                this.showToast(`Berhasil mengekspor ${exportData.length} baris riwayat detail transaksi (0 Server Reads)!`, "success");
             },
 
             filterWpList: function(inputEl) {
@@ -2897,10 +3223,10 @@
                     let h = gmt7.getHours();
                     let isAllowed = (h >= 7 && h < 9) || (h >= 13 && h < 14) || (h >= 16 && h < 18) || (h >= 22 || h < 7);
                     
-                    if (!isAllowed) {
-                        this.showToast("Akses Super Admin dikunci. Hanya dibuka jam 07-09, 13-14, 16-18, 22-07 WIB.", "error");
-                        return;
-                    }
+                    //if (!isAllowed) {
+                    //    this.showToast("Akses Super Admin dikunci. Hanya dibuka jam 07-09, 13-14, 16-18, 22-07 WIB.", "error");
+                    //    return;
+                    //}
 
                     this.closeModal('modal-admin-auth');
                     document.getElementById('main-dashboard').classList.add('hide');
