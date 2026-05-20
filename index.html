@@ -852,13 +852,10 @@
     <script src="js/data-mp.js"></script>
 
     <script>
-
         const app = {
             db: null, auth: null, appId: typeof __app_id !== 'undefined' ? __app_id : 'default-app-id',
             user: null, shift: null, leader: null,
-            
             masterAssy: [], masterMP: [], masterLeader: [], masterLine: [],
-            
             activeQueue: [], historyReports: [], validWpList: [], 
             scanDataTmp: null, activeTaskTmpId: null, resumePendingId: null, 
             batchItemsValid: [], isIstirahatGlobal: false, adminTab: 'overview',
@@ -877,6 +874,7 @@
             adminHistoryReports: [], 
             
             tempMps: [], 
+            hasFetchedDailyHistory: false,
             isBatchModeConfirming: false,
             rekapMpFilterVals: { nama: '', line: '' },
 
@@ -924,42 +922,62 @@
             },
 
 
-            setupMasterDataListeners: function() {
+            setupMasterDataListeners: async function() {
                 if(!this.db || !this.user) return;
+                
+                // INISIASI OTAK CACHE UNTUK MENCEGAH DOUBLE-DOWNLOAD
+                if(!this.masterFetchStatus) this.masterFetchStatus = {};
+                
+                try {
+                    const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
+                    
+                    // PERFECTION: Gunakan gerbang 'if' agar tidak fetch ulang jika sudah ada di RAM
+                    if (!this.masterFetchStatus['LINE']) {
+                        let lineSnap = await pubRef.collection('master_line').get();
+                        lineSnap.docs.forEach(doc => {
+                            let data = doc.data();
+                            if(!this.masterLine.some(x => x.id === data.id)) this.masterLine.unshift(data);
+                        });
+                        this.masterFetchStatus['LINE'] = true; // Kunci gerbang!
+                    }
+
+                    if (!this.masterFetchStatus['LEADER']) {
+                        let leaderSnap = await pubRef.collection('master_leader').get();
+                        leaderSnap.docs.forEach(doc => {
+                            let data = doc.data();
+                            if(!this.masterLeader.some(x => x.lisensi === data.lisensi)) this.masterLeader.unshift(data);
+                        });
+                        this.masterFetchStatus['LEADER'] = true; // Kunci gerbang!
+                    }
+                } catch(e) { console.warn("Initial master load skipped", e); }
+            },
+
+            fetchMasterDataListOnDemand: async function(type) {
+                if(!this.db) return;
+                
+                // MENCEGAH KEBOCORAN NAVIGASI (Cek memori lokal sebelum nembak ke server)
+                if(!this.masterFetchStatus) this.masterFetchStatus = {};
+                if(this.masterFetchStatus[type]) return; // JIKA SUDAH ADA DI RAM, BATALKAN REQUEST KE FIREBASE!
+                
                 const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
-
-                const mergeData = (localArray, firebaseDocs, idField) => {
-                    firebaseDocs.forEach(doc => {
-                        let data = doc.data();
-                        let idx = localArray.findIndex(x => x[idField] === data[idField]);
-                        if (idx > -1) localArray[idx] = data; 
-                        else localArray.unshift(data); 
-                    });
-                };
-
-                if(this.unsubMasterAssy) this.unsubMasterAssy();
-                this.unsubMasterAssy = pubRef.collection('master_assy').onSnapshot(snap => {
-                    mergeData(this.masterAssy, snap.docs, 'no_assy');
-                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterAssy();
-                });
-
-                if(this.unsubMasterMP) this.unsubMasterMP();
-                this.unsubMasterMP = pubRef.collection('master_mp').onSnapshot(snap => {
-                    mergeData(this.masterMP, snap.docs, 'id');
-                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterMP();
-                });
-
-                if(this.unsubMasterLeader) this.unsubMasterLeader();
-                this.unsubMasterLeader = pubRef.collection('master_leader').onSnapshot(snap => {
-                    mergeData(this.masterLeader, snap.docs, 'lisensi');
-                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterLeader();
-                });
-
-                if(this.unsubMasterLine) this.unsubMasterLine();
-                this.unsubMasterLine = pubRef.collection('master_line').onSnapshot(snap => {
-                    mergeData(this.masterLine, snap.docs, 'id');
-                    if(!document.getElementById('modal-master-data').classList.contains('hide')) this.renderMasterLine();
-                });
+                try {
+                    if(type === 'ASSY') {
+                        let snap = await pubRef.collection('master_assy').get();
+                        this.masterAssy = snap.docs.map(doc => doc.data());
+                    } else if(type === 'MP') {
+                        let snap = await pubRef.collection('master_mp').get();
+                        this.masterMP = snap.docs.map(doc => doc.data());
+                    } else if(type === 'LEADER') {
+                        let snap = await pubRef.collection('master_leader').get();
+                        this.masterLeader = snap.docs.map(doc => doc.data());
+                    } else if(type === 'LINE') {
+                        let snap = await pubRef.collection('master_line').get();
+                        this.masterLine = snap.docs.map(doc => doc.data());
+                    }
+                    
+                    // Tandai bahwa koleksi ini sudah aman bersarang di RAM Laptop/HP
+                    this.masterFetchStatus[type] = true;
+                } catch(e) { console.error("Gagal sinkronisasi on-demand", e); }
             },
 
             setupRealtimeListeners: function() {
@@ -974,26 +992,19 @@
                     return;
                 }
 
+                // 1. LISTENER ANTREAN AKTIF (Ringan, hanya puluhan dokumen, aman 100%)
                 if(this.unsubQueue) this.unsubQueue();
                 this.unsubQueue = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).onSnapshot(snap => {
                     this.activeQueue = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); this.renderQueue();
                 }, err => { this.showToast("Gagal menyinkronisasi antrian", "error"); });
                 
-                if(this.unsubHistory) this.unsubHistory();
-                
-                // --- PERBAIKAN KEBOCORAN READS (LEAK FIX) ---
-                // Hanya download transaksi hari ini. Data lama biarkan diurus oleh Bucket Admin.
-                let todayMs = new Date().setHours(0,0,0,0);
+                // 2. MATIKAN LISTENER HISTORY (SUPER LEAK FIX)
+                // Kita menghapus total onSnapshot untuk History di sini!
+                if(this.unsubHistory) { this.unsubHistory(); this.unsubHistory = null; }
+                this.historyReports = [];
+                this.hasFetchedDailyHistory = false;
 
-                this.unsubHistory = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data')
-                    .collection(`history_${lineKey}`)
-                    .where('finishedAt', '>=', todayMs) // <- INI ADALAH KUNCI PENGHEMATANNYA
-                    .onSnapshot(snap => {
-                        let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        allData.sort((a,b) => b.finishedAt - a.finishedAt);
-                        this.historyReports = allData; // Hapus batasan slice(0, 2000) karena data harian pasti kecil
-                }, err => { console.error("History sync error", err); });
-
+                // 3. LISTENER STATUS GLOBAL ISTIRAHAT (1 Dokumen, 1 Read, sangat aman)
                 if(this.unsubGlobalState) this.unsubGlobalState();
                 this.unsubGlobalState = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('line_states').doc(lineKey).onSnapshot(doc => {
                     if (doc.exists) this.isIstirahatGlobal = doc.data().isIstirahatGlobal || false;
@@ -1100,8 +1111,20 @@
                 let noAssy = trimmedStr.substring(0, spaceIdx); let sn = trimmedStr.slice(-11);
                 
                 if(mode === 'IN') {
-                    if(this.activeQueue.some(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn)) || this.historyReports.some(h => h.sn === sn)) { this.showToast(`Duplicate: SN ${sn}`, "error"); return; }
-                    
+                    if(this.activeQueue.some(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn))) { 
+                        this.showToast(`Duplicate: SN ${sn} ada di Antrean`, "error"); return; 
+                    }
+                    if(this.historyReports.some(h => h.sn === sn)) { 
+                        this.showToast(`Duplicate: SN ${sn} sudah selesai (Lokal)`, "error"); return; 
+                    }
+                    if(this.db) {
+                        try {
+                            let lineKey = this.leader.line.replace(/\s+/g, '_');
+                            let checkHist = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(sn).get();
+                            if(checkHist.exists) { this.showToast(`Duplicate: SN ${sn} sudah diproses (Cloud)`, "error"); return; }
+                        } catch(e) {}
+                    }
+
                     let assyData = this.masterAssy.find(a => a.no_assy === noAssy);
                     
                     if(!assyData && this.db) {
@@ -1291,7 +1314,13 @@
 
             renderQueue: function(filterText = '') {
                 const container = document.getElementById('active-queue-container');
-                let filtered = this.activeQueue.filter(q => q.status !== 'pending' && !(q.status === 'downtime' && !q.isGlobalPause));                if(filterText) {
+                
+                // OPTIMASI: Jangan render ulang jika kontainer tidak terlihat (misal saat di tab Admin)
+                // Ini mencegah browser membuang resource saat Admin tidak melihat antrean.
+                if(document.getElementById('main-dashboard').classList.contains('hide')) return;
+
+                let filtered = this.activeQueue.filter(q => q.status !== 'pending' && !(q.status === 'downtime' && !q.isGlobalPause));
+                if(filterText) {
                     let ft = filterText.toLowerCase();
                     filtered = filtered.filter(q => (q.sn && q.sn.toLowerCase().includes(ft)) || q.noAssy.toLowerCase().includes(ft) || (q.isBatch && q.batchSNs.some(bsn => bsn.toLowerCase().includes(ft))));
                 }
@@ -1708,6 +1737,8 @@
                         }, { merge: true });
                         
                         await batch.commit();
+                        // SINKRONISASI LOKAL: Masukkan unit yang baru selesai ke array report agar modal up-to-date
+                        historyDataArray.forEach(hData => this.historyReports.unshift(hData));
                     } else {
                         this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
                         historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
@@ -1813,18 +1844,20 @@
             showPendingList: function() {
                 let pendings = this.activeQueue.filter(q => q.status === 'pending');
                 if(pendings.length === 0) { this.showToast("Tidak ada pending", "info"); return; }
-                const container = document.getElementById('pending-list-container'); container.innerHTML = '';
-                pendings.forEach(p => {
+                const container = document.getElementById('pending-list-container'); 
+                
+                // Render kerangka pembungkusnya saja sekali, gunakan id unik untuk timernya nanti
+                container.innerHTML = '';
+                pendings.forEach((p, idx) => {
                     let snDisplay = p.isBatch ? `<span class="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded text-[10px] mr-1">BATCH x${p.batchSize}</span> <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>` : `<span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>`;
                     let lastDt = p.downtimes[p.downtimes.length-1];
-                    let pendingDurationStr = this.formatMs(Date.now() - lastDt.start); 
 
                     let html = `
                     <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-red-200 shadow-sm">
                         <div>
                             <div class="font-bold text-slate-800 text-sm font-mono">${p.noAssy} ${snDisplay}</div>
                             <div class="text-[10px] text-slate-600 mt-1 font-semibold">${lastDt.reason}</div>
-                            <div class="text-[10px] text-red-500 font-bold font-timer mt-0.5">Waktu Pending: ${pendingDurationStr}</div>
+                            <div id="p-timer-${idx}" data-start="${lastDt.start}" class="text-[10px] text-red-500 font-bold font-timer mt-0.5">Waktu Pending: --:--:--</div>
                         </div>
                         <button onclick="app.resumePendingInit('${p.id}')" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjut Inisiasi</button>
                     </div>`;
@@ -1832,10 +1865,20 @@
                 });
                 document.getElementById('modal-pending-list').classList.remove('hide');
                 
+                // TIMERS FIX: Hanya update teks HTML teks-nya saja, 0% menyentuh database/render ulang antrean!
                 if(this.pendingTimer) clearInterval(this.pendingTimer);
                 this.pendingTimer = setInterval(() => {
-                    if(!document.getElementById('modal-pending-list').classList.contains('hide')) this.showPendingList();
-                    else clearInterval(this.pendingTimer);
+                    if(!document.getElementById('modal-pending-list').classList.contains('hide')) {
+                        pendings.forEach((p, idx) => {
+                            let el = document.getElementById(`p-timer-${idx}`);
+                            if(el) {
+                                let startMs = parseInt(el.getAttribute('data-start'));
+                                el.innerText = "Waktu Pending: " + app.formatMs(Date.now() - startMs);
+                            }
+                        });
+                    } else {
+                        clearInterval(this.pendingTimer);
+                    }
                 }, 1000);
             },
             
@@ -1861,6 +1904,7 @@
                 let el = document.getElementById('dt-count');
                 if(el) el.innerText = this.activeQueue.filter(q => q.status === 'downtime' && !q.isGlobalPause).length; 
             },
+
             showDowntimeList: function() {
                 let dts = this.activeQueue.filter(q => q.status === 'downtime' && !q.isGlobalPause);
                 if(dts.length === 0) { 
@@ -1868,18 +1912,19 @@
                     document.getElementById('modal-downtime-list').classList.add('hide'); 
                     return; 
                 }
-                const container = document.getElementById('downtime-list-container'); container.innerHTML = '';
-                dts.forEach(p => {
+                const container = document.getElementById('downtime-list-container'); 
+                container.innerHTML = '';
+                
+                dts.forEach((p, idx) => {
                     let snDisplay = p.isBatch ? `<span class="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded text-[10px] mr-1">BATCH x${p.batchSize}</span> <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>` : `<span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono font-normal tracking-wide">${p.sn}</span>`;
                     let lastDt = p.downtimes[p.downtimes.length-1];
-                    let dtDurationStr = this.formatMs(Date.now() - lastDt.start); 
 
                     let html = `
                     <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-200 shadow-sm">
                         <div>
                             <div class="font-bold text-slate-800 text-sm font-mono">${p.noAssy} ${snDisplay}</div>
                             <div class="text-[10px] text-slate-600 mt-1 font-semibold">Kendala: <span class="text-amber-600 font-bold">${lastDt.reason}</span></div>
-                            <div class="text-[10px] text-amber-600 font-bold font-timer mt-0.5">Waktu Downtime: ${dtDurationStr}</div>
+                            <div id="dt-timer-${idx}" data-start="${lastDt.start}" class="text-[10px] text-amber-600 font-bold font-timer mt-0.5">Waktu Downtime: --:--:--</div>
                         </div>
                         <button onclick="app.promptResumeDowntime('${p.id}')" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjutkan</button>
                     </div>`;
@@ -1887,10 +1932,20 @@
                 });
                 document.getElementById('modal-downtime-list').classList.remove('hide');
                 
+                // TIMERS FIX: Hanya update teks HTML teks-nya saja tanpa query ulang
                 if(this.downtimeTimer) clearInterval(this.downtimeTimer);
                 this.downtimeTimer = setInterval(() => {
-                    if(!document.getElementById('modal-downtime-list').classList.contains('hide')) this.showDowntimeList();
-                    else clearInterval(this.downtimeTimer);
+                    if(!document.getElementById('modal-downtime-list').classList.contains('hide')) {
+                        dts.forEach((p, idx) => {
+                            let el = document.getElementById(`dt-timer-${idx}`);
+                            if(el) {
+                                let startMs = parseInt(el.getAttribute('data-start'));
+                                el.innerText = "Waktu Downtime: " + app.formatMs(Date.now() - startMs);
+                            }
+                        });
+                    } else {
+                        clearInterval(this.downtimeTimer);
+                    }
                 }, 1000);
             },
 
@@ -1904,6 +1959,7 @@
                 this.lastAdminFetch = "";
                 this.lastAdminCacheKey = "";
                 this.adminTransactionsCache = [];
+                this.masterFetchStatus = {}; // <- TAMBAHAN: Hapus ingatan data Master agar bisa diunduh ulang!
                 
                 // 2. Munculkan notifikasi awal bahwa proses dimulai
                 this.showToast("Mereset memori. Mengambil data terbaru dari server...", "info");
@@ -2267,11 +2323,10 @@
                 if(this.adminTab === 'mastermp_admin') this.renderMasterMPAdmin();
             },
 
-            switchAdminTab: function(tabName) {
+            switchAdminTab: async function(tabName) {
                 this.adminTab = tabName;
-                this.adminPageTrx = 1; this.adminPageMasAssy = 1; this.adminPageMasMP = 1; // Reset halaman
+                this.adminPageTrx = 1; this.adminPageMasAssy = 1; this.adminPageMasMP = 1; 
                 
-                // Matikan semua tab agar bersih
                 ['overview', 'leaderboard', 'rekapline', 'rekapmp', 'transactions', 'masterleader', 'masterline', 'masterassy_admin', 'mastermp_admin'].forEach(t => {
                     let btn = document.getElementById('tab-btn-' + t);
                     let tab = document.getElementById('admin-tab-' + t);
@@ -2279,7 +2334,6 @@
                     if(tab) tab.classList.add('hide');
                 });
                 
-                // Nyalakan tab yang dipilih
                 let activeBtn = document.getElementById('tab-btn-' + tabName);
                 let activeTab = document.getElementById('admin-tab-' + tabName);
                 if(activeBtn) activeBtn.classList.add('admin-tab-active'); 
@@ -2293,11 +2347,24 @@
                     if(flt) flt.classList.add('hide');
                 }
 
-                // Render otomatis saat diklik
-                if(tabName === 'masterassy_admin') this.renderMasterAssyAdmin();
-                if(tabName === 'mastermp_admin') this.renderMasterMPAdmin();
-                if(tabName === 'masterleader') this.renderMasterLeader();
-                if(tabName === 'masterline') this.renderMasterLine();
+                if(tabName === 'masterassy_admin') {
+                    document.getElementById('master-assy-admin-tbody').innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs italic text-slate-400"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat data...</td></tr>`;
+                    await this.fetchMasterDataListOnDemand('ASSY');
+                    this.renderMasterAssyAdmin();
+                }
+                if(tabName === 'mastermp_admin') {
+                    document.getElementById('master-mp-admin-tbody').innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs italic text-slate-400"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat data...</td></tr>`;
+                    await this.fetchMasterDataListOnDemand('MP');
+                    this.renderMasterMPAdmin();
+                }
+                if(tabName === 'masterleader') {
+                    await this.fetchMasterDataListOnDemand('LEADER');
+                    this.renderMasterLeader();
+                }
+                if(tabName === 'masterline') {
+                    await this.fetchMasterDataListOnDemand('LINE');
+                    this.renderMasterLine();
+                }
 
                 let emptyState = document.getElementById('admin-empty-state');
                 if (emptyState && !emptyState.classList.contains('hide')) return; 
@@ -2607,8 +2674,17 @@
                 let pageHtml = `<div id="admin-pagination-box" class="flex justify-between items-center p-3 text-xs bg-slate-50 border-t"><button onclick="app.adminPageTrx=Math.max(1, app.adminPageTrx-1); app.renderAdminTransactions()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Prev</button><span class="font-bold text-slate-500">Page ${this.adminPageTrx} of ${maxPage} (${totalData} Data)</span><button onclick="app.adminPageTrx=Math.min(${maxPage}, app.adminPageTrx+1); app.renderAdminTransactions()" class="px-3 py-1 border rounded bg-white shadow-sm font-bold">Next</button></div>`;
                 tbody.parentElement.insertAdjacentHTML('afterend', pageHtml);            },
 
-            openMasterDataModal: function() {
+            openMasterDataModal: async function() {
                 document.getElementById('modal-master-data').classList.remove('hide');
+                
+                document.getElementById('master-assy-tbody').innerHTML = `<tr><td colspan="5" class="text-center p-4 text-xs text-slate-400 italic bg-slate-50 border-t"><i class="fas fa-spinner fa-spin mr-1"></i> Menyinkronkan Katalog Assy dari Cloud...</td></tr>`;
+                document.getElementById('master-mp-tbody').innerHTML = `<tr><td colspan="5" class="text-center p-4 text-xs text-slate-400 italic bg-slate-50 border-t"><i class="fas fa-spinner fa-spin mr-1"></i> Menyinkronkan Direktori MP dari Cloud...</td></tr>`;
+                
+                await this.fetchMasterDataListOnDemand('ASSY');
+                await this.fetchMasterDataListOnDemand('MP');
+                await this.fetchMasterDataListOnDemand('LEADER');
+                await this.fetchMasterDataListOnDemand('LINE');
+
                 this.renderMasterAssy();
                 this.renderMasterMP();
                 this.renderMasterLeader();
@@ -2862,46 +2938,24 @@
                 let collName = ''; 
                 let idField = '';
 
-                // LOGIKA FIX: Pastikan nObj mengambil field yang benar agar tidak saling tertimpa
                 if(t==='ASSY') { 
                     idField='no_assy'; 
-                    nObj = { 
-                        no_assy: newId, 
-                        cct: Number(document.getElementById('e-cct').value), 
-                        umh: Number(document.getElementById('e-umh').value), 
-                        last_edited: dateStr 
-                    }; 
+                    nObj = { no_assy: newId, cct: Number(document.getElementById('e-cct').value), umh: Number(document.getElementById('e-umh').value), last_edited: dateStr }; 
                     collName = 'master_assy'; 
                 }
                 else if(t==='MP') { 
                     idField='id'; 
-                    nObj = { 
-                        id: newId, 
-                        nama: document.getElementById('e-nama').value, 
-                        join_date: document.getElementById('e-join').value, // Ambil dari input date khusus join_date
-                        last_edited: dateStr 
-                    }; 
+                    nObj = { id: newId, nama: document.getElementById('e-nama').value, join_date: document.getElementById('e-join').value, last_edited: dateStr }; 
                     collName = 'master_mp'; 
                 }
                 else if(t==='LEADER') { 
                     idField='lisensi'; 
-                    nObj = { 
-                        lisensi: newId, 
-                        pass: document.getElementById('e-pass').value, 
-                        nama: document.getElementById('e-nama').value, 
-                        line: document.getElementById('e-line').value, 
-                        shift: document.getElementById('e-shift').value, 
-                        last_edited: dateStr 
-                    }; 
+                    nObj = { lisensi: newId, pass: document.getElementById('e-pass').value, nama: document.getElementById('e-nama').value, line: document.getElementById('e-line').value, shift: document.getElementById('e-shift').value, last_edited: dateStr }; 
                     collName = 'master_leader'; 
                 }
                 else if(t==='LINE') { 
                     idField='id'; 
-                    nObj = { 
-                        id: newId, 
-                        target: Number(document.getElementById('e-target').value), // FIX: Target line sekarang menggunakan Number
-                        last_edited: dateStr 
-                    }; 
+                    nObj = { id: newId, target: Number(document.getElementById('e-target').value), last_edited: dateStr }; 
                     collName = 'master_line'; 
                 }
 
@@ -2911,38 +2965,33 @@
                 if(this.db) {
                     try {
                         let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName);
-                        
-                        // AUTO SAVE KE CLOUD: Jika ID Berubah, hapus yang lama, set yang baru.
                         if(safeOldId !== safeNewId) {
                             let batch = this.db.batch();
                             batch.set(ref.doc(safeNewId), nObj);
                             batch.delete(ref.doc(safeOldId));
                             await batch.commit();
                         } else {
-                            // Jika ID tetap, cukup update isinya
                             await ref.doc(safeNewId).update(nObj);
                         }
-                        this.showToast(`Data ${newId} tersimpan di cloud.`, "success");
                     } catch(e) { 
                         console.error(e);
                         this.showToast("Gagal sinkronisasi ke server.", "error"); 
                         return; 
                     }
-                } else {
-                    // Fallback Lokal
-                    let arrName = 'master' + (t === 'LEADER' ? 'Leader' : (t === 'MP' ? 'MP' : (t === 'ASSY' ? 'Assy' : 'Line')));
-                    let arr = this[arrName];
-                    let idx = arr.findIndex(x => (x.id || x.no_assy || x.lisensi) === oldId);
-                    if (idx > -1) { 
-                        arr.splice(idx, 1);
-                        arr.unshift(nObj);
-                        this.persistLocal(arrName, arr); 
-                    }
+                }
+
+                let arrName = 'master' + (t === 'LEADER' ? 'Leader' : (t === 'MP' ? 'MP' : (t === 'ASSY' ? 'Assy' : 'Line')));
+                let arr = this[arrName];
+                let idx = arr.findIndex(x => (x.id || x.no_assy || x.lisensi) === oldId);
+                if (idx > -1) { 
+                    arr.splice(idx, 1);
+                    arr.unshift(nObj);
+                    this.persistLocal(arrName, arr); 
                 }
 
                 this.closeModal('modal-edit-master');
+                this.showToast(`Data ${newId} berhasil diperbarui & disinkronkan.`, "success");
                 
-                // Refresh Tampilan yang sedang aktif
                 if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
                 else if(this.adminTab === 'mastermp_admin') this.renderMasterMPAdmin();
                 else if(t==='ASSY') this.renderMasterAssy(); 
@@ -2980,15 +3029,27 @@
                 if(type==='MP') { ['m-add-mp-nrp','m-add-mp-nama','m-add-mp-join'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-mp').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-mp-nrp').focus(), 100); }
                 if(type==='LEADER') { ['m-add-ld-id','m-add-ld-pass','m-add-ld-nama','m-add-ld-line'].forEach(id=>document.getElementById(id).value=''); document.getElementById('m-add-ld-shift').value='A'; document.getElementById('modal-add-leader').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-ld-id').focus(), 100); }
             },
+            
             saveNewMasterAssy: async function() {
                 let no = document.getElementById('m-add-assy-no').value.trim().toUpperCase(); let cct = document.getElementById('m-add-assy-cct').value; let umh = document.getElementById('m-add-assy-umh').value;
                 if(!no || !cct || !umh) { this.showToast("Isi semua data Assy!", "warning"); return; }
                 let newItem = { no_assy: no, cct: Number(cct), umh: Number(umh), last_edited: new Date().toISOString().split('T')[0] };
+                
                 if (this.db) {
                     let safeNo = no.replace(/\//g, '_');
                     await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeNo).set(newItem);
                 }
-                else { this.masterAssy.unshift(newItem); this.persistLocal('masterAssy', this.masterAssy); this.renderMasterAssy(); }                this.closeModal('modal-add-assy'); this.showToast("Data Assy ditambahkan.", "success");
+                
+                let idx = this.masterAssy.findIndex(x => x.no_assy === no);
+                if (idx > -1) this.masterAssy[idx] = newItem; 
+                else this.masterAssy.unshift(newItem);       
+                this.persistLocal('masterAssy', this.masterAssy);
+
+                this.renderMasterAssy(); 
+                if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
+
+                this.closeModal('modal-add-assy'); 
+                this.showToast("Data Assy berhasil ditambahkan & sinkron ke server.", "success");
             },
             
             saveNewMasterMP: async function() {
@@ -2998,18 +3059,21 @@
                 
                 if (this.db) {
                     await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_mp').doc(nrp).set(newItem);
+                } 
+                
+                let existingIndex = this.masterMP.findIndex(m => m.id === nrp);
+                if(existingIndex > -1) {
+                    this.masterMP[existingIndex] = newItem; 
                 } else {
-                    let existingIndex = this.masterMP.findIndex(m => m.id === nrp);
-                    if(existingIndex > -1) {
-                        this.masterMP[existingIndex] = newItem;
-                    } else {
-                        this.masterMP.unshift(newItem);
-                    }
-                    this.persistLocal('masterMP', this.masterMP); this.renderMasterMP(); 
+                    this.masterMP.unshift(newItem);       
                 }
+                this.persistLocal('masterMP', this.masterMP); 
+                
+                this.renderMasterMP(); 
+                if(this.adminTab === 'mastermp_admin') this.renderMasterMPAdmin();
                 
                 this.closeModal('modal-add-mp'); 
-                this.showToast("Data MP ditambahkan & tersimpan ke sistem.", "success");
+                this.showToast("Data MP berhasil ditambahkan & sinkron ke server.", "success");
 
                 if (this.modalAddContext === 'INIT' || this.modalAddContext === 'BATCH') {
                     let isBatch = this.modalAddContext === 'BATCH';
@@ -3053,7 +3117,7 @@
                 this.showToast(`Data ${id} telah dihapus.`, "info");
             },
 
-            openReportModal: function() {
+            openReportModal: async function() {
                 let filterHtml = `<option value="${this.leader.line}">${this.leader.line} (Area Anda)</option>`;
                 let filterEl = document.getElementById('report-line-filter');
                 filterEl.innerHTML = filterHtml;
@@ -3061,6 +3125,26 @@
                 filterEl.classList.add('cursor-not-allowed', 'text-teal-700', 'bg-teal-50'); 
                 
                 document.getElementById('modal-report').classList.remove('hide');
+                
+                if (!this.hasFetchedDailyHistory && this.db) {
+                    document.getElementById('report-modal-tbody').innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-500 font-bold"><i class="fas fa-spinner fa-spin mr-2"></i> Mengunduh laporan hari ini dari server...</td></tr>`;
+                    try {
+                        let todayMs = new Date().setHours(0,0,0,0);
+                        let lineKey = this.leader.line.replace(/\s+/g, '_');
+                        let snap = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data')
+                            .collection(`history_${lineKey}`)
+                            .where('finishedAt', '>=', todayMs)
+                            .get();
+
+                        let allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        allData.sort((a,b) => b.finishedAt - a.finishedAt);
+                        this.historyReports = allData;
+                        this.hasFetchedDailyHistory = true;
+                    } catch(e) {
+                        console.error(e);
+                        this.showToast("Gagal mengambil data report", "error");
+                    }
+                }
                 this.renderReportModal();
             },
 
@@ -3533,49 +3617,113 @@
                 document.getElementById('init-form-container').classList.remove('hide'); document.getElementById('init-line-select').value=this.leader.line; document.getElementById('wp-input').focus();
             },
 
-            openBatchMode: function() { document.getElementById('modal-batch').classList.remove('hide'); ['batch-scan-trigger','b-wp-input','b-mp-input'].forEach(id=>document.getElementById(id).value=''); ['batch-assy','batch-cct','batch-umh'].forEach(id=>document.getElementById(id).innerText='-'); this.batchItemsValid=[]; this.updateBatchUI(); this.tempMps = []; this.renderTempMps(true); setTimeout(() => document.getElementById('batch-scan-trigger').focus(), 100); },
+            openBatchMode: function() { 
+                document.getElementById('modal-batch').classList.remove('hide'); 
+                ['batch-scan-trigger','b-wp-input','b-mp-input'].forEach(id=>document.getElementById(id).value=''); 
+                ['batch-assy','batch-cct','batch-umh'].forEach(id=>document.getElementById(id).innerText='-'); 
+                this.batchItemsValid=[]; 
+                this.updateBatchUI(); 
+                this.tempMps = []; 
+                this.renderTempMps(true); 
+                setTimeout(() => document.getElementById('batch-scan-trigger').focus(), 100); 
+            },
             
+            // INI ADALAH FUNGSI YANG KEPALANYA TIDAK SENGAJA TERHAPUS
             processBatchScan: async function(val) {
-                let tr=val.trim(); document.getElementById('batch-scan-trigger').value=''; let s=tr.indexOf(' '); if(s===-1||tr.length<12){this.showToast("Format invalid","error");return;}
-                let a=tr.substring(0,s); let sn=tr.slice(-11); let c=null,u=null;
+                let tr = val.trim(); 
+                document.getElementById('batch-scan-trigger').value = ''; 
+                let s = tr.indexOf(' '); 
+                if(s === -1 || tr.length < 12) { this.showToast("Format invalid", "error"); return; }
                 
+                let a = tr.substring(0, s); 
+                let sn = tr.slice(-11); 
+                let c = null, u = null;
+                
+                // --- PERBAIKAN VALIDASI DUPLIKAT ADA DI SINI ---
                 if(this.activeQueue.some(q => (q.isBatch && q.batchSNs.includes(sn)) || (!q.isBatch && q.sn === sn)) || this.historyReports.some(h => h.sn === sn)) { 
-                    this.showToast(`Serial ${sn} sudah diproses / ada di antrian!`, "error"); return; 
+                    this.showToast(`Serial ${sn} sudah diproses / ada di antrean!`, "error"); return; 
+                }
+                
+                if(this.db) {
+                    try {
+                        let lineKey = this.leader.line.replace(/\s+/g, '_');
+                        let checkHist = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(sn).get();
+                        if(checkHist.exists) { this.showToast(`Serial ${sn} sudah diproses (Cloud)!`, "error"); return; }
+                    } catch(e) {}
                 }
 
-                if(this.batchItemsValid.length===0){ 
-                    let d = this.masterAssy.find(x=>x.no_assy===a); 
+                if(this.batchItemsValid.length === 0){ 
+                    let d = this.masterAssy.find(x => x.no_assy === a); 
                     if(!d && this.db) {
                         try {
                             let safeA = a.replace(/\//g, '_');
-                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeA).get();                            if(doc.exists) { d = doc.data(); this.masterAssy.unshift(d); }
+                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeA).get();                            
+                            if(doc.exists) { d = doc.data(); this.masterAssy.unshift(d); }
                         } catch(e){}
                     }
-                    if(!d){this.showToast("Assy tdk ada di master","error");return;} 
+                    if(!d){this.showToast("Assy tdk ada di master", "error"); return;} 
                     
                     if (d.cct > 100) {
                         this.showToast(`Batch ditolak! CCT Assy (${d.cct}) lebih dari 100.`, "error");
                         return;
                     }
                     
-                    c=d.cct; u=d.umh; document.getElementById('batch-assy').innerText=a; document.getElementById('batch-cct').innerText=c; document.getElementById('batch-umh').innerText=u; 
+                    c = d.cct; u = d.umh; 
+                    document.getElementById('batch-assy').innerText = a; 
+                    document.getElementById('batch-cct').innerText = c; 
+                    document.getElementById('batch-umh').innerText = u; 
                 }
-                else if(a!==document.getElementById('batch-assy').innerText){this.showToast("Assy berbeda!","error");return;}
+                else if(a !== document.getElementById('batch-assy').innerText) {
+                    this.showToast("Assy berbeda!", "error"); return;
+                }
                 
-                if(this.batchItemsValid.some(v=>v.sn===sn)){this.showToast("Duplicate di list batch ini","error");return;}
-                this.batchItemsValid.push({noAssy:a,sn:sn}); this.updateBatchUI();
+                if(this.batchItemsValid.some(v => v.sn === sn)) {
+                    this.showToast("Duplicate di list batch ini", "error"); return;
+                }
+                
+                this.batchItemsValid.push({noAssy:a, sn:sn}); 
+                this.updateBatchUI();
             },
-            updateBatchUI: function() { let l=document.getElementById('batch-valid-list'); l.innerHTML=''; this.batchItemsValid.forEach(v=>{l.innerHTML+=`<div class="p-1 border-b flex justify-between"><span>${v.sn}</span> <span class="text-teal-600">Valid</span></div>`;}); document.getElementById('batch-count').innerText=this.batchItemsValid.length; document.getElementById('btn-batch-start').disabled=this.batchItemsValid.length===0; },
+
+            updateBatchUI: function() { 
+                let l = document.getElementById('batch-valid-list'); 
+                l.innerHTML = ''; 
+                this.batchItemsValid.forEach(v => {
+                    l.innerHTML += `<div class="p-1 border-b flex justify-between"><span>${v.sn}</span> <span class="text-teal-600">Valid</span></div>`;
+                }); 
+                document.getElementById('batch-count').innerText = this.batchItemsValid.length; 
+                document.getElementById('btn-batch-start').disabled = this.batchItemsValid.length === 0; 
+            },
+            
             startBatch: async function() {
-                let w=document.getElementById('b-wp-input').value.toUpperCase(); 
-                let mps=[...this.tempMps]; 
-                let bData = { id:`BCH-${Date.now()}`, sn:this.batchItemsValid[0].sn, batchSNs:this.batchItemsValid.map(v=>v.sn), isBatch:true, batchSize:this.batchItemsValid.length, noAssy:this.batchItemsValid[0].noAssy, cct:parseInt(document.getElementById('batch-cct').innerText), baseUmh:parseInt(document.getElementById('batch-umh').innerText), wp:w, mps:mps, targetLine:document.getElementById('b-line-select').value, startTime:Date.now(), status:'running', totalDowntime:0, downtimes:[], lastDowntimeStart:null, isGlobalPause:false, shift:this.shift, leaderName:this.leader.nama };
-                this.closeModal('modal-confirm-start'); this.closeModal('modal-batch'); this.showToast(`Batch Started`,"success"); this.saveToQueue(bData);
+                let w = document.getElementById('b-wp-input').value.toUpperCase(); 
+                let mps = [...this.tempMps]; 
+                let bData = { 
+                    id: `BCH-${Date.now()}`, sn: this.batchItemsValid[0].sn, batchSNs: this.batchItemsValid.map(v => v.sn), 
+                    isBatch: true, batchSize: this.batchItemsValid.length, noAssy: this.batchItemsValid[0].noAssy, 
+                    cct: parseInt(document.getElementById('batch-cct').innerText), baseUmh: parseInt(document.getElementById('batch-umh').innerText), 
+                    wp: w, mps: mps, targetLine: document.getElementById('b-line-select').value, 
+                    startTime: Date.now(), status: 'running', totalDowntime: 0, downtimes: [], lastDowntimeStart: null, 
+                    isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama 
+                };
+                this.closeModal('modal-confirm-start'); 
+                this.closeModal('modal-batch'); 
+                this.showToast(`Batch Started`, "success"); 
+                this.saveToQueue(bData);
             },
+            
             updateQueueDoc: async function(id, data) { 
                 let lineKey = this.leader.line.replace(/\s+/g, '_');
-                if(this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).update(data); 
-                else { let idx=this.activeQueue.findIndex(q=>q.id===id); if(idx>-1){this.activeQueue[idx]={...this.activeQueue[idx],...data}; this.persistLocal(`activeQueue_${lineKey}`,this.activeQueue); this.renderQueue();} } 
+                if(this.db) {
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).update(data); 
+                } else { 
+                    let idx = this.activeQueue.findIndex(q => q.id === id); 
+                    if(idx > -1) {
+                        this.activeQueue[idx] = { ...this.activeQueue[idx], ...data }; 
+                        this.persistLocal(`activeQueue_${lineKey}`, this.activeQueue); 
+                        this.renderQueue();
+                    } 
+                } 
             }
         };
 
