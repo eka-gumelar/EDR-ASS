@@ -411,6 +411,9 @@
                             <div class="flex gap-2">
                                 <input type="text" id="src-mas-assy-admin" oninput="app.renderMasterAssyAdmin()" placeholder="Cari No Assy..." class="text-xs px-2 py-1 border rounded w-48 outline-none focus:ring-1 focus:ring-blue-500">
                                 <button onclick="app.openMasterAddModal('ASSY')" class="bg-blue-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm">Tambah Assy</button>
+                                <button onclick="app.autoCalibrateRetroactive()" class="px-4 py-2 bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 font-bold rounded-lg shadow-sm transition text-xs flex items-center gap-2 mb-2 lg:mb-0" title="Cari data masa lalu dan kalibrasi otomatis UMH 0">
+                                <i class="fas fa-magic"></i> Auto-Kalibrasi Riwayat
+                                </button>
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
@@ -1014,11 +1017,19 @@
             },
 
             useLocalFallback: function() {
-                this.masterAssy = [...initMasterDataAssy];
-                this.masterMP = [...initMasterDataMP];
-                this.masterLeader = [...initMasterDataLeader];
-                this.masterLine = [...initMasterDataLine];
+                let localAssy = JSON.parse(localStorage.getItem('masterAssy'));
+                this.masterAssy = localAssy && localAssy.length > 0 ? localAssy : [...initMasterDataAssy];
+                
+                let localMP = JSON.parse(localStorage.getItem('masterMP'));
+                this.masterMP = localMP && localMP.length > 0 ? localMP : [...initMasterDataMP];
+                
+                let localLeader = JSON.parse(localStorage.getItem('masterLeader'));
+                this.masterLeader = localLeader && localLeader.length > 0 ? localLeader : [...initMasterDataLeader];
+                
+                let localLine = JSON.parse(localStorage.getItem('masterLine'));
+                this.masterLine = localLine && localLine.length > 0 ? localLine : [...initMasterDataLine];
             },
+
             persistLocal: function(k, d) { localStorage.setItem(k, JSON.stringify(d)); },
 
             setupUIBindings: function() {
@@ -1130,11 +1141,17 @@
                     if(!assyData && this.db) {
                         try {
                             let safeAssy = noAssy.replace(/\//g, '_');
-                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy).get();                            if(doc.exists) {
+                            const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy).get();                            
+                            if(doc.exists) {
                                 assyData = doc.data();
                                 this.masterAssy.unshift(assyData); 
+                                this.persistLocal('masterAssy', this.masterAssy); // SIMPAN PERMANEN KE TABLET
                             }
-                        } catch (e) { console.error("Gagal tarik data Assy", e); }
+                        } catch (e) { 
+                            console.error("Gagal tarik data Assy", e); 
+                            this.showToast("Koneksi tidak stabil! Gagal mengecek Assy ke Cloud.", "error");
+                            return;
+                        }
                     }
 
                     if(!assyData) { this.showToast(`Assy ${noAssy} tidak terdaftar di Sistem`, "error"); return; }
@@ -1178,8 +1195,13 @@
                             if(doc.exists) {
                                 mpData = doc.data();
                                 this.masterMP.unshift(mpData);
+                                this.persistLocal('masterMP', this.masterMP); // SIMPAN PERMANEN KE TABLET
                             }
-                        } catch (e) { console.error("Gagal tarik data MP", e); }
+                        } catch (e) { 
+                            console.error("Gagal tarik data MP", e); 
+                            this.showToast("Koneksi tidak stabil! Gagal mengecek NRP ke Cloud.", "error");
+                            return; // Hentikan agar tidak muncul pesan "Tidak Terdaftar"
+                        }
                     }
 
                     if(mpData) {
@@ -1688,31 +1710,94 @@
                     let batchMultiplier = item.isBatch ? item.batchSize : 1;
                     let mpsLength = item.mps && item.mps.length > 0 ? item.mps.length : 1;
                     
-                    let targetUmh = (item.baseUmh * batchMultiplier) / mpsLength; 
-                    let isOK = activeMin <= targetUmh; 
+                    // 1. Durasi Target Baru = UMH dibagi jumlah MP (Target murni untuk 1 Unit per MP)
+                    let targetPerUnit = item.baseUmh / mpsLength; 
                     
-                    let cctPerMp = item.cct / mpsLength; 
+                    // 2. Durasi Aktual dibagi Rata ke jumlah total Batch
                     let durationPerUnit = activeMin / batchMultiplier; 
                     let dtPerUnit = dtMin / batchMultiplier;
                     let pdPerUnit = pdMin / batchMultiplier;
+                    let cctPerMp = item.cct / mpsLength; 
 
-                    // FIX 1: Kalkulasi rasio performa yang sebelumnya hilang
-                    let rPct = durationPerUnit > 0 ? (targetUmh / durationPerUnit) * 100 : 0;
+                    // --- FITUR BARU: AUTO-LEARNING UMH ---
+                    let safeAssy = item.noAssy.replace(/\//g, '_');
+                    let assyMasterUpdate = null;
+                    let newUmhVal = null;
+                    
+                    // Hanya lakukan perhitungan ekstra jika UMH dasarnya 0
+                    if (item.baseUmh === 0 && this.db) {
+                        try {
+                            let assyRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy);
+                            let assyDoc = await assyRef.get();
+                            if (assyDoc.exists) {
+                                let mData = assyDoc.data();
+                                // Pastikan di server juga masih 0 (belum sempat diubah manual oleh admin)
+                                if (mData.umh === 0) { 
+                                    let curCount = mData.autoCount || 0;
+                                    let curTotal = mData.autoTotalMin || 0;
+                                    
+                                    // Tambahkan jumlah batch dan durasinya ke perekam jejak
+                                    let newCount = curCount + batchMultiplier;
+                                    let newTotal = curTotal + (durationPerUnit * batchMultiplier);
+                                    
+                                    // JIKA SUDAH MENCAPAI 20 UNIT (atau lebih)
+                                    if (newCount >= 20) {
+                                        newUmhVal = Number((newTotal / newCount).toFixed(2));
+                                        assyMasterUpdate = { 
+                                            umh: newUmhVal, // Timpa UMH 0 menjadi UMH Aktual Rata-rata
+                                            autoCount: firebase.firestore.FieldValue.delete(), // Hapus perekam jejak
+                                            autoTotalMin: firebase.firestore.FieldValue.delete(), // Hapus perekam jejak
+                                            last_edited: new Date().toISOString().split('T')[0]
+                                        };
+                                    } else {
+                                        // Jika belum 20 unit, cukup simpan jejak hitungannya di cloud
+                                        assyMasterUpdate = { autoCount: newCount, autoTotalMin: newTotal };
+                                    }
+                                }
+                            }
+                        } catch(e) { console.warn("Auto UMH Error:", e); }
+                    }
+                    // --- END AUTO-LEARNING UMH ---
+
+                    // 3. Kalkulasi Rasio secara Adil (Target per Unit dibanding Aktual per Unit)
+                    let rPct = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 0;
+                    let isOK = durationPerUnit <= targetPerUnit; 
 
                     let historyDataArray = [];
-                    let baseH = { ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, finalStatus: isOK ? "OK" : "OVERTIME" };
-                    if(item.isBatch) {
-                        item.batchSNs.forEach(batchSn => { historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); });
-                    } else { historyDataArray.push(baseH); }
-
+                    let detailDataArray = []; 
                     let lineKey = this.leader.line.replace(/\s+/g, '_');
+
+                    let baseH = { 
+                        ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, 
+                        downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, 
+                        finalStatus: isOK ? "OK" : "OVERTIME" 
+                    };
+
+                    if(item.isBatch) {
+                        item.batchSNs.forEach(batchSn => { 
+                            historyDataArray.push({ ...baseH, id: batchSn, sn: batchSn, isBatch: false, batchSNs: null, batchSize: null }); 
+                            detailDataArray.push({
+                                finishedAt: now, sn: batchSn, noAssy: baseH.noAssy, durationMin: durationPerUnit, finalStatus: isOK ? "OK" : "OVERTIME",
+                                mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
+                                shift: baseH.shift, cct: baseH.cct || 0, baseUmh: item.baseUmh,
+                                isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || ""
+                            });
+                        });
+                    } else { 
+                        historyDataArray.push({ ...baseH, isBatch: false, batchSNs: null, batchSize: null }); 
+                        detailDataArray.push({
+                            finishedAt: now, sn: baseH.sn, noAssy: baseH.noAssy, durationMin: durationPerUnit, finalStatus: isOK ? "OK" : "OVERTIME",
+                            mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
+                            shift: baseH.shift, cct: baseH.cct || 0, baseUmh: item.baseUmh,
+                            isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || ""
+                        });
+                    }
 
                     if(this.db) {
                         const batch = this.db.batch();
                         batch.delete(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(item.id));
                         historyDataArray.forEach(hData => { batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`history_${lineKey}`).doc(hData.sn), hData); });
                         
-                        // --- STRATEGI HEMAT READS: BUKU BESAR (ROLLUP) HARIAN ---
                         let dStr = this.getProductionDay(now);
                         let rekapDocId = `${dStr}_${baseH.shift}`; 
                         let rekapRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`).doc(rekapDocId);
@@ -1724,21 +1809,34 @@
                         });
                         batch.set(rekapRef, rekapUpdates, { merge: true });
 
-                        // --- ARSITEKTUR BUKU BESAR DETAIL (BUCKET PATTERN) ---
                         let bucketRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`detail_harian_${lineKey}`).doc(rekapDocId);
-                        let detailTransaksiIni = {
-                            finishedAt: now, sn: baseH.sn, noAssy: baseH.noAssy, durationMin: baseH.durationMin, finalStatus: baseH.finalStatus,
-                            mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
-                            shift: baseH.shift, cct: baseH.cct || 0, baseUmh: baseH.baseUmh || 0, isBatch: baseH.isBatch || false, batchSize: baseH.batchSize || 1,
-                            wp: baseH.wp || item.wp || "" // Memastikan data WP ikut tersimpan
-                        };
                         batch.set(bucketRef, {
-                            date: dStr, shift: baseH.shift, list: firebase.firestore.FieldValue.arrayUnion(detailTransaksiIni)
+                            date: dStr, shift: baseH.shift, list: firebase.firestore.FieldValue.arrayUnion(...detailDataArray)
                         }, { merge: true });
                         
+                        // Eksekusi Update Auto UMH ke Database Master
+                        if (assyMasterUpdate) {
+                            let assyRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy);
+                            batch.update(assyRef, assyMasterUpdate);
+                        }
+
                         await batch.commit();
-                        // SINKRONISASI LOKAL: Masukkan unit yang baru selesai ke array report agar modal up-to-date
+                        
                         historyDataArray.forEach(hData => this.historyReports.unshift(hData));
+                        
+                        // Eksekusi Sinkronisasi Lokal jika UMH telah lulus 20 sampel
+                        if (newUmhVal !== null) {
+                            let mIdx = this.masterAssy.findIndex(a => a.no_assy === item.noAssy);
+                            if (mIdx > -1) {
+                                this.masterAssy[mIdx].umh = newUmhVal; // Timpa 0 menjadi UMH baru
+                                this.persistLocal('masterAssy', this.masterAssy);
+                                
+                                // Tampilkan notifikasi keberhasilan Kalibrasi Otomatis
+                                setTimeout(() => { 
+                                    this.showToast(`Auto-Kalibrasi: UMH ${item.noAssy} otomatis ditetapkan ke ${newUmhVal} menit!`, "info"); 
+                                }, 1500);
+                            }
+                        }
                     } else {
                         this.activeQueue = this.activeQueue.filter(q => q.id !== item.id);
                         historyDataArray.forEach(hData => this.historyReports.unshift(hData)); 
@@ -1979,10 +2077,9 @@
             },
 
             fetchAdminData: async function() {
-                // Mencegah filter tanggal kosong
                 let todayStr = this.getProductionDay(Date.now());
                 let startInput = document.getElementById('flt-date-start')?.value || todayStr;
-                let endInput = document.getElementById('flt-date-end')?.value || startInput; // Jika sampai tanggal kosong, samakan dengan start tanggal
+                let endInput = document.getElementById('flt-date-end')?.value || startInput; 
                 let shiftInput = document.getElementById('flt-shift')?.value || "";
                 let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
 
@@ -2020,16 +2117,23 @@
                         let lineKey = line.replace(/\s+/g, '_');
                         let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`);
                         
+                        // FIX INDEX: Tarik murni berdasarkan tanggal saja agar tidak perlu Composite Index
                         let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
-                        if (shiftInput !== 'ALL') q = q.where('shift', '==', shiftInput);
                         
                         let snap = await q.get();
                         let rekapData = snap.docs.map(doc => doc.data());
+                        
+                        // FILTER LOKAL: Saring Shift secara lokal di browser
+                        if (shiftInput !== 'ALL') {
+                            rekapData = rekapData.filter(day => day.shift === shiftInput);
+                        }
+                        
                         this.adminHistoryReports.push(...rekapData);
                     }
                     this.lastAdminFetch = fetchSignature;
                     this.applyAdminFilter();
                 } catch(e) { 
+                    console.error(e);
                     this.showToast("Gagal mengambil data rekap", "error"); 
                 } finally { 
                     loadingToast.remove(); 
@@ -2037,14 +2141,13 @@
             },
 
             fetchAdminTransactionsPage: async function(resetPage = false) {
-                // LOGIKA 7 PAGI - 7 PAGI: Otomatis membaca hari produksi berjalan
                 let todayStr = this.getProductionDay(Date.now());
                 let startInput = document.getElementById('flt-date-start')?.value || todayStr;
                 let endInput = document.getElementById('flt-date-end')?.value || startInput; 
                 let globalShift = document.getElementById('flt-shift')?.value || "ALL";
                 
                 let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
-                let loadBtn = document.getElementById('btn-load-more-trx'); // Kita akan menyembunyikan tombol lama ini
+                let loadBtn = document.getElementById('btn-load-more-trx'); 
                 let tbody = document.getElementById('admin-trx-tbody');
 
                 if (checkedLines.length === 0) {
@@ -2061,9 +2164,6 @@
                     return;
                 }
 
-                // =========================================================================
-                // FASE 1: PROSES UNDUH DOKUMEN BUCKET (Jika Filter Utama Berubah)
-                // =========================================================================
                 if (this.lastAdminCacheKey !== currentCacheKey) {
                     tbody.innerHTML = `
                         <tr>
@@ -2085,15 +2185,16 @@
                                                  .collection('public').doc('data')
                                                  .collection(`detail_harian_${lineKey}`);
                             
-                            // MENGGUNAKAN QUERY YANG SAMA PERSIS DENGAN OVERVIEW (100% Cocok & Hemat)
+                            // FIX INDEX: Tarik murni berdasarkan tanggal saja agar bypass Composite Index Error
                             let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
-                            if (globalShift !== 'ALL') {
-                                q = q.where('shift', '==', globalShift);
-                            }
 
                             let snap = await q.get();
                             snap.docs.forEach(doc => {
                                 let data = doc.data();
+                                
+                                // FILTER LOKAL: Saring shift di level pemrosesan array bucket harian
+                                if (globalShift !== 'ALL' && data.shift !== globalShift) return;
+                                
                                 if (data.list) {
                                     compiledList.push(...data.list);
                                 }
@@ -2117,15 +2218,11 @@
                     }
                 }
 
-                // =========================================================================
-                // FASE 2: FILTER DATA LOKAL & PAGINASI HALAMAN
-                // =========================================================================
                 let searchTxt = (document.getElementById('admin-trx-search')?.value || "").trim().toLowerCase();
                 let fltShift = (document.getElementById('flt-col-trx-shift')?.value || "").trim().toLowerCase();
                 let fltAssy = (document.getElementById('flt-col-trx-assy')?.value || "").trim().toLowerCase();
                 let fltLine = (document.getElementById('flt-col-trx-line')?.value || "").trim().toLowerCase();
 
-                // Kecerdasan Reset Paginasi: Jika Admin mengetik huruf baru di filter, paksa kembali ke Halaman 1
                 let currentFilterHash = `${searchTxt}|${fltShift}|${fltAssy}|${fltLine}`;
                 if (this.lastAdminFilterHash !== currentFilterHash || resetPage === true) {
                     this.adminPageTrx = 1;
@@ -2140,7 +2237,6 @@
                     return matchSearch && matchShift && matchAssy && matchLine;
                 });
 
-                // FIX EXCEL: Simpan data yang sudah disaring ke variabel baru agar Excel bisa membacanya
                 this.currentFilteredTransactions = localFiltered;
 
                 if (localFiltered.length === 0) {
@@ -2150,22 +2246,17 @@
                     return;
                 }
 
-                // Hitung Paginasi Logis
                 let totalData = localFiltered.length;
                 let maxPage = Math.ceil(totalData / 50) || 1;
                 if (this.adminPageTrx > maxPage) this.adminPageTrx = maxPage;
                 if (this.adminPageTrx < 1) this.adminPageTrx = 1;
 
-                // Potong hanya 50 data sesuai halaman saat ini
                 let paginatedData = localFiltered.slice((this.adminPageTrx - 1) * 50, this.adminPageTrx * 50);
                 
-                // Render Tabel
                 this.appendTransactionsToTable(paginatedData);
 
-                // Sembunyikan tombol Load More bawaan HTML
                 if(loadBtn) loadBtn.classList.add('hide');
 
-                // Sisipkan Baris Navigasi Halaman (Prev / Next)
                 let oldPage = document.getElementById('admin-pagination-box'); if(oldPage) oldPage.remove();
                 
                 let pageHtml = `
@@ -2548,13 +2639,28 @@
                             if(fLine && !line.toLowerCase().includes(fLine)) return;
                             
                             let pKey = `${mId}-${line}`;
-                            if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: joinDate, line: line, total: 0, totRasio: 0, countTrx: 0 }; }
-                            if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
+                            if(!pivot[pKey]) { 
+                                pivot[pKey] = { 
+                                    nama: mNama, id: mId, join_date: joinDate, line: line, 
+                                    totalCct: 0, totRasio: 0, countTrx: 0, days: {} 
+                                }; 
+                            }
+                            if(!pivot[pKey].days[dKey]) {
+                                pivot[pKey].days[dKey] = { cct: 0, totRasio: 0, countTrx: 0 };
+                            }
                             
-                            pivot[pKey][dKey] += cct; 
-                            pivot[pKey].total += cct;
-                            pivot[pKey].totRasio += rPct; 
-                            pivot[pKey].countTrx += countTrx; 
+                            // AKUMULASI CERDAS: Tetap catat CCT (Output) bagaimanapun kondisinya
+                            pivot[pKey].days[dKey].cct += cct;
+                            pivot[pKey].totalCct += cct; 
+
+                            // LOGIKA TARGET 0: Hanya gabungkan ke Rasio jika unit tersebut punya Target (>0)
+                            if (rPct > 0) {
+                                pivot[pKey].days[dKey].totRasio += rPct;
+                                pivot[pKey].days[dKey].countTrx += countTrx;
+                                
+                                pivot[pKey].totRasio += rPct; 
+                                pivot[pKey].countTrx += countTrx; 
+                            }
                         }
                     });
                 });
@@ -2562,26 +2668,94 @@
                 let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max">
                     <thead class="bg-slate-100 text-slate-600 shadow-sm border-b-2 border-slate-200">
                         <tr>
-                            <th class="px-4 py-2 font-bold sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[16rem] align-top">
-                                <div class="mb-1">Manpower Detail</div>
+                            <th class="p-2 font-bold sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[16rem] align-bottom">
+                                <div class="mb-2">Manpower Detail</div>
                                 <div class="flex gap-2">
-                                    <input type="text" id="flt-rmp-nama" value="${this.rekapMpFilterVals.nama}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.nama=this.value; app.renderRekapMP()" placeholder="Filter Nama/NRP..." class="w-full text-[10px] p-1 border rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
-                                    <input type="text" id="flt-rmp-line" value="${this.rekapMpFilterVals.line}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.line=this.value; app.renderRekapMP()" placeholder="Filter Line..." class="w-20 text-[10px] p-1 border rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                    <input type="text" id="flt-rmp-nama" value="${this.rekapMpFilterVals.nama}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.nama=this.value; app.renderRekapMP()" placeholder="Filter Nama/NRP..." class="w-full text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                    <input type="text" id="flt-rmp-line" value="${this.rekapMpFilterVals.line}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.line=this.value; app.renderRekapMP()" placeholder="Filter Line..." class="w-20 text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
                                 </div>
                             </th>`;
-                dateKeys.forEach(dk => { html += `<th class="px-4 py-2 font-bold text-center border-r bg-slate-50 align-top"><div class="pt-4">${this.formatDateShort(new Date(dk))}</div></th>`; });
-                html += `<th class="px-4 py-2 font-bold text-right bg-indigo-100 sticky right-0 z-10 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] align-top"><div class="pt-4">Total Output</div></th></tr></thead><tbody class="bg-white divide-y divide-slate-100">`;
+                
+                // HEADER: RENTANG TANGGAL (Garis Ditebalkan border-r-2 border-slate-300)
+                dateKeys.forEach(dk => { 
+                    html += `<th class="p-0 font-bold text-center border-r-2 border-slate-300 bg-slate-50 align-top min-w-[160px]">
+                        <div class="pt-1.5 pb-1 border-b border-slate-200 text-slate-700 text-[11px]">${this.formatDateShort(new Date(dk))}</div>
+                        <div class="grid grid-cols-3 text-[9px] text-slate-500 bg-slate-100/50">
+                            <div class="py-1 border-r border-slate-200">Target</div>
+                            <div class="py-1 border-r border-slate-200 text-blue-600">Output</div>
+                            <div class="py-1">Rasio</div>
+                        </div>
+                    </th>`; 
+                });
+                
+                // HEADER: TOTAL KESELURUHAN
+                html += `<th class="p-0 font-bold text-center bg-indigo-100 sticky right-0 z-20 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] align-top min-w-[170px] border-l-2 border-indigo-300">
+                        <div class="pt-1.5 pb-1 border-b border-indigo-200 text-indigo-900 text-[11px]">Total Keseluruhan</div>
+                        <div class="grid grid-cols-3 text-[9px] text-indigo-700 bg-indigo-50/50">
+                            <div class="py-1 border-r border-indigo-200">Target</div>
+                            <div class="py-1 border-r border-indigo-200 text-indigo-900">Output</div>
+                            <div class="py-1">Rasio</div>
+                        </div>
+                    </th>
+                </tr></thead><tbody class="bg-white divide-y divide-slate-100">`;
                 
                 if(Object.keys(pivot).length === 0) {
                     html += `<tr><td colspan="${dateKeys.length + 2}" class="px-4 py-12 text-center text-slate-400 italic">Tidak ada data untuk rentang waktu/filter ini.</td></tr>`;
                 } else {
-                    Object.values(pivot).sort((a,b)=>b.total-a.total).forEach(m => {
+                    Object.values(pivot).sort((a,b)=>b.totalCct-a.totalCct).forEach(m => {
                         let mk = app.calculateMasaKerja(m.join_date);
-                        let avgR = (m.totRasio / (m.countTrx || 1)).toFixed(1);
-                        let rCol = avgR >= 100 ? 'text-emerald-600' : 'text-red-600';
-                        html += `<tr class="hover:bg-blue-50"><td class="px-4 py-2 sticky left-0 bg-white border-r z-0 w-64"><div class="font-bold">${m.nama || '-'}</div><div class="text-[9px] text-slate-500 mt-0.5"><span class="font-mono bg-slate-100 px-1 rounded">${m.id || '-'}</span> | Line: <span class="font-bold text-slate-700">${m.line || '-'}</span> | MK: <span class="text-teal-600 font-bold">${mk || '-'}</span> | Rasio: <span class="${rCol} font-black">${avgR}%</span></div></td>`;
-                        dateKeys.forEach(dk => { html += `<td class="px-4 py-2 text-center border-r font-mono">${m[dk] ? m[dk].toFixed(1) : '-'}</td>`; });
-                        html += `<td class="px-4 py-2 font-black text-indigo-600 text-right bg-indigo-50 sticky right-0 z-0">${m.total.toFixed(1)}</td></tr>`;
+                        
+                        // KALKULASI TOTAL KESELURUHAN MP TERSEBUT
+                        let tOutput = m.totalCct;
+                        let tAvgRasio = m.countTrx > 0 ? (m.totRasio / m.countTrx) : 0;
+                        let tTarget = tAvgRasio > 0 ? (tOutput * 100) / tAvgRasio : 0;
+                        let tCol = tAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-600';
+
+                        html += `<tr class="hover:bg-blue-50 transition-colors group">
+                            <td class="px-4 py-2 sticky left-0 bg-white group-hover:bg-blue-50 border-r-2 border-slate-300 z-10 w-64 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                                <div class="font-bold text-slate-800">${m.nama || '-'}</div>
+                                <div class="text-[9px] text-slate-500 mt-1 flex flex-wrap items-center gap-1">
+                                    <span class="font-mono bg-slate-100 border border-slate-200 px-1 rounded text-slate-600">${m.id || '-'}</span> 
+                                    <span>| Line: <span class="font-bold text-slate-700">${m.line || '-'}</span></span> 
+                                    <span>| MK: <span class="text-teal-600 font-bold">${mk || '-'}</span></span>
+                                </div>
+                            </td>`;
+                        
+                        // ISI DATA HARIAN (Lebih rapat dengan text-[10px] dan py-2)
+                        dateKeys.forEach(dk => { 
+                            let dayData = m.days[dk];
+                            if (dayData) {
+                                let dOutput = dayData.cct;
+                                let dAvgRasio = dayData.countTrx > 0 ? (dayData.totRasio / dayData.countTrx) : 0;
+                                let dTarget = dAvgRasio > 0 ? (dOutput * 100) / dAvgRasio : 0;
+                                let rCol = dAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-500';
+
+                                html += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
+                                    <div class="grid grid-cols-3 text-center h-full items-center">
+                                        <div class="py-2 border-r border-slate-100 text-slate-500 text-[10px]">${dTarget > 0 ? dTarget.toFixed(1) : '-'}</div>
+                                        <div class="py-2 border-r border-slate-100 font-bold text-blue-600 text-[10px]">${dOutput.toFixed(1)}</div>
+                                        <div class="py-2 font-bold ${rCol} bg-slate-50/30 text-[10px]">${dTarget > 0 ? dAvgRasio.toFixed(1) + '%' : '-'}</div>
+                                    </div>
+                                </td>`;
+                            } else {
+                                html += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
+                                    <div class="grid grid-cols-3 text-center h-full items-center text-slate-300">
+                                        <div class="py-2 border-r border-slate-100">-</div>
+                                        <div class="py-2 border-r border-slate-100">-</div>
+                                        <div class="py-2 bg-slate-50/30">-</div>
+                                    </div>
+                                </td>`;
+                            }
+                        });
+                        
+                        // ISI DATA TOTAL KESELURUHAN (Kanan Sticky)
+                        html += `<td class="p-0 bg-indigo-50 sticky right-0 z-10 align-middle shadow-[-2px_0_5px_rgba(0,0,0,0.05)] border-l-2 border-indigo-300">
+                            <div class="grid grid-cols-3 text-center h-full items-center font-mono">
+                                <div class="py-2 border-r border-indigo-100 text-indigo-500 font-semibold text-[11px]">${tTarget > 0 ? tTarget.toFixed(1) : '-'}</div>
+                                <div class="py-2 border-r border-indigo-100 font-black text-indigo-700 text-[11px]">${tOutput.toFixed(1)}</div>
+                                <div class="py-2 font-black ${tCol} bg-indigo-100/30 text-[11px]">${tTarget > 0 ? tAvgRasio.toFixed(1) + '%' : '-'}</div>
+                            </div>
+                        </td></tr>`;
                     });
                 }
                 html += `</tbody></table>`; 
@@ -2593,6 +2767,7 @@
                 }
             },
 
+            // --- FUNGSI MENGHITUNG MASA KERJA YANG KEMBALI DIHIDUPKAN ---
             calculateMasaKerja: function(jd) {
                 if(!jd || jd==='-') return '-'; let d = new Date(jd); if(isNaN(d)) return '-';
                 let dif = Math.ceil(Math.abs(new Date() - d) / 86400000); let y = Math.floor(dif/365); let m = Math.floor((dif%365)/30);
@@ -2998,6 +3173,103 @@
                 else if(t==='MP') this.renderMasterMP(); 
                 else if(t==='LEADER') this.renderMasterLeader(); 
                 else if(t==='LINE') this.renderMasterLine();
+            },
+
+            // FUNGSI BARU: KALIBRASI MASSAL UMH DARI RIWAYAT MASA LALU
+            autoCalibrateRetroactive: async function() {
+                if(!this.db) { this.showToast("Fitur ini membutuhkan koneksi Cloud", "error"); return; }
+                
+                // Cari semua Assy yang UMH-nya masih 0
+                let targetAssys = this.masterAssy.filter(a => a.umh === 0);
+                if (targetAssys.length === 0) {
+                    this.showToast("Luar Biasa! Semua Assy di Master Data sudah memiliki UMH (>0).", "success");
+                    return;
+                }
+
+                if(!confirm(`Ditemukan ${targetAssys.length} jenis Assy dengan UMH 0.\nSistem akan memindai riwayat transaksi 30 hari terakhir untuk mencari rata-rata waktu aktual.\n(Syarat: Minimal 20 sampel transaksi per Assy).\n\nLanjutkan Proses Analisis Ini?`)) return;
+
+                let loadingToast = document.createElement('div'); 
+                loadingToast.className = 'toast info'; 
+                loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mesin sedang memindai riwayat 30 hari terakhir...'; 
+                document.getElementById('toast-container').appendChild(loadingToast);
+
+                try {
+                    let now = Date.now();
+                    let thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000); // Tarik mundur 30 hari
+                    let startStr = this.getProductionDay(thirtyDaysAgo);
+                    let endStr = this.getProductionDay(now);
+
+                    // Ambil daftar Line (Gunakan fallback jika admin belum load data line)
+                    let linesToScan = this.masterLine && this.masterLine.length > 0 
+                                      ? this.masterLine.map(l => l.id.replace(/\s+/g, '_')) 
+                                      : ['Line_1', 'Line_2', 'Line_3', 'Line_4', 'Line_5']; 
+                                      
+                    let collectedData = {}; 
+                    targetAssys.forEach(a => { collectedData[a.no_assy] = { totalMin: 0, count: 0 }; });
+
+                    // Pindai data Detail Harian (Bucket) - Strategi ini sangat menghemat Reads!
+                    for (let lineKey of linesToScan) {
+                        let ref = this.db.collection('artifacts').doc(this.appId)
+                                         .collection('public').doc('data')
+                                         .collection(`detail_harian_${lineKey}`);
+                        
+                        let q = ref.where('date', '>=', startStr).where('date', '<=', endStr);
+                        let snap = await q.get();
+                        
+                        snap.docs.forEach(doc => {
+                            let data = doc.data();
+                            if (data.list) {
+                                data.list.forEach(trx => {
+                                    // Jika transaksi cocok dengan Assy UMH 0 yang kita cari
+                                    if (collectedData[trx.noAssy] && trx.durationMin > 0) {
+                                        collectedData[trx.noAssy].totalMin += trx.durationMin;
+                                        collectedData[trx.noAssy].count += trx.batchSize || 1; 
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    // Evaluasi hasil temuan
+                    let batch = this.db.batch();
+                    let updatedCount = 0;
+
+                    for (let [assyNo, stats] of Object.entries(collectedData)) {
+                        if (stats.count >= 20) { // LULUS SYARAT: 20 Unit
+                            let avgUmh = Number((stats.totalMin / stats.count).toFixed(2));
+                            let safeAssy = assyNo.replace(/\//g, '_');
+                            
+                            let assyRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy);
+                            batch.update(assyRef, { 
+                                umh: avgUmh, // Ganti 0 dengan UMH Rata-rata Aktual!
+                                autoCount: firebase.firestore.FieldValue.delete(), // Hapus rekam jejak
+                                autoTotalMin: firebase.firestore.FieldValue.delete(),
+                                last_edited: new Date().toISOString().split('T')[0]
+                            });
+
+                            // Sinkronisasi Lokal ke Tabel Admin saat ini juga
+                            let mIdx = this.masterAssy.findIndex(a => a.no_assy === assyNo);
+                            if (mIdx > -1) this.masterAssy[mIdx].umh = avgUmh;
+
+                            updatedCount++;
+                        }
+                    }
+
+                    if (updatedCount > 0) {
+                        await batch.commit();
+                        this.persistLocal('masterAssy', this.masterAssy);
+                        if(this.adminTab === 'masterassy_admin') this.renderMasterAssyAdmin();
+                        this.showToast(`Berhasil! ${updatedCount} jenis Assy otomatis dikalibrasi ke UMH baru.`, "success");
+                    } else {
+                        this.showToast(`Pemindaian selesai. Belum ada Assy (UMH 0) yang riwayat pengerjaannya mencapai 20 unit.`, "info");
+                    }
+
+                } catch(e) {
+                    console.error("Gagal retro kalibrasi:", e);
+                    this.showToast("Terjadi kesalahan saat memindai riwayat cloud.", "error");
+                } finally {
+                    loadingToast.remove();
+                }
             },
 
             promptDeleteTrx: function(id, sn) {
@@ -3658,13 +3930,21 @@
                         try {
                             let safeA = a.replace(/\//g, '_');
                             const doc = await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeA).get();                            
-                            if(doc.exists) { d = doc.data(); this.masterAssy.unshift(d); }
-                        } catch(e){}
+                            if(doc.exists) { 
+                                d = doc.data(); 
+                                this.masterAssy.unshift(d); 
+                                this.persistLocal('masterAssy', this.masterAssy); // SIMPAN PERMANEN KE TABLET
+                            }
+                        } catch(e){
+                            console.error("Gagal tarik data", e);
+                            this.showToast("Koneksi terputus! Gagal memverifikasi Assy.", "error");
+                            return;
+                        }
                     }
                     if(!d){this.showToast("Assy tdk ada di master", "error"); return;} 
                     
-                    if (d.cct > 100) {
-                        this.showToast(`Batch ditolak! CCT Assy (${d.cct}) lebih dari 100.`, "error");
+                    if (d.cct > 150) {
+                        this.showToast(`Batch ditolak! CCT Assy (${d.cct}) lebih dari 150.`, "error");
                         return;
                     }
                     
