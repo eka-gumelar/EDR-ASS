@@ -925,32 +925,44 @@
             },
 
 
+            // FUNGSI GABUNG DATA GLOBAL (Menyatukan Hardcoded JS + Cloud/Lokal)
+            mergeMasterData: function(baseArr, newArr, key) {
+                let map = new Map();
+                // 1. Jadikan Hardcoded JS sebagai fondasi utama
+                if (baseArr && Array.isArray(baseArr)) {
+                    baseArr.forEach(item => map.set(item[key], item));
+                }
+                // 2. Jika ada data dari Cloud/Lokal, jadikan ia prioritas (menimpa/menambah)
+                if (newArr && Array.isArray(newArr)) {
+                    newArr.forEach(item => map.set(item[key], item));
+                }
+                return Array.from(map.values());
+            },
+
             setupMasterDataListeners: async function() {
                 if(!this.db || !this.user) return;
                 
-                // INISIASI OTAK CACHE UNTUK MENCEGAH DOUBLE-DOWNLOAD
                 if(!this.masterFetchStatus) this.masterFetchStatus = {};
                 
                 try {
                     const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
                     
-                    // PERFECTION: Gunakan gerbang 'if' agar tidak fetch ulang jika sudah ada di RAM
                     if (!this.masterFetchStatus['LINE']) {
                         let lineSnap = await pubRef.collection('master_line').get();
-                        lineSnap.docs.forEach(doc => {
-                            let data = doc.data();
-                            if(!this.masterLine.some(x => x.id === data.id)) this.masterLine.unshift(data);
-                        });
-                        this.masterFetchStatus['LINE'] = true; // Kunci gerbang!
+                        let cloudData = lineSnap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataLine !== 'undefined' ? initMasterDataLine : [];
+                        this.masterLine = this.mergeMasterData(baseData, cloudData, 'id');
+                        this.persistLocal('masterLine', this.masterLine);
+                        this.masterFetchStatus['LINE'] = true; 
                     }
 
                     if (!this.masterFetchStatus['LEADER']) {
                         let leaderSnap = await pubRef.collection('master_leader').get();
-                        leaderSnap.docs.forEach(doc => {
-                            let data = doc.data();
-                            if(!this.masterLeader.some(x => x.lisensi === data.lisensi)) this.masterLeader.unshift(data);
-                        });
-                        this.masterFetchStatus['LEADER'] = true; // Kunci gerbang!
+                        let cloudData = leaderSnap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataLeader !== 'undefined' ? initMasterDataLeader : [];
+                        this.masterLeader = this.mergeMasterData(baseData, cloudData, 'lisensi');
+                        this.persistLocal('masterLeader', this.masterLeader);
+                        this.masterFetchStatus['LEADER'] = true; 
                     }
                 } catch(e) { console.warn("Initial master load skipped", e); }
             },
@@ -958,27 +970,37 @@
             fetchMasterDataListOnDemand: async function(type) {
                 if(!this.db) return;
                 
-                // MENCEGAH KEBOCORAN NAVIGASI (Cek memori lokal sebelum nembak ke server)
                 if(!this.masterFetchStatus) this.masterFetchStatus = {};
-                if(this.masterFetchStatus[type]) return; // JIKA SUDAH ADA DI RAM, BATALKAN REQUEST KE FIREBASE!
+                if(this.masterFetchStatus[type]) return; 
                 
                 const pubRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data');
                 try {
                     if(type === 'ASSY') {
                         let snap = await pubRef.collection('master_assy').get();
-                        this.masterAssy = snap.docs.map(doc => doc.data());
+                        let cloudData = snap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataAssy !== 'undefined' ? initMasterDataAssy : [];
+                        this.masterAssy = this.mergeMasterData(baseData, cloudData, 'no_assy');
+                        this.persistLocal('masterAssy', this.masterAssy);
                     } else if(type === 'MP') {
                         let snap = await pubRef.collection('master_mp').get();
-                        this.masterMP = snap.docs.map(doc => doc.data());
+                        let cloudData = snap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataMP !== 'undefined' ? initMasterDataMP : [];
+                        this.masterMP = this.mergeMasterData(baseData, cloudData, 'id');
+                        this.persistLocal('masterMP', this.masterMP);
                     } else if(type === 'LEADER') {
                         let snap = await pubRef.collection('master_leader').get();
-                        this.masterLeader = snap.docs.map(doc => doc.data());
+                        let cloudData = snap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataLeader !== 'undefined' ? initMasterDataLeader : [];
+                        this.masterLeader = this.mergeMasterData(baseData, cloudData, 'lisensi');
+                        this.persistLocal('masterLeader', this.masterLeader);
                     } else if(type === 'LINE') {
                         let snap = await pubRef.collection('master_line').get();
-                        this.masterLine = snap.docs.map(doc => doc.data());
+                        let cloudData = snap.docs.map(doc => doc.data());
+                        let baseData = typeof initMasterDataLine !== 'undefined' ? initMasterDataLine : [];
+                        this.masterLine = this.mergeMasterData(baseData, cloudData, 'id');
+                        this.persistLocal('masterLine', this.masterLine);
                     }
                     
-                    // Tandai bahwa koleksi ini sudah aman bersarang di RAM Laptop/HP
                     this.masterFetchStatus[type] = true;
                 } catch(e) { console.error("Gagal sinkronisasi on-demand", e); }
             },
@@ -1017,17 +1039,26 @@
             },
 
             useLocalFallback: function() {
-                let localAssy = JSON.parse(localStorage.getItem('masterAssy'));
-                this.masterAssy = localAssy && localAssy.length > 0 ? localAssy : [...initMasterDataAssy];
+                let localAssy = JSON.parse(localStorage.getItem('masterAssy')) || [];
+                let baseAssy = typeof initMasterDataAssy !== 'undefined' ? initMasterDataAssy : [];
+                this.masterAssy = this.mergeMasterData(baseAssy, localAssy, 'no_assy');
                 
-                let localMP = JSON.parse(localStorage.getItem('masterMP'));
-                this.masterMP = localMP && localMP.length > 0 ? localMP : [...initMasterDataMP];
+                let localMP = JSON.parse(localStorage.getItem('masterMP')) || [];
+                let baseMP = typeof initMasterDataMP !== 'undefined' ? initMasterDataMP : [];
+                this.masterMP = this.mergeMasterData(baseMP, localMP, 'id');
                 
-                let localLeader = JSON.parse(localStorage.getItem('masterLeader'));
-                this.masterLeader = localLeader && localLeader.length > 0 ? localLeader : [...initMasterDataLeader];
+                let localLeader = JSON.parse(localStorage.getItem('masterLeader')) || [];
+                let baseLeader = typeof initMasterDataLeader !== 'undefined' ? initMasterDataLeader : [];
+                this.masterLeader = this.mergeMasterData(baseLeader, localLeader, 'lisensi');
                 
-                let localLine = JSON.parse(localStorage.getItem('masterLine'));
-                this.masterLine = localLine && localLine.length > 0 ? localLine : [...initMasterDataLine];
+                let localLine = JSON.parse(localStorage.getItem('masterLine')) || [];
+                let baseLine = typeof initMasterDataLine !== 'undefined' ? initMasterDataLine : [];
+                this.masterLine = this.mergeMasterData(baseLine, localLine, 'id');
+                
+                this.persistLocal('masterAssy', this.masterAssy);
+                this.persistLocal('masterMP', this.masterMP);
+                this.persistLocal('masterLeader', this.masterLeader);
+                this.persistLocal('masterLine', this.masterLine);
             },
 
             persistLocal: function(k, d) { localStorage.setItem(k, JSON.stringify(d)); },
