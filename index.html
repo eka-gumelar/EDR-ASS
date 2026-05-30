@@ -6,7 +6,7 @@
     <title>EDR-ASSEMBLING</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/><line x1='10' y1='9' x2='8' y2='9'/></svg>">
+    <link rel="icon" type="image/png" href="img/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -35,6 +35,41 @@
         .chip-enter { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
+       .bg-moving-pattern {
+            background-color: #f8fafc;
+            /* Pola dot-dot kecil yang estetik */
+            background-image: radial-gradient(rgba(148, 163, 184, 0.4) 2px, transparent 2px);
+            background-size: 32px 32px;
+            /* Bergerak diagonal sangat lambat (40 detik) */
+            animation: panBackground 40s linear infinite;
+        }
+        @keyframes panBackground {
+            0% { background-position: 0px 0px; }
+            100% { background-position: 320px 320px; } /* Harus kelipatan 32px agar mulus (looping) */
+        }
+        
+        .animate-orb-1 { animation: floatOrb1 15s ease-in-out infinite alternate; }
+        .animate-orb-2 { animation: floatOrb2 18s ease-in-out infinite alternate; }
+        
+        /* Orbs bergerak berlawanan (Melayang ke arah Kiri-Atas) */
+        @keyframes floatOrb1 {
+            0% { transform: translate(50px, 50px) scale(1); }
+            100% { transform: translate(-150px, -150px) scale(1.1); }
+        }
+        @keyframes floatOrb2 {
+            0% { transform: translate(80px, 80px) scale(1.1); }
+            100% { transform: translate(-100px, -180px) scale(0.9); }
+        }
+
+        /* Efek Kaca (Glassmorphism) Premium */
+        .glass-panel-login {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+        }
+
     </style>    
 
 </head>
@@ -47,28 +82,36 @@
     </div>
 
     <!-- 1. LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-100 z-40 flex items-center justify-center">
-        <div class="glass-panel p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-96 flex flex-col items-center">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
-                <i class="fas fa-file-alt text-3xl text-white"></i>
-            </div>
-            <h2 class="text-[24px] font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase">
-                PROSES ASSEMBLING<br>DAILY REPORT
-            </h2>
-            <p class="text-[12px] text-slate-500 mb-[2rem] font-medium tracking-wide">v.0.5.8</p>
+    <div id="login-screen" class="fixed inset-0 w-full h-screen z-50 flex items-center justify-center bg-hexagon-pattern overflow-hidden">
+        
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none animate-orb-1"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-teal-400/20 blur-[80px] pointer-events-none animate-orb-2"></div>
+
+        <div class="glass-panel-login p-10 rounded-[2rem] w-[90%] max-w-[420px] flex flex-col items-center relative z-10">
             
-            <div class="w-full space-y-5">
-                <div class="text-left">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">LISENSI ID / USERNAME</label>
-                    <input type="text" id="login-lisensi" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white uppercase font-mono text-sm transition-colors text-slate-800 font-semibold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('login-pass').focus(); }">
+            <img src="img/logo.png" alt="Logo App" class="w-24 h-24 object-contain mb-4 drop-shadow-xl transition-transform hover:scale-105 hover:-translate-y-1">
+            
+            <h2 class="text-[22px] font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase drop-shadow-sm">
+                PROSES ASSEMBLING<br><span class="text-blue-600">DAILY REPORT</span>
+            </h2>
+            <p class="text-[11px] bg-white/60 px-3 py-0.5 rounded-full border border-white text-slate-500 mb-8 font-bold tracking-widest shadow-sm">v.1.5.30</p>
+            
+            <div class="w-full space-y-4">
+                <div class="text-left relative group">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">LISENSI ID / USERNAME</label>
+                    <div class="relative">
+                        <input type="text" id="login-lisensi" class="w-full pl-11 pr-4 py-3.5 bg-white/70 backdrop-blur-sm border border-white/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white uppercase font-mono text-sm transition-all shadow-sm text-slate-800 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('login-pass').focus(); }">
+                    </div>
                 </div>
-                <div class="text-left">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">PASSWORD</label>
-                    <input type="password" id="login-pass" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm transition-colors text-slate-800 font-semibold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.login(); }">
+                <div class="text-left relative group">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">PASSWORD</label>
+                    <div class="relative">
+                        <input type="password" id="login-pass" class="w-full pl-11 pr-4 py-3.5 bg-white/70 backdrop-blur-sm border border-white/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white text-sm transition-all shadow-sm text-slate-800 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.login(); }">
+                    </div>
                 </div>
-                <div class="pt-2">
-                    <button onclick="app.login()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-md active:scale-[0.98]">
-                        Login
+                <div class="pt-4">
+                    <button onclick="app.login()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black tracking-widest uppercase py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] border border-blue-400/50 flex justify-center items-center gap-2">
+                        <span>Login</span>
                     </button>
                 </div>
             </div>
@@ -80,6 +123,7 @@
         <header class="bg-white flex flex-col shrink-0 border-b border-slate-200">
             <div class="flex justify-between items-center px-6 py-4 shadow-sm z-10 relative">
                 <h1 class="text-3xl font-black text-slate-900 tracking-tighter flex items-center drop-shadow-sm">
+                    <img src="img/logo.png" alt="Logo" class="w-10 h-10 object-contain mr-3 drop-shadow-md">
                     PROSES <span class="text-blue-600 ml-2">ASSEMBLING</span>
                 </h1>
                 
@@ -167,6 +211,11 @@
                                 <select id="init-line-select" class="w-full px-2 py-1.5 border border-indigo-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 bg-indigo-50 font-bold shadow-sm" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('init-mp-input').focus(); }">
                                     <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option> <option value="Line 5">Line 5</option>
                                 </select>
+                            </div>
+                            <div class="mt-2">
+                                <label class="flex items-center gap-2 text-[10px] font-bold text-slate-600 cursor-pointer bg-white p-1.5 rounded border border-slate-200 hover:bg-slate-50 transition shadow-sm w-fit">
+                                    <input type="checkbox" id="init-is-modifikasi" class="w-3 h-3 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"> Assy Modifikasi
+                                </label>
                             </div>
                         </div>
 
@@ -278,10 +327,7 @@
 
             <!-- SCROLLABLE CONTENT -->
             <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-                <div id="admin-empty-state" class="h-full flex flex-col items-center justify-center text-slate-400">
-                    <i class="fas fa-filter text-4xl mb-3 text-slate-300"></i>
-                    <p class="font-medium">Pilih parameter Shift dan klik "Display Data" untuk memuat.</p>
-                </div>
+                
 
                 <!-- TAB 1: OVERVIEW -->
                 <div id="admin-tab-overview" class="max-w-[100%] mx-auto space-y-6 hide">
@@ -590,6 +636,11 @@
                         <select id="b-line-select" class="w-full px-2 py-1 border border-indigo-300 rounded text-sm bg-indigo-50 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('b-mp-input').focus(); }">
                             <option value="Line 1">Line 1</option> <option value="Line 2">Line 2</option> <option value="Line 3">Line 3</option> <option value="Line 4">Line 4</option> <option value="Line 5">Line 5</option>
                         </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-indigo-700 cursor-pointer bg-white p-1.5 rounded border border-indigo-200 hover:bg-indigo-50 transition shadow-sm w-fit">
+                            <input type="checkbox" id="b-is-modifikasi" class="w-3 h-3 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"> Assy Modifikasi
+                        </label>
                     </div>
                     
                     <div>
@@ -928,13 +979,12 @@
             // FUNGSI GABUNG DATA GLOBAL (Menyatukan Hardcoded JS + Cloud/Lokal)
             mergeMasterData: function(baseArr, newArr, key) {
                 let map = new Map();
-                // 1. Jadikan Hardcoded JS sebagai fondasi utama
+                // FIX: Memaksa huruf kapital (toUpperCase) agar "tnc001" dan "TNC001" dianggap 1 data yang sama
                 if (baseArr && Array.isArray(baseArr)) {
-                    baseArr.forEach(item => map.set(item[key], item));
+                    baseArr.forEach(item => map.set(String(item[key]).toUpperCase().trim(), item));
                 }
-                // 2. Jika ada data dari Cloud/Lokal, jadikan ia prioritas (menimpa/menambah)
                 if (newArr && Array.isArray(newArr)) {
-                    newArr.forEach(item => map.set(item[key], item));
+                    newArr.forEach(item => map.set(String(item[key]).toUpperCase().trim(), item));
                 }
                 return Array.from(map.values());
             },
@@ -1272,9 +1322,8 @@
 
             cancelInit: function() { 
                 document.getElementById('init-form-container').classList.add('hide'); 
-                this.scanDataTmp = null; 
-                this.resumePendingId = null; 
-                this.tempMps = []; 
+                this.scanDataTmp = null; this.resumePendingId = null; this.tempMps = []; 
+                document.getElementById('init-is-modifikasi').checked = false; // Reset Modif
                 document.getElementById('main-scan-input').focus(); 
             },
 
@@ -1287,6 +1336,7 @@
                 if(this.tempMps.length === 0) { this.showToast("Minimal 1 Manpower! (Ketik lalu Enter terlebih dahulu)", "warning"); return; }
 
                 this.isBatchModeConfirming = isBatch;
+                this.tmpIsModifikasi = isBatch ? document.getElementById('b-is-modifikasi').checked : document.getElementById('init-is-modifikasi').checked;
 
                 let assyText = "", snText = "", cctText = "", umhText = "";
                 if(isBatch) {
@@ -1303,7 +1353,8 @@
                     }
                 }
 
-                document.getElementById('cs-assy').innerText = assyText;
+                let modifBadge = this.tmpIsModifikasi ? ' <span class="bg-amber-100 text-amber-700 px-1 py-0.5 rounded text-[9px] ml-1">MODIFIKASI</span>' : '';
+                document.getElementById('cs-assy').innerHTML = assyText + modifBadge;
                 document.getElementById('cs-sn').innerText = snText;
                 document.getElementById('cs-cct-umh').innerText = `${cctText} / ${umhText}`;
                 document.getElementById('cs-wp').innerText = wp;
@@ -1350,7 +1401,8 @@
                         let processData = {
                             sn: this.scanDataTmp.sn, noAssy: this.scanDataTmp.noAssy, cct: this.scanDataTmp.cct, baseUmh: this.scanDataTmp.umh,
                             wp: wp, mps: mps, targetLine: targetLine, startTime: Date.now(), status: 'running', totalDowntime: 0, downtimes: [],
-                            lastDowntimeStart: null, isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama 
+                            lastDowntimeStart: null, isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama,
+                            isModifikasi: this.tmpIsModifikasi || false
                         };
                         this.showToast("Process Started", "success"); this.saveToQueue(processData);
                     }
@@ -1801,7 +1853,7 @@
                     let baseH = { 
                         ...item, finishedAt: now, qc: qcData, durationMin: durationPerUnit, 
                         downtimeMin: dtPerUnit, pendingMin: pdPerUnit, cctPerMp: cctPerMp, 
-                        finalStatus: isOK ? "OK" : "OVERTIME" 
+                        finalStatus: isOK ? "OK" : "OVERTIME", isModifikasi: item.isModifikasi || false
                     };
 
                     if(item.isBatch) {
@@ -1811,7 +1863,7 @@
                                 finishedAt: now, sn: batchSn, noAssy: baseH.noAssy, durationMin: durationPerUnit, finalStatus: isOK ? "OK" : "OVERTIME",
                                 mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
                                 shift: baseH.shift, cct: baseH.cct || 0, baseUmh: item.baseUmh,
-                                isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || ""
+                                isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || "", isModifikasi: baseH.isModifikasi
                             });
                         });
                     } else { 
@@ -1820,7 +1872,7 @@
                             finishedAt: now, sn: baseH.sn, noAssy: baseH.noAssy, durationMin: durationPerUnit, finalStatus: isOK ? "OK" : "OVERTIME",
                             mps: baseH.mps || [], qc: baseH.qc || {}, downtimes: baseH.downtimes || [], lineOutput: baseH.targetLine || lineKey.replace('_', ' '),
                             shift: baseH.shift, cct: baseH.cct || 0, baseUmh: item.baseUmh,
-                            isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || ""
+                            isBatch: false, batchSize: 1, wp: baseH.wp || item.wp || "", isModifikasi: baseH.isModifikasi
                         });
                     }
 
@@ -2108,67 +2160,55 @@
             },
 
             fetchAdminData: async function() {
-                let todayStr = this.getProductionDay(Date.now());
-                let startInput = document.getElementById('flt-date-start')?.value || todayStr;
-                let endInput = document.getElementById('flt-date-end')?.value || startInput; 
-                let shiftInput = document.getElementById('flt-shift')?.value || "";
-                let checkedLines = Array.from(document.querySelectorAll('.flt-cb-line:checked')).map(cb => cb.value);
+                // FUNGSI INI KINI DIBIARKAN KOSONG 
+                // Alasan: Kita tidak lagi mengunduh 'Buku Besar' (rekap_harian) dari server karena rentan korup.
+                // Seluruh proses rekap akan di-generate secara live dan 100% akurat oleh fungsi di bawah ini.
+            },
 
-                if (!shiftInput) {
-                    this.showToast("Wajib pilih Shift terlebih dahulu!", "warning");
-                    return;
-                }
-                if (checkedLines.length === 0) {
-                    this.showToast("Pilih minimal 1 Line!", "warning");
-                    return;
-                }
+            rebuildRekapFromTransactions: function() {
+                let rekapMap = {};
+                this.adminTransactionsCache.forEach(trx => {
+                    let cct = Number(trx.cct) || 0;
+                    if(cct > 999999) cct = 0; // PENGAMAN MUTLAK DATA KORUP E+24
 
-                let fetchSignature = `${startInput}_${endInput}_${shiftInput}_${checkedLines.join(',')}`;
-                document.getElementById('admin-empty-state').classList.add('hide');
+                    let dStr = trx.date || this.getProductionDay(trx.finishedAt?.seconds ? trx.finishedAt.seconds * 1000 : trx.finishedAt);
+                    let shift = trx.shift || "-";
+                    let line = trx.targetLine || trx.lineOutput || "-";
+                    let key = `${dStr}_${shift}_${line}`;
 
-                if(!this.db) { 
-                    this.adminHistoryReports = []; 
-                    this.applyAdminFilter(); 
-                    return; 
-                }
-
-                if(this.lastAdminFetch === fetchSignature && this.adminHistoryReports.length > 0) {
-                    this.applyAdminFilter();
-                    return;
-                }
-
-                let loadingToast = document.createElement('div'); 
-                loadingToast.className = 'toast info'; 
-                loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data Rekap...'; 
-                document.getElementById('toast-container').appendChild(loadingToast);
-
-                this.adminHistoryReports = [];
-                try {
-                    for (let line of checkedLines) {
-                        let lineKey = line.replace(/\s+/g, '_');
-                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`rekap_harian_${lineKey}`);
-                        
-                        // FIX INDEX: Tarik murni berdasarkan tanggal saja agar tidak perlu Composite Index
-                        let q = ref.where('date', '>=', startInput).where('date', '<=', endInput);
-                        
-                        let snap = await q.get();
-                        let rekapData = snap.docs.map(doc => doc.data());
-                        
-                        // FILTER LOKAL: Saring Shift secara lokal di browser
-                        if (shiftInput !== 'ALL') {
-                            rekapData = rekapData.filter(day => day.shift === shiftInput);
-                        }
-                        
-                        this.adminHistoryReports.push(...rekapData);
+                    if(!rekapMap[key]) {
+                        rekapMap[key] = { date: dStr, shift: shift, targetLine: line, totalCCT: 0, totalQty: 0, assys: new Set() };
                     }
-                    this.lastAdminFetch = fetchSignature;
-                    this.applyAdminFilter();
-                } catch(e) { 
-                    console.error(e);
-                    this.showToast("Gagal mengambil data rekap", "error"); 
-                } finally { 
-                    loadingToast.remove(); 
-                }
+
+                    let batchMultiplier = trx.isBatch ? (trx.batchSize || 1) : 1;
+                    let mpsLength = trx.mps && trx.mps.length > 0 ? trx.mps.length : 1;
+                    
+                    let targetPerUnit = (trx.baseUmh || 0) / mpsLength;
+                    let durationPerUnit = trx.durationMin || 0;
+                    let rPct = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 0;
+                    let cctPerMp = cct / mpsLength;
+
+                    rekapMap[key].totalCCT += (cct * batchMultiplier);
+                    rekapMap[key].totalQty += batchMultiplier;
+                    rekapMap[key].assys.add(trx.noAssy);
+
+                    (trx.mps || []).forEach(m => {
+                        if(!m) return;
+                        let mId = m.id || String(m);
+                        rekapMap[key][`mp_${mId}_nama`] = m.nama || '-';
+                        rekapMap[key][`mp_${mId}_cct`] = (rekapMap[key][`mp_${mId}_cct`] || 0) + (cctPerMp * batchMultiplier);
+                        rekapMap[key][`mp_${mId}_trxCount`] = (rekapMap[key][`mp_${mId}_trxCount`] || 0) + batchMultiplier;
+                        rekapMap[key][`mp_${mId}_totRasio`] = (rekapMap[key][`mp_${mId}_totRasio`] || 0) + (rPct * batchMultiplier);
+                    });
+                });
+
+                // Timpa adminHistoryReports dengan hasil kalkulasi live yang 100% akurat!
+                this.adminHistoryReports = Object.values(rekapMap).map(r => {
+                    r.assys = Array.from(r.assys);
+                    return r;
+                });
+                
+                this.applyAdminFilter();
             },
 
             fetchAdminTransactionsPage: async function(resetPage = false) {
@@ -2241,6 +2281,9 @@
                         this.adminTransactionsCache = compiledList;
                         this.lastAdminCacheKey = currentCacheKey;
                         resetPage = true; 
+                        
+                        // PICU MESIN PENGHITUNG ULANG SETIAP KALI DATA TRANSAKSI SELESAI DIUNDUH
+                        this.rebuildRekapFromTransactions();
 
                     } catch (error) {
                         tbody.innerHTML = `<tr><td colspan="11" class="text-center p-5 text-red-500 font-bold">Gagal memuat data detail. Firebase mungkin Overquota.</td></tr>`;
@@ -2338,6 +2381,12 @@
                     let ratioPct = actualMin > 0 ? (targetMin / actualMin) * 100 : 100;
                     let ratioColor = ratioPct >= 100 ? "text-green-600 font-bold" : "text-red-500 font-bold";
                     let opNames = (item.mps || []).map(m => m.nama || m).join(', ') || '-';
+                    
+                    // PENGAMANAN DATA KORUP E+24
+                    let cctVal = Number(item.cct) || 0; 
+                    if(cctVal > 99999) cctVal = 0; 
+                    
+                    let modifBadge = item.isModifikasi ? `<div class="mt-0.5"><span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[8px] font-bold border border-amber-200">MODIFIKASI</span></div>` : '';
 
                     let totalDtMs = 0;
                     let totalPdMs = 0;
@@ -2346,10 +2395,7 @@
                     if (item.downtimes && Array.isArray(item.downtimes)) {
                         item.downtimes.forEach(dt => {
                             let itemSec = Math.floor((dt.duration || 0) / 1000);
-                            let itemH = Math.floor(itemSec / 3600);
-                            let itemM = Math.floor((itemSec % 3600) / 60);
-                            let itemS = itemSec % 60;
-                            let itemHms = `${String(itemH).padStart(2,'0')}:${String(itemM).padStart(2,'0')}:${String(itemS).padStart(2,'0')}`;
+                            let itemHms = `${String(Math.floor(itemSec/3600)).padStart(2,'0')}:${String(Math.floor((itemSec%3600)/60)).padStart(2,'0')}:${String(itemSec%60).padStart(2,'0')}`;
 
                             if (dt.reason.startsWith('PENDING:')) {
                                 totalPdMs += (dt.duration || 0);
@@ -2364,20 +2410,18 @@
                     if (breakdownHtml === "") breakdownHtml = `<li class="text-slate-400 italic text-[11px]">Tidak ada catatan downtime atau pending pada unit ini.</li>`;
 
                     let totalLossSec = Math.floor((totalDtMs + totalPdMs) / 1000);
-                    let lossH = Math.floor(totalLossSec / 3600);
-                    let lossM = Math.floor((totalLossSec % 3600) / 60);
-                    let lossS = totalLossSec % 60;
-                    let hmsString = `${String(lossH).padStart(2,'0')}:${String(lossM).padStart(2,'0')}:${String(lossS).padStart(2,'0')}`;
+                    let hmsString = `${String(Math.floor(totalLossSec/3600)).padStart(2,'0')}:${String(Math.floor((totalLossSec%3600)/60)).padStart(2,'0')}:${String(totalLossSec%60).padStart(2,'0')}`;
 
                     html += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 text-xs text-slate-700 transition">
                             <td class="p-3 font-medium text-slate-500 border-r border-slate-100">${dateStr} <span class="text-[10px] block text-slate-400">${timeStr}</span></td>
                             <td class="p-3 font-semibold text-blue-600 font-mono border-r border-slate-100">${item.sn || '-'}</td>
-                            <td class="p-3 font-medium text-slate-900 font-mono border-r border-slate-100">${item.noAssy || '-'}</td>
+                            <td class="p-3 font-medium text-slate-900 font-mono border-r border-slate-100">${item.noAssy || '-'}${modifBadge}</td>
                             <td class="p-3 bg-blue-50/50 font-bold text-slate-700 font-mono border-r border-slate-100">${item.wp || '-'}</td>
                             <td class="p-3 text-center border-r border-slate-100"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[11px] font-medium">${lineName}</span></td>
                             <td class="p-3 text-center font-mono font-medium border-r border-slate-100">${item.shift || '-'}</td>
                             <td class="p-3 max-w-[150px] truncate border-r border-slate-100" title="${opNames}">${opNames}</td>
+                            <td class="p-3 text-center border-r border-slate-100">${mpsLength>1 ? `<span class="font-bold text-indigo-600">${cctVal.toFixed(1)}</span><div class="text-[9px] text-slate-400">@ ${(cctVal/mpsLength).toFixed(1)}</div>` : `<span class="font-bold text-indigo-600">${cctVal.toFixed(1)}</span>`}</td>
                             <td class="p-3 bg-slate-50/50 border-r border-slate-100">
                                 <div class="flex flex-col gap-0.5 font-mono text-[11px]">
                                     <div>Target: <span class="font-semibold text-slate-600">${targetHms}</span></div>
@@ -2395,14 +2439,14 @@
                                     <button onclick="app.toggleDowntimeDetail('${uniqueIdx}')" class="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-700 rounded hover:bg-amber-100 transition shadow-sm flex items-center gap-1" title="Lihat Rincian Kendala">
                                         <i class="fas fa-clock text-[10px]"></i> <span class="font-mono font-bold text-[10px]">${hmsString}</span>
                                     </button>
-                                    <button onclick="app.promptDeleteTrx('${item.id}', '${item.sn}')" class="px-2 py-1 bg-red-50 border border-red-200 text-red-500 rounded hover:bg-red-100 hover:text-red-700 transition shadow-sm" title="Hapus Transaksi Permanen">
+                                    <button onclick="app.promptDeleteTrx('${item.sn}', '${dateStr}', '${item.shift}', '${lineName}')" class="px-2 py-1 bg-red-50 border border-red-200 text-red-500 rounded hover:bg-red-100 hover:text-red-700 transition shadow-sm" title="Hapus Transaksi Permanen">
                                         <i class="fas fa-trash text-[10px]"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
                         <tr id="${uniqueIdx}" class="hide bg-slate-50 border-b border-slate-100">
-                            <td colspan="11" class="p-4 bg-amber-50/30">
+                            <td colspan="12" class="p-4 bg-amber-50/30">
                                 <div class="bg-white p-3 rounded-lg border border-amber-100/70 shadow-inner max-w-2xl">
                                     <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                         <i class="fas fa-list text-amber-500"></i> Log Kronologi Kendala Kerja (Format JJ:MM:DD)
@@ -2416,7 +2460,7 @@
                     `;
                 });
 
-                tbody.innerHTML = html; // Karena kita menggunakan paginasi "Prev/Next", tabel selalu di-replace
+                tbody.innerHTML = html; 
             },
 
             getFilteredReportsForAdmin: function() {
@@ -2506,10 +2550,14 @@
                 data.forEach(day => {
                     let l = day.targetLine;
                     if(lineStats[l]) {
-                        totalCct += day.totalCCT || 0; 
+                        // PENGAMANAN DATA KORUP E+24 DI BUKU BESAR
+                        let safeDayCct = day.totalCCT || 0;
+                        if (safeDayCct > 99999) safeDayCct = 0;
+
+                        totalCct += safeDayCct; 
                         totalQty += day.totalQty || 0;
                         (day.assys || []).forEach(a => { uniqueAssys.add(a); lineStats[l].assys.add(a); });
-                        lineStats[l].cct += day.totalCCT || 0;
+                        lineStats[l].cct += safeDayCct;
                         lineStats[l].qty += day.totalQty || 0;
                     }
                 });
@@ -2521,12 +2569,28 @@
                 const container = document.getElementById('overview-line-cards'); container.innerHTML = '';
                 if(checkedLines.length === 0) { container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 italic">Silakan pilih minimal satu Line untuk menampilkan ringkasan.</div>`; return; }
 
+                // HITUNG JUMLAH HARI DARI FILTER TANGGAL UNTUK MULTIPLIER TARGET
+                let startInput = document.getElementById('flt-date-start')?.value || this.getProductionDay(Date.now());
+                let endInput = document.getElementById('flt-date-end')?.value || startInput;
+                let daysCount = 1;
+                
+                let d1 = new Date(startInput + 'T00:00:00');
+                let d2 = new Date(endInput + 'T00:00:00');
+                if (!isNaN(d1) && !isNaN(d2)) {
+                    let diffTime = Math.abs(d2 - d1);
+                    daysCount = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                }
+
                 checkedLines.sort().forEach(line => {
                     let stats = lineStats[line];
-                    let lineTargetDay = app.masterLine.find(x => x.id === line)?.target || 0;
+                    // PERBAIKAN: Membuat pencarian target kebal huruf besar/kecil (Case-Insensitive)
+                    let lineTargetDay = app.masterLine.find(x => String(x.id).toUpperCase() === String(line).toUpperCase())?.target || 0;
                     
                     let shiftInput = document.getElementById('flt-shift').value;
                     let lineTarget = shiftInput === 'ALL' ? lineTargetDay : (lineTargetDay / 2);
+                    
+                    // KALIKAN TARGET DENGAN JUMLAH HARI
+                    lineTarget = lineTarget * daysCount;
                     
                     let percentage = lineTarget > 0 ? ((stats.cct / lineTarget) * 100).toFixed(1) : 0;
                     let progressColor = percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-500';
@@ -2572,7 +2636,11 @@
                         if(key.startsWith('mp_') && key.endsWith('_nama')) {
                             let id = key.split('_')[1];
                             let nama = day[key];
+                            
+                            // PENGAMAN DATA KORUP E+24
                             let cct = day[`mp_${id}_cct`] || 0;
+                            if (cct > 999999) cct = 0;
+                            
                             let qty = day[`mp_${id}_trxCount`] || 0;
                             
                             if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
@@ -2622,8 +2690,13 @@
                     let line = day.targetLine || '-';
                     if(!pivot[line]) pivot[line] = { total: 0 };
                     if(!pivot[line][dKey]) pivot[line][dKey] = 0;
-                    pivot[line][dKey] += (day.totalCCT || 0); 
-                    pivot[line].total += (day.totalCCT || 0);
+                    
+                    // PENGAMAN DATA KORUP E+24
+                    let safeCct = day.totalCCT || 0;
+                    if (safeCct > 999999) safeCct = 0;
+                    
+                    pivot[line][dKey] += safeCct; 
+                    pivot[line].total += safeCct;
                 });
 
                 let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max"><thead class="bg-slate-100 text-slate-600 shadow-sm border-b"><tr><th class="px-4 py-2 font-bold sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] w-48">Line Area</th>`;
@@ -2658,7 +2731,11 @@
                         if(key.startsWith('mp_') && key.endsWith('_nama')) {
                             let mId = key.split('_')[1];
                             let mNama = day[key];
+                            
+                            // PENGAMAN DATA KORUP E+24
                             let cct = day[`mp_${mId}_cct`] || 0;
+                            if (cct > 999999) cct = 0;
+                            
                             let rPct = day[`mp_${mId}_totRasio`] || 0;
                             let countTrx = day[`mp_${mId}_trxCount`] || 0;
                             
@@ -3103,7 +3180,8 @@
                     this.showToast("ID diperbarui dan tersimpan.", "success");
                 } else {
                     if(this.db) {
-                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName).doc(id).update({ [field]: val, last_edited: dateStr });
+                        // PERBAIKAN: Gunakan SET dengan MERGE
+                        await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(collName).doc(id).set({ [field]: val, last_edited: dateStr }, { merge: true });
                         this.showToast("Data tersimpan otomatis ke Cloud.", "success");
                     } else {
                         let arr = this['master' + (type === 'LEADER' ? 'Leader' : (type === 'MP' ? 'MP' : (type === 'ASSY' ? 'Assy' : 'Line')))];
@@ -3146,7 +3224,9 @@
 
                 if(t==='ASSY') { 
                     idField='no_assy'; 
-                    nObj = { no_assy: newId, cct: Number(document.getElementById('e-cct').value), umh: Number(document.getElementById('e-umh').value), last_edited: dateStr }; 
+                    let safeCct = Math.min(Number(document.getElementById('e-cct').value), 99999);
+                    let safeUmh = Math.min(Number(document.getElementById('e-umh').value), 99999);
+                    nObj = { no_assy: newId, cct: safeCct, umh: safeUmh, last_edited: dateStr }; 
                     collName = 'master_assy'; 
                 }
                 else if(t==='MP') { 
@@ -3177,7 +3257,8 @@
                             batch.delete(ref.doc(safeOldId));
                             await batch.commit();
                         } else {
-                            await ref.doc(safeNewId).update(nObj);
+                            // PERBAIKAN: Gunakan SET dengan MERGE agar terhindar dari "No document to update"
+                            await ref.doc(safeNewId).set(nObj, { merge: true });
                         }
                     } catch(e) { 
                         console.error(e);
@@ -3188,12 +3269,13 @@
 
                 let arrName = 'master' + (t === 'LEADER' ? 'Leader' : (t === 'MP' ? 'MP' : (t === 'ASSY' ? 'Assy' : 'Line')));
                 let arr = this[arrName];
-                let idx = arr.findIndex(x => (x.id || x.no_assy || x.lisensi) === oldId);
+                // FIX: Menyamakan huruf kapital saat mencari data lama untuk diganti
+                let idx = arr.findIndex(x => String(x.id || x.no_assy || x.lisensi).toUpperCase() === String(oldId).toUpperCase());
                 if (idx > -1) { 
                     arr.splice(idx, 1);
-                    arr.unshift(nObj);
-                    this.persistLocal(arrName, arr); 
                 }
+                arr.unshift(nObj); // Pastikan item baru selalu masuk
+                this.persistLocal(arrName, arr);
 
                 this.closeModal('modal-edit-master');
                 this.showToast(`Data ${newId} berhasil diperbarui & disinkronkan.`, "success");
@@ -3317,13 +3399,38 @@
                     if(doc.exists) {
                         let data = doc.data();
                         let batch = this.db.batch();
+                        
+                        // 1. Pindah ke Recycle Log dan Hapus dari layar Operator
                         batch.set(this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`recycleLog_${lineKey}`).doc(id), data);
                         batch.delete(refTrx);
+                        
+                        // 2. Cabut juga data transaksi ini dari Layar Admin
+                        let dStr = this.getProductionDay(data.finishedAt?.seconds ? data.finishedAt.seconds * 1000 : data.finishedAt);
+                        let rekapDocId = `${dStr}_${data.shift}`;
+                        let bucketRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`detail_harian_${lineKey}`).doc(rekapDocId);
+                        let bucketDoc = await bucketRef.get();
+                        
+                        if(bucketDoc.exists) {
+                            let bData = bucketDoc.data();
+                            if(bData.list) {
+                                let newList = bData.list.filter(x => x.id !== id && x.sn !== sn);
+                                batch.update(bucketRef, { list: newList });
+                            }
+                        }
+
                         await batch.commit();
-                        this.showToast("Transaksi dipindah ke Recycle Log (dihapus).", "success");
-                        this.fetchAdminData();
+
+                        // 3. Sinkronisasi UI Seketika
+                        if (this.adminTransactionsCache) {
+                            this.adminTransactionsCache = this.adminTransactionsCache.filter(x => x.id !== id && x.sn !== sn);
+                            this.rebuildRekapFromTransactions(); // Hitung ulang seluruh layar tanpa transaksi ini!
+                            this.fetchAdminTransactionsPage(false);
+                        }
+                        this.showToast("Transaksi berhasil dihapus permanen ke Recycle Log.", "success");
+                    } else {
+                        this.showToast("Data tidak ditemukan.", "warning");
                     }
-                } catch(e) { this.showToast("Gagal menghapus transaksi.", "error"); }
+                } catch(e) { console.error(e); this.showToast("Gagal menghapus transaksi.", "error"); }
             },
 
             openMasterAddModal: function(type, context = 'MASTER') {
@@ -3336,7 +3443,10 @@
             saveNewMasterAssy: async function() {
                 let no = document.getElementById('m-add-assy-no').value.trim().toUpperCase(); let cct = document.getElementById('m-add-assy-cct').value; let umh = document.getElementById('m-add-assy-umh').value;
                 if(!no || !cct || !umh) { this.showToast("Isi semua data Assy!", "warning"); return; }
-                let newItem = { no_assy: no, cct: Number(cct), umh: Number(umh), last_edited: new Date().toISOString().split('T')[0] };
+                // Poka-Yoke: Cegah scan barcode nyasar dengan membatasi maksimal input
+                let safeCct = Math.min(Number(cct), 99999);
+                let safeUmh = Math.min(Number(umh), 99999);
+                let newItem = { no_assy: no, cct: safeCct, umh: safeUmh, last_edited: new Date().toISOString().split('T')[0] };
                 
                 if (this.db) {
                     let safeNo = no.replace(/\//g, '_');
@@ -3467,7 +3577,13 @@
                 todayData.forEach(h => {
                     let l = h.targetLine;
                     if(!lineOutputAgg[l]) lineOutputAgg[l] = { cct: 0, qty: 0, assys: new Set() };
-                    lineOutputAgg[l].cct += h.cct; lineOutputAgg[l].qty += 1; lineOutputAgg[l].assys.add(h.noAssy);
+                    
+                    // PENGAMAN DATA KORUP E+24
+                    let safeCct = Number(h.cct) || 0;
+                    if (safeCct > 99999) safeCct = 0; 
+                    
+                    lineOutputAgg[l].cct += safeCct;
+                    lineOutputAgg[l].qty += 1; lineOutputAgg[l].assys.add(h.noAssy);
                 });
 
                 tbody.innerHTML = '';
@@ -3484,13 +3600,16 @@
                             return m.nama || String(m);
                         }).join(', ');
                         
+                        let safeCctDisplay = Number(h.cct) || 0;
+                        if(safeCctDisplay > 99999) safeCctDisplay = 0; // PENGAMAN E+24 UNTUK TABEL
+
                         let statClass = h.finalStatus === 'OK' ? 'text-emerald-600' : 'text-red-600';
                         tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 border-b border-slate-100">
                             <td class="px-4 py-2 font-bold text-slate-700">${h.leaderName || '-'}</td>
                             <td class="px-4 py-2 font-mono text-blue-600">${h.sn}</td>
                             <td class="px-4 py-2">${h.noAssy}</td>
-                            <td class="px-4 py-2 font-bold text-indigo-600 text-center">${h.cct}</td>
+                            <td class="px-4 py-2 font-bold text-indigo-600 text-center">${safeCctDisplay.toFixed(1)}</td>
                             <td class="px-4 py-2 font-bold text-slate-700">${h.targetLine}</td>
                             <td class="px-4 py-2 truncate max-w-[150px]" title="${mpStr}">${mpStr}</td>
                             <td class="px-4 py-2 font-timer">${h.durationMin.toFixed(2)}</td>
@@ -3505,7 +3624,8 @@
                 for (const [line, data] of Object.entries(lineOutputAgg)) {
                     let hl = (filterLine === line || filterLine === 'ALL') ? 'bg-white border-indigo-200 shadow-md' : 'bg-slate-50 border-slate-200 opacity-75';
                     
-                    let lineMasterObj = app.masterLine.find(x => x.id === line) || initMasterDataLine.find(x => x.id === line);
+                    // PERBAIKAN: Membuat pencarian target kebal huruf besar/kecil (Case-Insensitive)
+                    let lineMasterObj = app.masterLine.find(x => String(x.id).toUpperCase() === String(line).toUpperCase()) || initMasterDataLine.find(x => String(x.id).toUpperCase() === String(line).toUpperCase());
                     let lineTargetDay = lineMasterObj?.target || 0;
                     let lineTargetShift = lineTargetDay / 2;
                     
@@ -3515,7 +3635,7 @@
                     summaryHtml += `
                     <div class="${hl} border rounded-xl p-3 flex flex-col transition-all relative overflow-hidden">
                         <span class="text-[10px] text-slate-500 font-bold uppercase border-b border-slate-100 pb-1 mb-2">${line}</span>
-                        <div class="flex justify-between items-end"><span class="text-[9px] text-slate-400">Pencapaian CCT</span><span class="text-sm font-bold text-indigo-700 leading-none">${data.cct.toFixed(0)} <span class="text-[9px] text-slate-400 font-medium">/ ${lineTargetShift}</span></span></div>
+                        <div class="flex justify-between items-end"><span class="text-[9px] text-slate-400">Pencapaian CCT</span><span class="text-sm font-bold text-indigo-700 leading-none">${data.cct.toFixed(1)} <span class="text-[9px] text-slate-400 font-medium">/ ${lineTargetShift}</span></span></div>
                         <div class="w-full bg-slate-200 h-1.5 mt-1.5 rounded-full overflow-hidden"><div class="${barColor} h-full" style="width: ${Math.min(percentage, 100)}%"></div></div>
                         <div class="flex justify-between items-center mt-1 mb-2"><span class="text-[8px] text-slate-400 uppercase font-bold">Persentase</span><span class="text-[10px] text-indigo-600 font-black">${percentage}%</span></div>
                         
@@ -3563,8 +3683,9 @@
                         "Waktu Selesai": new Date(h.finishedAt).toLocaleString('id-ID'),
                         "Leader Penanggungjawab": h.leaderName || '-',
                         "Serial Number": h.sn,
+                        "Keterangan": h.isModifikasi ? "Assy Modifikasi" : "-",
                         "No Assy": h.noAssy,
-                        "Output CCT": h.cct,
+                        "Output CCT": (Number(h.cct) > 999999) ? 0 : (Number(Number(h.cct).toFixed(1)) || 0),
                         "Line Area": h.targetLine || '-',
                         "MP Terlibat": mpStr,
                         "Durasi Aktif (m)": Number((h.durationMin || 0).toFixed(2)),
@@ -3620,7 +3741,12 @@
                             let id = key.split('_')[1];
                             let nama = day[key];
                             if(!mpScores[id]) mpScores[id] = { id: id, nama: nama, cct: 0, qty: 0, assys: new Set() };
-                            mpScores[id].cct += day[`mp_${id}_cct`] || 0;
+                            
+                            // PENGAMAN DATA KORUP E+24
+                            let safeCct = day[`mp_${id}_cct`] || 0;
+                            if (safeCct > 999999) safeCct = 0;
+                            
+                            mpScores[id].cct += safeCct;
                             mpScores[id].qty += day[`mp_${id}_trxCount`] || 0;
                             (day.assys || []).forEach(a => mpScores[id].assys.add(a));
                         }
@@ -3649,8 +3775,13 @@
                     let line = day.targetLine || '-';
                     if(!pivot[line]) pivot[line] = { total: 0 };
                     if(!pivot[line][dKey]) pivot[line][dKey] = 0;
-                    pivot[line][dKey] += (day.totalCCT || 0);
-                    pivot[line].total += (day.totalCCT || 0);
+                    
+                    // PENGAMAN DATA KORUP E+24
+                    let safeCct = day.totalCCT || 0;
+                    if (safeCct > 999999) safeCct = 0;
+                    
+                    pivot[line][dKey] += safeCct;
+                    pivot[line].total += safeCct;
                 });
 
                 let exportData = Object.keys(pivot).sort().map(line => {
@@ -3685,31 +3816,74 @@
                             if(fLine && !line.toLowerCase().includes(fLine)) return;
                             
                             let pKey = `${mId}-${line}`;
-                            if(!pivot[pKey]) { pivot[pKey] = { nama: mNama, id: mId, join_date: (this.masterMP.find(x => x && x.id === mId) || {}).join_date || '-', line: line, total: 0, totRasio: 0, countTrx: 0 }; }
-                            if(!pivot[pKey][dKey]) pivot[pKey][dKey] = 0;
+                            if(!pivot[pKey]) { 
+                                pivot[pKey] = { 
+                                    nama: mNama, id: mId, line: line, 
+                                    totalCct: 0, totRasio: 0, countTrx: 0, days: {} 
+                                }; 
+                            }
+                            if(!pivot[pKey].days[dKey]) pivot[pKey].days[dKey] = { cct: 0, totRasio: 0, countTrx: 0 };
                             
-                            pivot[pKey][dKey] += day[`mp_${mId}_cct`] || 0;
-                            pivot[pKey].total += day[`mp_${mId}_cct`] || 0;
-                            pivot[pKey].totRasio += day[`mp_${mId}_totRasio`] || 0;
-                            pivot[pKey].countTrx += day[`mp_${mId}_trxCount`] || 0;
+                            // PENGAMAN DATA KORUP E+24
+                            let safeCct = day[`mp_${mId}_cct`] || 0;
+                            if (safeCct > 999999) safeCct = 0;
+                            
+                            // Akumulasi
+                            pivot[pKey].days[dKey].cct += safeCct;
+                            pivot[pKey].totalCct += safeCct;
+                            
+                            // Logika Rasio (Sama dengan renderRekapMP)
+                            let rPct = day[`mp_${mId}_totRasio`] || 0;
+                            let countTrx = day[`mp_${mId}_trxCount`] || 0;
+                            if (rPct > 0) {
+                                pivot[pKey].days[dKey].totRasio += rPct;
+                                pivot[pKey].days[dKey].countTrx += countTrx;
+                                pivot[pKey].totRasio += rPct;
+                                pivot[pKey].countTrx += countTrx;
+                            }
                         }
                     });
                 });
 
-                let exportData = Object.values(pivot).sort((a,b)=>b.total-a.total).map(m => {
-                    let mk = app.calculateMasaKerja(m.join_date);
-                    let avgR = (m.totRasio / (m.countTrx || 1)).toFixed(1) + '%';
-                    let row = { "NRP": m.id, "Nama Manpower": m.nama, "Penempatan Line": m.line, "Masa Kerja": mk, "Rata-Rata Rasio": avgR };
-                    dateKeys.forEach(dk => { row[dk] = m[dk] ? Number(m[dk].toFixed(1)) : 0; });
-                    row["Total Capaian CCT"] = Number(m.total.toFixed(1));
+                let exportData = Object.values(pivot).sort((a,b)=>b.totalCct-a.totalCct).map(m => {
+                    let row = { 
+                        "NRP": m.id, 
+                        "Nama Manpower": m.nama, 
+                        "Line": m.line 
+                    };
+                    
+                    // Loop tanggal untuk memasukkan kolom Target, Output, dan Rasio
+                    dateKeys.forEach(dk => {
+                        let dayData = m.days[dk];
+                        if (dayData) {
+                            let dOutput = dayData.cct;
+                            let dAvgRasio = dayData.countTrx > 0 ? (dayData.totRasio / dayData.countTrx) : 0;
+                            let dTarget = dAvgRasio > 0 ? (dOutput * 100) / dAvgRasio : 0;
+                            row[`${dk} (Target)`] = Number(dTarget.toFixed(1));
+                            row[`${dk} (Output)`] = Number(dOutput.toFixed(1));
+                            row[`${dk} (Rasio %)`] = dTarget > 0 ? `${dAvgRasio.toFixed(1)}%` : "0%";
+                        } else {
+                            row[`${dk} (Target)`] = 0; row[`${dk} (Output)`] = 0; row[`${dk} (Rasio %)`] = "0%";
+                        }
+                    });
+
+                    // Total Keseluruhan
+                    let tOutput = m.totalCct;
+                    let tAvgRasio = m.countTrx > 0 ? (m.totRasio / m.countTrx) : 0;
+                    let tTarget = tAvgRasio > 0 ? (tOutput * 100) / tAvgRasio : 0;
+                    
+                    row["Total (Target)"] = Number(tTarget.toFixed(1));
+                    row["Total (Output)"] = Number(tOutput.toFixed(1));
+                    row["Total (Rasio %)"] = tTarget > 0 ? `${tAvgRasio.toFixed(1)}%` : "0%";
+                    
                     return row;
                 });
 
                 let ws = XLSX.utils.json_to_sheet(exportData);
                 let wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Rekap Matriks MP");
-                XLSX.writeFile(wb, `Rekap_MP_${Date.now()}.xlsx`);
-                this.showToast("Export Rekap Matriks MP Berhasil.", "success");
+                XLSX.writeFile(wb, `Rekap_MP_Detail_${Date.now()}.xlsx`);
+                this.showToast("Export Rekap Matriks MP (Detail) Berhasil.", "success");
             },
 
             exportTransactionsExcel: function() {
@@ -3761,26 +3935,41 @@
                     let totalLossSec = Math.floor((totalDtMs + totalPdMs) / 1000);
                     let lossHms = `${String(Math.floor(totalLossSec/3600)).padStart(2,'0')}:${String(Math.floor((totalLossSec%3600)/60)).padStart(2,'0')}:${String(totalLossSec%60).padStart(2,'0')}`;
 
-                    // SUSUNAN KOLOM EXCEL (Persis 100% dengan tampilan Web Detail Transactions)
+                    // QC Extract
+                    let qcStr = h.qc ? [
+                        h.qc.dim ? 'OK' : '-', h.qc.mark ? 'OK' : '-', h.qc.spot ? 'OK' : '-',
+                        h.qc.clip ? 'OK' : '-', h.qc.tap ? 'OK' : '-', h.qc.tpo ? 'OK' : '-'
+                    ] : ['-','-','-','-','-','-'];
+
+                    // SUSUNAN KOLOM EXCEL (Mengembalikan 6 Kolom QC & Menambah Kolom Modifikasi)
                     return {
                         "Tanggal": dateStr,
                         "Waktu Selesai": timeStr,
                         "Serial Number": h.sn,
+                        "Keterangan": h.isModifikasi ? "Assy Modifikasi" : "-",
                         "No Assy": h.noAssy,
                         "WP": h.wp || '-',
                         "Line Output": h.targetLine || h.lineOutput || '-',
                         "Shift": h.shift || '-',
                         "Leader Penanggungjawab": h.leaderName || '-',
                         "Manpower / Tim": mpStr,
-                        "CCT": h.cct || 0,
+                        "CCT": (Number(h.cct) > 999999) ? 0 : (Number(h.cct) || 0),
                         "Durasi Target": targetHms,
                         "Durasi Aktual": actualHms,
-                        "Rasio (%)": Number(ratioPct.toFixed(1)),
+                        "Rasio (%)": `${ratioPct.toFixed(1)}%`,
+                        "Status Target": h.finalStatus || '-',
                         "Status Target": h.finalStatus || '-',
                         "Total Loss Time": lossHms,
-                        "Rincian Log Kendala": logKendala.length > 0 ? logKendala.join(' | ') : 'Tidak ada catatan'
+                        "Rincian Log Kendala": logKendala.length > 0 ? logKendala.join(' | ') : 'Tidak ada catatan',
+                        "QC Dimensi": qcStr[0],
+                        "QC Marker": qcStr[1],
+                        "QC Spot": qcStr[2],
+                        "QC Clip": qcStr[3],
+                        "QC Tapping": qcStr[4],
+                        "QC TPO": qcStr[5]
                     };
                 });
+                
 
                 let ws = XLSX.utils.json_to_sheet(exportData);
                 let wb = XLSX.utils.book_new();
@@ -3837,7 +4026,8 @@
 
                     // Logika Caching: Jika sudah ada data ter-display sebelumnya, langsung tampilkan tanpa loading state kosong
                     if (this.adminHistoryReports && this.adminHistoryReports.length > 0) {
-                        document.getElementById('admin-empty-state').classList.add('hide');
+                        let emptyStateEl = document.getElementById('admin-empty-state');
+                        if (emptyStateEl) emptyStateEl.classList.add('hide');
                         this.applyAdminFilter();
                     } else {
                         this.switchAdminTab('overview');
@@ -3896,8 +4086,9 @@
             confirmManualInput: async function() {
                 let a=document.getElementById('manual-assy').value.trim().toUpperCase(); 
                 let s=document.getElementById('manual-sn').value.trim().toUpperCase();
-                let c=parseInt(document.getElementById('manual-cct').value); 
-                let u=parseInt(document.getElementById('manual-umh').value);
+                // Poka-Yoke: Cegah scan barcode
+                let c=Math.min(parseInt(document.getElementById('manual-cct').value) || 0, 99999); 
+                let u=Math.min(parseInt(document.getElementById('manual-umh').value) || 0, 99999);
                 if(!a||!s||isNaN(c)||isNaN(u)) { this.showToast("Isi semua kolom", "warning"); return; }
                 this.closeModal('modal-manual');
                 
@@ -3924,11 +4115,9 @@
                 document.getElementById('modal-batch').classList.remove('hide'); 
                 ['batch-scan-trigger','b-wp-input','b-mp-input'].forEach(id=>document.getElementById(id).value=''); 
                 ['batch-assy','batch-cct','batch-umh'].forEach(id=>document.getElementById(id).innerText='-'); 
-                this.batchItemsValid=[]; 
-                this.updateBatchUI(); 
-                this.tempMps = []; 
-                this.renderTempMps(true); 
-                setTimeout(() => document.getElementById('batch-scan-trigger').focus(), 100); 
+                document.getElementById('b-is-modifikasi').checked = false; // Reset Modif
+                this.batchItemsValid=[]; this.updateBatchUI(); this.tempMps = []; 
+                this.renderTempMps(true); setTimeout(() => document.getElementById('batch-scan-trigger').focus(), 100); 
             },
             
             // INI ADALAH FUNGSI YANG KEPALANYA TIDAK SENGAJA TERHAPUS
@@ -4015,7 +4204,8 @@
                     cct: parseInt(document.getElementById('batch-cct').innerText), baseUmh: parseInt(document.getElementById('batch-umh').innerText), 
                     wp: w, mps: mps, targetLine: document.getElementById('b-line-select').value, 
                     startTime: Date.now(), status: 'running', totalDowntime: 0, downtimes: [], lastDowntimeStart: null, 
-                    isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama 
+                    isGlobalPause: false, shift: this.shift, leaderName: this.leader.nama,
+                    isModifikasi: document.getElementById('b-is-modifikasi').checked || false
                 };
                 this.closeModal('modal-confirm-start'); 
                 this.closeModal('modal-batch'); 
@@ -4026,7 +4216,8 @@
             updateQueueDoc: async function(id, data) { 
                 let lineKey = this.leader.line.replace(/\s+/g, '_');
                 if(this.db) {
-                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).update(data); 
+                    // PERBAIKAN: Gunakan SET dengan MERGE
+                    await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`active_queue_${lineKey}`).doc(id).set(data, { merge: true }); 
                 } else { 
                     let idx = this.activeQueue.findIndex(q => q.id === id); 
                     if(idx > -1) {
