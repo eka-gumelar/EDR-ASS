@@ -35,39 +35,95 @@
         .chip-enter { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-       .bg-moving-pattern {
-            background-color: #f8fafc;
-            /* Pola dot-dot kecil yang estetik */
-            background-image: radial-gradient(rgba(148, 163, 184, 0.4) 2px, transparent 2px);
-            background-size: 32px 32px;
-            /* Bergerak diagonal sangat lambat (40 detik) */
-            animation: panBackground 40s linear infinite;
-        }
-        @keyframes panBackground {
-            0% { background-position: 0px 0px; }
-            100% { background-position: 320px 320px; } /* Harus kelipatan 32px agar mulus (looping) */
-        }
-        
-        .animate-orb-1 { animation: floatOrb1 15s ease-in-out infinite alternate; }
-        .animate-orb-2 { animation: floatOrb2 18s ease-in-out infinite alternate; }
-        
-        /* Orbs bergerak berlawanan (Melayang ke arah Kiri-Atas) */
-        @keyframes floatOrb1 {
-            0% { transform: translate(50px, 50px) scale(1); }
-            100% { transform: translate(-150px, -150px) scale(1.1); }
-        }
-        @keyframes floatOrb2 {
-            0% { transform: translate(80px, 80px) scale(1.1); }
-            100% { transform: translate(-100px, -180px) scale(0.9); }
+       /* --- MODERN SPLIT-LAYOUT LOGIN --- */
+        :root {
+            --primary: #2563eb; /* Warna biru utama aplikasi */
         }
 
-        /* Efek Kaca (Glassmorphism) Premium */
-        .glass-panel-login {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #f1f5f9;
+            /* Ganti nama folder dari 'assets' ke 'img' agar konsisten dengan file Anda sebelumnya */
+            background-image: url('img/bg.png'); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        .login-container { display: flex; width: 100%; max-width: 1200px; padding: 0 50px; justify-content: space-between; align-items: center; gap: 40px; z-index: 2; }
+        .login-text-section { flex: 1; }
+        .login-logos { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .login-title-small { font-size: 28px; font-weight: 900; color: #000; margin-bottom: 15px; letter-spacing: -0.5px; }
+        .login-title-small .red-e { color: #dc2626; }
+        .login-title-large { font-size: 72px; font-weight: 900; color: var(--primary); line-height: 0.92; margin-bottom: 30px; text-transform: uppercase; font-family: 'Arial Black', Impact, sans-serif; letter-spacing: -1px; text-shadow: 3px 3px 0px rgba(0,0,0,0.03); }
+        .login-version { display: inline-block; background-color: var(--primary); color: white; font-weight: 500; font-size: 18px; padding: 5px 35px; border-radius: 40px; }
+        
+        .login-card-section { flex: 0 0 360px; background: rgba(255, 255, 255, 0.95); padding: 40px 35px; border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05); border: 1px solid rgba(255,255,255,0.8); }
+        .login-card-section .form-group { margin-bottom: 20px; text-align: left; }
+        .login-card-section .label { font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; display: block; text-transform: uppercase; }
+        .login-card-section .input { width: 100%; border: 1.5px solid var(--primary); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #1e293b; background: #fff; transition: all 0.2s; box-shadow: none; outline: none; font-weight: 600; font-family: inherit; }
+        .login-card-section .input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        
+        .btn-login-submit { width: 100%; background-color: var(--primary); color: white; font-size: 16px; font-weight: 800; padding: 14px; border-radius: 10px; border: none; cursor: pointer; transition: background-color 0.2s; margin-top: 5px; }
+        .btn-login-submit:hover { background-color: #1d4ed8; }
+        
+        .login-footer-links { margin-top: 25px; display: flex; justify-content: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .login-footer-links button { background: none; border: none; color: #94a3b8; font-size: 10px; font-weight: 700; cursor: pointer; transition: color 0.2s; padding: 0; outline: none; }
+        .login-footer-links button:hover { color: #3b82f6; }
+        
+        @media (max-width: 900px) { 
+            .login-container { flex-direction: column; justify-content: center; text-align: center; gap: 30px; padding: 0 20px; }
+            .login-logos { justify-content: center; }
+            .login-title-large { font-size: 48px; }
+            .login-card-section { flex-basis: auto; width: 100%; max-width: 380px; padding: 30px 25px; }
+        }
+
+/* --- PATCH NOTES MAXIMIZED STATE --- */
+        .patch-maximized {
+            top: 50% !important;
+            left: 50% !important;
+            bottom: auto !important;
+            right: auto !important;
+            transform: translate(-50%, -50%) !important;
+            width: 90vw !important;
+            max-width: 700px !important;
+            height: 85vh !important;
+            z-index: 100 !important;
+            /* Efek bayangan yang lebih besar saat di tengah layar */
+            box-shadow: 0 0 0 100vw rgba(15, 23, 42, 0.4), 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+        .patch-maximized .patch-content {
+            height: calc(85vh - 90px) !important;
+        }
+        /* Mengubah ikon secara otomatis dari Expand ke Compress */
+        .patch-maximized .btn-maximize i::before {
+            content: "\f066" !important; 
+        }
+
+/* --- PATCH NOTES COLLAPSED STATE (SEMBUNYI KE KANAN) --- */
+        .patch-collapsed {
+            /* Dorong ke kanan sejauh lebarnya, sisakan 36px agar padding dan ikon Megaphone tetap terlihat */
+            transform: translateX(calc(100% - 36px)) !important;
+            opacity: 0.6 !important;
+            cursor: w-resize !important; /* Kursor ditarik ke kiri */
+        }
+        .patch-collapsed:hover {
+            opacity: 1 !important;
+            /* Menyembul sedikit lebih panjang saat disorot agar menggoda untuk diklik */
+            transform: translateX(calc(100% - 46px)) !important; 
+        }
+        .patch-collapsed * {
+            /* Cegah tombol di dalam card ikut ter-hover/terklik saat sedang sembunyi */
+            pointer-events: none !important; 
         }
 
     </style>    
@@ -81,49 +137,116 @@
         <i class="fas fa-wifi mr-1"></i> <span id="network-text">Online</span>
     </div>
 
-    <!-- 1. LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 w-full h-screen z-50 flex items-center justify-center bg-hexagon-pattern overflow-hidden">
-        
-        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none animate-orb-1"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-teal-400/20 blur-[80px] pointer-events-none animate-orb-2"></div>
-
-        <div class="glass-panel-login p-10 rounded-[2rem] w-[90%] max-w-[420px] flex flex-col items-center relative z-10">
+<!-- 1. LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-container">
             
-            <img src="img/logo.png" alt="Logo App" class="w-24 h-24 object-contain mb-4 drop-shadow-xl transition-transform hover:scale-105 hover:-translate-y-1">
-            
-            <h2 class="text-[22px] font-black text-slate-900 leading-tight text-center tracking-tight mb-1 uppercase drop-shadow-sm">
-                PROSES ASSEMBLING<br><span class="text-blue-600">DAILY REPORT</span>
-            </h2>
-            <p class="text-[11px] bg-white/60 px-3 py-0.5 rounded-full border border-white text-slate-500 mb-8 font-bold tracking-widest shadow-sm">v.1.5.30</p>
-            
-            <div class="w-full space-y-4">
-                <div class="text-left relative group">
-                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">LISENSI ID / USERNAME</label>
-                    <div class="relative">
-                        <input type="text" id="login-lisensi" class="w-full pl-11 pr-4 py-3.5 bg-white/70 backdrop-blur-sm border border-white/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white uppercase font-mono text-sm transition-all shadow-sm text-slate-800 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('login-pass').focus(); }">
-                    </div>
+            <!-- Kiri: Teks Tipografi -->
+            <div class="login-text-section">
+                <div class="login-logos">
+                    <!-- Pastikan gambar banshu-logo.png dan logo.png sudah ada di dalam folder 'img' -->
+                    <img src="img/banshu-logo.png" alt="Banshu" style="width: 55px; height: 55px; object-fit: contain;">
+                    <img src="img/logo.png" alt="EDR" style="width: 70px; height: 70px; object-fit: contain;">
                 </div>
-                <div class="text-left relative group">
-                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">PASSWORD</label>
-                    <div class="relative">
-                        <input type="password" id="login-pass" class="w-full pl-11 pr-4 py-3.5 bg-white/70 backdrop-blur-sm border border-white/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white text-sm transition-all shadow-sm text-slate-800 font-bold" onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.login(); }">
+                <div class="login-title-small"><span class="red-e">E</span>-lectronic Daily Report</div>
+                <div class="login-title-large">PROSES<br>ASSEMBLING</div>
+                <div class="login-version">V.1.6.30</div>
+            </div>
+            
+            <!-- Kanan: Form Card -->
+            <div class="login-card-section">
+                <form id="login-form" onsubmit="event.preventDefault(); app.login();">
+                    <div class="form-group">
+                        <label class="label">ID USER</label>
+                        <!-- Menggunakan ID bawaan sistem agar fungsi login tidak rusak -->
+                        <input type="text" id="login-lisensi" required class="input uppercase font-mono" placeholder="">
                     </div>
-                </div>
-                <div class="pt-4">
-                    <button onclick="app.login()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black tracking-widest uppercase py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] border border-blue-400/50 flex justify-center items-center gap-2">
-                        <span>Login</span>
-                    </button>
+                    <div class="form-group">
+                        <label class="label">PASSWORD</label>
+                        <!-- Menggunakan ID bawaan sistem agar fungsi login tidak rusak -->
+                        <input type="password" id="login-pass" required class="input" placeholder="">
+                    </div>
+                    <button type="submit" class="btn-login-submit">LOGIN</button>
+                </form>
+                
+                <!-- Opsi Tambahan -->
+                <div class="login-footer-links">
+                    <button type="button" onclick="app.openAdminAuth()">MODE ADMIN</button>
                 </div>
             </div>
+            
         </div>
-    </div>
+
+<!-- FLOATING PATCH NOTES WIDGET -->
+        <!-- Tambahan event onclick untuk menariknya kembali saat sedang terlipat -->
+        <div class="patch-card absolute bottom-6 right-6 w-80 bg-white/80 backdrop-blur-xl border border-white/90 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl p-5 z-[60] transition-all duration-500 hidden md:flex flex-col group" onclick="if(this.classList.contains('patch-collapsed')) this.classList.remove('patch-collapsed');">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/60 relative">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shrink-0">
+                        <i class="fas fa-bullhorn text-xs"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-800 text-[13px] tracking-tight uppercase leading-none mt-1">Update Info</h3>
+                        <div class="text-[9px] text-slate-500 font-bold tracking-widest mt-0.5">PATCH NOTES</div>
+                    </div>
+                </div>
+                
+                <span class="px-2.5 py-1 bg-slate-800 text-white text-[9px] font-bold tracking-widest rounded-full shadow-sm">v.0.5.8</span>
+                
+                <!-- Grup Tombol Navigasi -->
+                <div class="absolute -top-3 -right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button onclick="event.stopPropagation(); this.closest('.patch-card').classList.toggle('patch-maximized')" class="btn-maximize w-7 h-7 bg-white text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full shadow-md border border-slate-100 flex items-center justify-center transition-colors" title="Perbesar Layar"><i class="fas fa-expand text-[10px]"></i></button>
+                    <!-- Perubahan: Hapus fungsi remove() dan ganti dengan penambahan class 'patch-collapsed' & Ikon Panah -->
+                    <button onclick="event.stopPropagation(); this.closest('.patch-card').classList.remove('patch-maximized'); this.closest('.patch-card').classList.add('patch-collapsed');" class="w-7 h-7 bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full shadow-md border border-slate-100 flex items-center justify-center transition-colors" title="Sembunyikan ke Kanan"><i class="fas fa-arrow-right text-[10px]"></i></button>
+                </div>
+            </div>
+            
+            <div class="patch-content space-y-3 h-[180px] overflow-y-auto pr-2 custom-scrollbar text-xs font-semibold text-slate-600 transition-all duration-500">
+                
+                <div class="text-[9px] font-extrabold text-blue-600 tracking-wider uppercase pt-1">★ Fitur Baru</div>
+                
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Detail Manpower Report:</strong> Klik nama karyawan di Rekap MP untuk melihat histori performa harian (Target vs Output) & unduh Excel secara individu.</p>
+                </div>
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Tombol Pintas (Downtime → Pending) dan (Pending → Scan Out):</strong> Fitur pemindahan cepat unit dari Downtime ke Pending <span class="text-slate-400 font-mono">[→]</span>, dan Scan Out langsung dari daftar Pending <span class="text-teal-600 font-mono">[🏁]</span>.</p>
+                </div>
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Kalibrasi UMH (Single & Batch):</strong> Tombol kuning "Auto" pada Edit Master Assy untuk menghitung standar UMH secara otomatis berdasarkan data riwayat 3 bulan. Klik mode edit Assy untuk menyesuaikan UMH otomatis untuk Assy spesifik.</p>
+                </div>
+
+                <div class="text-[9px] font-extrabold text-amber-600 tracking-wider uppercase pt-2 border-t border-slate-100">🔄 Update Sistem</div>
+
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Jam Cut-Off menjadi 07:00 WIB (sebelumnya 07:30 WIB):</strong> Waktu pergantian buku laporan harian dimajukan agar sinkron dengan jam aktual operasional pergantian shift kerja.</p>
+                </div>
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Perhitungan Batas Rasio (30% - 150%):</strong> Batas rasio efisiensi dikunci untuk mencegah kerusakan grafik performa total line akibat anomali atau salah scan di lapangan.</p>
+                </div>
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Perhitungan UMH menggunakan Standar Deviasi:</strong> Sistem otomatis mendeteksi dan mengeliminasi data pengerjaan tidak wajar (*outliers*) sebelum menentukan standar waktu.</p>
+                </div>
+                <div class="flex gap-2.5 items-start">
+                    <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Penambahan Kolom Masa Kerja pada Report Excel:</strong> Berkas unduhan (Detail Transaksi & Rekap MP) kini otomatis menampilkan lama kerja (*tenure*) operator untuk analisa SDM.</p>
+                </div>
+                
+            </div>
+        </div>
+</div>
 
     <!-- 2. MAIN DASHBOARD -->
     <div id="main-dashboard" class="flex-1 flex flex-col h-full hide">
         <header class="bg-white flex flex-col shrink-0 border-b border-slate-200">
             <div class="flex justify-between items-center px-6 py-4 shadow-sm z-10 relative">
                 <h1 class="text-3xl font-black text-slate-900 tracking-tighter flex items-center drop-shadow-sm">
-                    <img src="img/logo.png" alt="Logo" class="w-10 h-10 object-contain mr-3 drop-shadow-md">
+                    <img src="img/banshu-logo.png" alt="Logo" class="w-10 h-10 object-contain mr-3 drop-shadow-md">
                     PROSES <span class="text-blue-600 ml-2">ASSEMBLING</span>
                 </h1>
                 
@@ -721,6 +844,38 @@
         </div>
     </div>
 
+<!-- Modal Detail Rekap MP (Floating Window) -->
+    <div id="modal-detail-mp" class="fixed inset-0 bg-slate-900/50 z-[80] flex items-center justify-center hide">
+        <div class="bg-white p-0 rounded-xl shadow-xl w-[600px] max-w-[95vw] h-[80vh] flex flex-col overflow-hidden transform transition-all">
+            <div class="p-4 border-b bg-blue-50 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-200 text-blue-700 rounded-full flex items-center justify-center text-lg shadow-inner"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <h3 class="font-black text-slate-800 text-lg leading-tight uppercase" id="dmp-nama">-</h3>
+                        <div class="text-[10px] text-slate-500 font-bold tracking-widest"><span id="dmp-nik" class="text-blue-600 font-mono"></span> • MK: <span id="dmp-mk" class="text-teal-600"></span> • Line: <span id="dmp-line" class="text-indigo-600"></span></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="app.exportMpDetailModal()" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-[11px] font-bold shadow-sm hover:bg-emerald-700 transition flex items-center gap-1.5"><i class="fas fa-file-excel"></i> Export</button>
+                    <button onclick="app.closeModal('modal-detail-mp')" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"><i class="fas fa-times text-lg"></i></button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-auto bg-slate-50 p-4">
+                <table class="w-full text-left border-collapse whitespace-nowrap text-xs bg-white rounded-lg overflow-hidden shadow-sm border border-slate-200">
+                    <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-3 font-bold border-r border-slate-200">Tanggal</th>
+                            <th class="px-4 py-3 font-bold text-center border-r border-slate-200">Target (CCT)</th>
+                            <th class="px-4 py-3 font-bold text-center text-blue-600 border-r border-slate-200">Output (CCT)</th>
+                            <th class="px-4 py-3 font-bold text-center">Rasio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dmp-tbody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Batch Detail -->
     <div id="modal-batch-detail" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center hide">
         <div class="bg-white p-0 rounded-xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] flex flex-col overflow-hidden">
@@ -1146,7 +1301,8 @@
             getProductionDay: function(timestamp) {
                 let d = new Date(timestamp);
                 let h = d.getHours(); let m = d.getMinutes();
-                if (h < 7 || (h === 7 && m < 30)) {
+                // PERBAIKAN: Shift dimulai tepat jam 07.00.00
+                if (h < 7) {
                     d.setDate(d.getDate() - 1);
                 }
                 return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
@@ -1802,39 +1958,45 @@
                     let pdPerUnit = pdMin / batchMultiplier;
                     let cctPerMp = item.cct / mpsLength; 
 
-                    // --- FITUR BARU: AUTO-LEARNING UMH ---
+                    // --- FITUR BARU: AUTO-LEARNING UMH (STD DEV) ---
                     let safeAssy = item.noAssy.replace(/\//g, '_');
                     let assyMasterUpdate = null;
                     let newUmhVal = null;
                     
-                    // Hanya lakukan perhitungan ekstra jika UMH dasarnya 0
                     if (item.baseUmh === 0 && this.db) {
                         try {
                             let assyRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy);
                             let assyDoc = await assyRef.get();
                             if (assyDoc.exists) {
                                 let mData = assyDoc.data();
-                                // Pastikan di server juga masih 0 (belum sempat diubah manual oleh admin)
                                 if (mData.umh === 0) { 
-                                    let curCount = mData.autoCount || 0;
-                                    let curTotal = mData.autoTotalMin || 0;
+                                    let curDurations = mData.autoDurations || [];
+                                    for(let i=0; i<batchMultiplier; i++) curDurations.push(durationPerUnit);
                                     
-                                    // Tambahkan jumlah batch dan durasinya ke perekam jejak
-                                    let newCount = curCount + batchMultiplier;
-                                    let newTotal = curTotal + (durationPerUnit * batchMultiplier);
-                                    
-                                    // JIKA SUDAH MENCAPAI 20 UNIT (atau lebih)
-                                    if (newCount >= 20) {
-                                        newUmhVal = Number((newTotal / newCount).toFixed(2));
+                                    if (curDurations.length >= 20) {
+                                        // Rumus Statistik: Rata-Rata (Mean)
+                                        let sum = curDurations.reduce((a,b)=>a+b, 0);
+                                        let mean = sum / curDurations.length;
+                                        // Rumus Statistik: Standar Deviasi
+                                        let sqDiffs = curDurations.map(d => Math.pow(d - mean, 2));
+                                        let stdDev = Math.sqrt(sqDiffs.reduce((a,b)=>a+b, 0) / curDurations.length);
+                                        
+                                        // Eliminasi Data Kotor (Outliers)
+                                        let lowerBound = mean - stdDev;
+                                        let upperBound = mean + stdDev;
+                                        let cleanData = curDurations.filter(d => d >= lowerBound && d <= upperBound);
+                                        if(cleanData.length === 0) cleanData = curDurations; // Fallback jika sangat seragam
+                                        
+                                        let cleanSum = cleanData.reduce((a,b)=>a+b, 0);
+                                        newUmhVal = Number((cleanSum / cleanData.length).toFixed(2));
+                                        
                                         assyMasterUpdate = { 
-                                            umh: newUmhVal, // Timpa UMH 0 menjadi UMH Aktual Rata-rata
-                                            autoCount: firebase.firestore.FieldValue.delete(), // Hapus perekam jejak
-                                            autoTotalMin: firebase.firestore.FieldValue.delete(), // Hapus perekam jejak
+                                            umh: newUmhVal,
+                                            autoDurations: firebase.firestore.FieldValue.delete(),
                                             last_edited: new Date().toISOString().split('T')[0]
                                         };
                                     } else {
-                                        // Jika belum 20 unit, cukup simpan jejak hitungannya di cloud
-                                        assyMasterUpdate = { autoCount: newCount, autoTotalMin: newTotal };
+                                        assyMasterUpdate = { autoDurations: curDurations };
                                     }
                                 }
                             }
@@ -1842,8 +2004,9 @@
                     }
                     // --- END AUTO-LEARNING UMH ---
 
-                    // 3. Kalkulasi Rasio secara Adil (Target per Unit dibanding Aktual per Unit)
-                    let rPct = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 0;
+                    // 3. Kalkulasi Rasio dengan Batas Poka-Yoke (30% - 150%)
+                    let rPctRaw = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 150;
+                    let rPct = Math.min(150, Math.max(30, rPctRaw)); 
                     let isOK = durationPerUnit <= targetPerUnit; 
 
                     let historyDataArray = [];
@@ -2040,7 +2203,12 @@
                             <div class="text-[10px] text-slate-600 mt-1 font-semibold">${lastDt.reason}</div>
                             <div id="p-timer-${idx}" data-start="${lastDt.start}" class="text-[10px] text-red-500 font-bold font-timer mt-0.5">Waktu Pending: --:--:--</div>
                         </div>
-                        <button onclick="app.resumePendingInit('${p.id}')" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjut Inisiasi</button>
+                        <div class="flex flex-col gap-1.5 shrink-0">
+                            <div class="flex items-center gap-2 shrink-0">
+			    <button onclick="app.directFinishFromPending('${p.id}')" class="w-[34px] h-[34px] flex items-center justify-center bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded shadow-sm transition" title="Scan Out Langsung"><i class="fas fa-flag-checkered text-sm"></i></button>
+                            <button onclick="app.resumePendingInit('${p.id}')" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-bold text-xs shadow-sm transition"><i class="fas fa-play"></i> Lanjut Inisiasi</button>           
+                        </div>
+                        </div>
                     </div>`;
                     container.insertAdjacentHTML('beforeend', html);
                 });
@@ -2081,6 +2249,56 @@
                 this.showToast("Silakan periksa atau tambah Manpower.", "info");
             },
 
+moveDowntimeToPending: async function(id) {
+                let item = this.activeQueue.find(q => q.id === id);
+                if(!item) return;
+                let now = Date.now();
+                if(item.downtimes && item.downtimes.length > 0) {
+                    let lastDt = item.downtimes[item.downtimes.length - 1];
+                    lastDt.end = now;
+                    lastDt.duration = lastDt.end - lastDt.start;
+                    item.totalDowntime = (item.totalDowntime || 0) + lastDt.duration;
+                }
+                
+                // Mulai waktu timer pending yang baru
+                item.downtimes = item.downtimes || [];
+                item.downtimes.push({ reason: 'PENDING: Dialihkan dari Downtime', start: now, end: null, duration: 0 });
+                
+                await this.updateQueueDoc(id, { status: 'pending', totalDowntime: item.totalDowntime, lastDowntimeStart: now, downtimes: item.downtimes, isGlobalPause: false });
+                
+                this.closeModal('modal-downtime-list');
+                this.showToast("Unit berhasil dipindahkan ke Pending", "info");
+            },
+
+            directFinishFromPending: async function(id) {
+                let item = this.activeQueue.find(q => q.id === id);
+                if(!item) return;
+                
+                let now = Date.now();
+                
+                // Tutup timer waktu pending terlebih dahulu
+                if(item.downtimes && item.downtimes.length > 0) {
+                    let lastDt = item.downtimes[item.downtimes.length - 1];
+                    if(!lastDt.end) {
+                        lastDt.end = now;
+                        lastDt.duration = lastDt.end - lastDt.start;
+                        item.totalDowntime = (item.totalDowntime || 0) + lastDt.duration;
+                    }
+                }
+                
+                // Modifikasi status secara lokal seketika agar QC Form dapat membaca durasinya
+                let localIdx = this.activeQueue.findIndex(q => q.id === id);
+                if (localIdx > -1) {
+                    this.activeQueue[localIdx].status = 'running';
+                    this.activeQueue[localIdx].downtimes = item.downtimes;
+                }
+                
+                await this.updateQueueDoc(id, { status: 'running', totalDowntime: item.totalDowntime, lastDowntimeStart: null, downtimes: item.downtimes, isGlobalPause: false });
+                
+                this.closeModal('modal-pending-list');
+                this.finishProcess(id);
+            },
+
             updateDowntimeCount: function() { 
                 let el = document.getElementById('dt-count');
                 if(el) el.innerText = this.activeQueue.filter(q => q.status === 'downtime' && !q.isGlobalPause).length; 
@@ -2107,7 +2325,12 @@
                             <div class="text-[10px] text-slate-600 mt-1 font-semibold">Kendala: <span class="text-amber-600 font-bold">${lastDt.reason}</span></div>
                             <div id="dt-timer-${idx}" data-start="${lastDt.start}" class="text-[10px] text-amber-600 font-bold font-timer mt-0.5">Waktu Downtime: --:--:--</div>
                         </div>
-                        <button onclick="app.promptResumeDowntime('${p.id}')" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded font-bold text-xs shadow-sm"><i class="fas fa-play"></i> Lanjutkan</button>
+                        <div class="flex flex-col gap-1.5 shrink-0">
+                            <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="app.moveDowntimeToPending('${p.id}')" class="w-[34px] h-[34px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 rounded shadow-sm transition" title="Pindahkan ke Pending"><i class="fas fa-arrow-left"></i></button>
+                            <button onclick="app.promptResumeDowntime('${p.id}')" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded font-bold text-xs shadow-sm transition"><i class="fas fa-play"></i> Lanjutkan</button>
+                        </div>
+                        </div>
                     </div>`;
                     container.insertAdjacentHTML('beforeend', html);
                 });
@@ -2185,7 +2408,8 @@
                     
                     let targetPerUnit = (trx.baseUmh || 0) / mpsLength;
                     let durationPerUnit = trx.durationMin || 0;
-                    let rPct = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 0;
+                    let rPctRaw = durationPerUnit > 0 ? (targetPerUnit / durationPerUnit) * 100 : 150;
+                    let rPct = Math.min(150, Math.max(30, rPctRaw)); // Batas Aman
                     let cctPerMp = cct / mpsLength;
 
                     rekapMap[key].totalCCT += (cct * batchMultiplier);
@@ -2378,7 +2602,8 @@
                     let actS = actualTotalSec % 60;
                     let actualHms = `${String(actH).padStart(2,'0')}:${String(actM).padStart(2,'0')}:${String(actS).padStart(2,'0')}`;
                     
-                    let ratioPct = actualMin > 0 ? (targetMin / actualMin) * 100 : 100;
+                    let ratioPctRaw = actualMin > 0 ? (targetMin / actualMin) * 100 : 150;
+                    let ratioPct = Math.min(150, Math.max(30, ratioPctRaw)); // Batas Aman
                     let ratioColor = ratioPct >= 100 ? "text-green-600 font-bold" : "text-red-500 font-bold";
                     let opNames = (item.mps || []).map(m => m.nama || m).join(', ') || '-';
                     
@@ -2820,8 +3045,8 @@
                         let tCol = tAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-600';
 
                         html += `<tr class="hover:bg-blue-50 transition-colors group">
-                            <td class="px-4 py-2 sticky left-0 bg-white group-hover:bg-blue-50 border-r-2 border-slate-300 z-10 w-64 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
-                                <div class="font-bold text-slate-800">${m.nama || '-'}</div>
+                            <td class="px-4 py-2 sticky left-0 bg-white group-hover:bg-blue-50 border-r-2 border-slate-300 z-10 w-64 shadow-[2px_0_5px_rgba(0,0,0,0.02)] cursor-pointer" onclick="app.openMpDetailModal('${m.id}-${m.line}', '${mk}')" title="Klik untuk lihat rekap performa detail">
+                                <div class="font-bold text-blue-600 hover:text-blue-800 underline decoration-blue-300 underline-offset-2 transition-colors">${m.nama || '-'} <i class="fas fa-external-link-alt text-[8px] ml-1 opacity-50"></i></div>
                                 <div class="text-[9px] text-slate-500 mt-1 flex flex-wrap items-center gap-1">
                                     <span class="font-mono bg-slate-100 border border-slate-200 px-1 rounded text-slate-600">${m.id || '-'}</span> 
                                     <span>| Line: <span class="font-bold text-slate-700">${m.line || '-'}</span></span> 
@@ -2869,10 +3094,85 @@
                 html += `</tbody></table>`; 
                 container.innerHTML = html;
                 
+                // Simpan Pivot untuk digunakan di Modal Detail
+                this.currentRekapMpPivot = pivot;
+                this.currentRekapMpDateKeys = dateKeys;
+                
                 if(document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('flt-rmp')) {
                     let focusedId = document.activeElement.id;
                     setTimeout(() => { let el = document.getElementById(focusedId); if(el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
                 }
+            },
+
+
+openMpDetailModal: function(pKey, mk) {
+                if(!this.currentRekapMpPivot || !this.currentRekapMpPivot[pKey]) return;
+                let m = this.currentRekapMpPivot[pKey];
+                
+                document.getElementById('dmp-nama').innerText = m.nama;
+                document.getElementById('dmp-nik').innerText = m.id;
+                document.getElementById('dmp-mk').innerText = mk;
+                document.getElementById('dmp-line').innerText = m.line;
+                
+                let tbody = document.getElementById('dmp-tbody');
+                tbody.innerHTML = '';
+                
+                this.currentMpDetailExport = { m: m, keys: this.currentRekapMpDateKeys, mk: mk };
+                
+                // Iterasi tanggal sudah otomatis terurut dari terdahulu ke terbaru (A-Z)
+                this.currentRekapMpDateKeys.forEach(dk => {
+                    let dayData = m.days[dk];
+                    if(dayData && dayData.cct > 0) {
+                        let dOutput = dayData.cct;
+                        let dAvgRasio = dayData.countTrx > 0 ? (dayData.totRasio / dayData.countTrx) : 0;
+                        let dTarget = dAvgRasio > 0 ? (dOutput * 100) / dAvgRasio : 0;
+                        let rCol = dAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-500';
+                        
+                        tbody.innerHTML += `
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-100">${this.formatDateShort(new Date(dk))}</td>
+                            <td class="px-4 py-2.5 text-center font-mono text-slate-500 border-r border-slate-100">${dTarget > 0 ? dTarget.toFixed(1) : '-'}</td>
+                            <td class="px-4 py-2.5 text-center font-mono font-bold text-blue-600 border-r border-slate-100 bg-blue-50/30">${dOutput.toFixed(1)}</td>
+                            <td class="px-4 py-2.5 text-center font-mono font-bold ${rCol}">${dTarget > 0 ? dAvgRasio.toFixed(1) + '%' : '-'}</td>
+                        </tr>
+                        `;
+                    }
+                });
+                
+                document.getElementById('modal-detail-mp').classList.remove('hide');
+            },
+
+            exportMpDetailModal: function() {
+                if(!this.currentMpDetailExport) return;
+                let m = this.currentMpDetailExport.m;
+                let keys = this.currentMpDetailExport.keys;
+                let mk = this.currentMpDetailExport.mk;
+                let exportData = [];
+                
+                keys.forEach(dk => {
+                    let dayData = m.days[dk];
+                    if(dayData && dayData.cct > 0) {
+                        let dOutput = dayData.cct;
+                        let dAvgRasio = dayData.countTrx > 0 ? (dayData.totRasio / dayData.countTrx) : 0;
+                        let dTarget = dAvgRasio > 0 ? (dOutput * 100) / dAvgRasio : 0;
+                        exportData.push({
+                            "Tanggal": dk,
+                            "Target (CCT)": Number(dTarget.toFixed(1)),
+                            "Output (CCT)": Number(dOutput.toFixed(1)),
+                            "Rasio (%)": `${dAvgRasio.toFixed(1)}%`
+                        });
+                    }
+                });
+                
+                if(exportData.length === 0) {
+                    this.showToast("Tidak ada data untuk di-export.", "warning"); return;
+                }
+                
+                let ws = XLSX.utils.json_to_sheet(exportData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, `Rekap_MP`);
+                XLSX.writeFile(wb, `Detail_MP_${m.id}_${m.nama.split(' ')[0]}_${Date.now()}.xlsx`);
+                this.showToast("Export Berhasil.", "success");
             },
 
             // --- FUNGSI MENGHITUNG MASA KERJA YANG KEMBALI DIHIDUPKAN ---
@@ -3203,7 +3503,7 @@
             openEditMasterModal: function(type, id) {
                 this.editTmp = { type, id };
                 let form = document.getElementById('edit-master-form');
-                if(type==='ASSY') { let item = this.masterAssy.find(x=>x.no_assy===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">ID ASSY</label><input type="text" id="e-id" value="${item.no_assy}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">CCT</label><input type="number" id="e-cct" value="${item.cct}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">UMH</label><input type="number" id="e-umh" value="${item.umh}" class="w-full border p-2 rounded text-sm"></div>`; }
+                if(type==='ASSY') { let item = this.masterAssy.find(x=>x.no_assy===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500 mb-1 block">ID ASSY</label><input type="text" id="e-id" value="${item.no_assy}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">CCT</label><input type="number" id="e-cct" value="${item.cct}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">UMH (Menit)</label><div class="flex gap-2"><input type="number" id="e-umh" value="${item.umh}" class="flex-1 border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"><button onclick="app.calibrateSingleAssy(event, '${item.no_assy}')" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-3 rounded text-[11px] font-bold border border-amber-200 transition shadow-sm flex items-center gap-1" title="Kalkulasi otomatis UMH dari riwayat 30 hari"><i class="fas fa-magic"></i> Auto</button></div></div>`; }
                 else if(type==='MP') { let item = this.masterMP.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">NRP</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Join Date</label><input type="date" id="e-join" value="${item.join_date}" class="w-full border p-2 rounded text-sm"></div>`; }
                 else if(type==='LEADER') { let item = this.masterLeader.find(x=>x.lisensi===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">Lisensi</label><input type="text" id="e-id" value="${item.lisensi}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Password</label><input type="text" id="e-pass" value="${item.pass}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Line</label><input type="text" id="e-line" value="${item.line}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Shift</label><input type="text" id="e-shift" value="${item.shift}" class="w-full border p-2 rounded text-sm"></div>`; }
                 else if(type==='LINE') { let item = this.masterLine.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">ID Line</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Target CCT / Hari</label><input type="number" id="e-target" value="${item.target}" class="w-full border p-2 rounded text-sm"></div>`; }
@@ -3288,6 +3588,88 @@
                 else if(t==='LINE') this.renderMasterLine();
             },
 
+
+calibrateSingleAssy: async function(event, assyNo) {
+                if(!this.db) { this.showToast("Fitur ini membutuhkan koneksi Cloud", "error"); return; }
+                
+                let btn = event.currentTarget;
+                let originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memindai...';
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+                try {
+                    let now = Date.now();
+                    // PERBAIKAN 1: Mundur 90 hari agar data bulan-bulan lalu ikut terbaca
+                    let pastDays = now - (90 * 24 * 60 * 60 * 1000); 
+                    let startStr = this.getProductionDay(pastDays);
+                    let endStr = this.getProductionDay(now);
+
+                    // PERBAIKAN 2: Menggabungkan nama standar dan nama master line untuk mencegah beda huruf kapital di koleksi Firebase
+                    let possibleLines = new Set(['Line_1', 'Line_2', 'Line_3', 'Line_4', 'Line_5']);
+                    if(this.masterLine) this.masterLine.forEach(l => possibleLines.add(l.id.replace(/\s+/g, '_')));
+                    let linesToScan = Array.from(possibleLines);
+                                      
+                    let durations = [];
+
+                    // Pindai data dari semua Line
+                    for (let lineKey of linesToScan) {
+                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`detail_harian_${lineKey}`);
+                        let q = ref.where('date', '>=', startStr).where('date', '<=', endStr);
+                        let snap = await q.get();
+                        
+                        snap.docs.forEach(doc => {
+                            let data = doc.data();
+                            if (data.list) {
+                                data.list.forEach(trx => {
+                                    // PERBAIKAN 3: Mengabaikan perbedaan huruf besar/kecil (Case Insensitive)
+                                    if (String(trx.noAssy).trim().toUpperCase() === String(assyNo).trim().toUpperCase() && trx.durationMin > 0) {
+                                        let bm = trx.batchSize || 1;
+                                        for(let i=0; i<bm; i++) durations.push(trx.durationMin);
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (durations.length >= 20) {
+                        // Rumus Statistik: Standar Deviasi
+                        let sum = durations.reduce((a,b)=>a+b, 0);
+                        let mean = sum / durations.length;
+                        let sqDiffs = durations.map(d => Math.pow(d - mean, 2));
+                        let stdDev = Math.sqrt(sqDiffs.reduce((a,b)=>a+b, 0) / durations.length);
+                        
+                        let lowerBound = mean - stdDev;
+                        let upperBound = mean + stdDev;
+                        let cleanData = durations.filter(d => d >= lowerBound && d <= upperBound);
+                        if(cleanData.length === 0) cleanData = durations;
+                        
+                        let cleanSum = cleanData.reduce((a,b)=>a+b, 0);
+                        let avgUmh = Number((cleanSum / cleanData.length).toFixed(2));
+                        
+                        // Timpa kotak input dengan hasil perhitungan
+                        let inputUmh = document.getElementById('e-umh');
+                        inputUmh.value = avgUmh;
+                        
+                        // Efek highlight agar admin sadar angkanya berubah
+                        inputUmh.classList.add('bg-amber-100', 'border-amber-400');
+                        setTimeout(() => inputUmh.classList.remove('bg-amber-100', 'border-amber-400'), 2000);
+
+                        this.showToast(`Kalibrasi sukses! (Diambil dari ${durations.length} sampel valid). Silakan klik 'Simpan Perubahan'.`, "success");
+                    } else {
+                        this.showToast(`Gagal: Hanya ditemukan ${durations.length} sampel dari minimum 20 sampel yang disyaratkan.`, "warning");
+                    }
+
+                } catch(e) {
+                    console.error("Gagal kalibrasi single assy:", e);
+                    this.showToast("Terjadi kesalahan saat memindai data.", "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            },
+
             // FUNGSI BARU: KALIBRASI MASSAL UMH DARI RIWAYAT MASA LALU
             autoCalibrateRetroactive: async function() {
                 if(!this.db) { this.showToast("Fitur ini membutuhkan koneksi Cloud", "error"); return; }
@@ -3308,24 +3690,25 @@
 
                 try {
                     let now = Date.now();
-                    let thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000); // Tarik mundur 30 hari
-                    let startStr = this.getProductionDay(thirtyDaysAgo);
+                    // PERBAIKAN 1: Tarik mundur 90 hari
+                    let pastDays = now - (90 * 24 * 60 * 60 * 1000); 
+                    let startStr = this.getProductionDay(pastDays);
                     let endStr = this.getProductionDay(now);
 
-                    // Ambil daftar Line (Gunakan fallback jika admin belum load data line)
-                    let linesToScan = this.masterLine && this.masterLine.length > 0 
-                                      ? this.masterLine.map(l => l.id.replace(/\s+/g, '_')) 
-                                      : ['Line_1', 'Line_2', 'Line_3', 'Line_4', 'Line_5']; 
+                    // PERBAIKAN 2: Menggabungkan array Line untuk keamanan pencarian
+                    let possibleLines = new Set(['Line_1', 'Line_2', 'Line_3', 'Line_4', 'Line_5']);
+                    if(this.masterLine) this.masterLine.forEach(l => possibleLines.add(l.id.replace(/\s+/g, '_')));
+                    let linesToScan = Array.from(possibleLines);
                                       
                     let collectedData = {}; 
-                    targetAssys.forEach(a => { collectedData[a.no_assy] = { totalMin: 0, count: 0 }; });
+                    targetAssys.forEach(a => { 
+                        // Menyimpan nama aslinya untuk update database nanti
+                        collectedData[String(a.no_assy).trim().toUpperCase()] = { durations: [], originalAssy: a.no_assy }; 
+                    });
 
-                    // Pindai data Detail Harian (Bucket) - Strategi ini sangat menghemat Reads!
+                    // Pindai data Detail Harian
                     for (let lineKey of linesToScan) {
-                        let ref = this.db.collection('artifacts').doc(this.appId)
-                                         .collection('public').doc('data')
-                                         .collection(`detail_harian_${lineKey}`);
-                        
+                        let ref = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection(`detail_harian_${lineKey}`);
                         let q = ref.where('date', '>=', startStr).where('date', '<=', endStr);
                         let snap = await q.get();
                         
@@ -3333,34 +3716,48 @@
                             let data = doc.data();
                             if (data.list) {
                                 data.list.forEach(trx => {
-                                    // Jika transaksi cocok dengan Assy UMH 0 yang kita cari
-                                    if (collectedData[trx.noAssy] && trx.durationMin > 0) {
-                                        collectedData[trx.noAssy].totalMin += trx.durationMin;
-                                        collectedData[trx.noAssy].count += trx.batchSize || 1; 
+                                    // PERBAIKAN 3: Case-Insensitive Check
+                                    let safeTrxAssy = String(trx.noAssy).trim().toUpperCase();
+                                    if (collectedData[safeTrxAssy] && trx.durationMin > 0) {
+                                        let bm = trx.batchSize || 1;
+                                        for(let i=0; i<bm; i++) collectedData[safeTrxAssy].durations.push(trx.durationMin);
                                     }
                                 });
                             }
                         });
                     }
 
-                    // Evaluasi hasil temuan
+                    // Evaluasi hasil temuan dengan Standar Deviasi
                     let batch = this.db.batch();
                     let updatedCount = 0;
 
-                    for (let [assyNo, stats] of Object.entries(collectedData)) {
-                        if (stats.count >= 20) { // LULUS SYARAT: 20 Unit
-                            let avgUmh = Number((stats.totalMin / stats.count).toFixed(2));
+                    for (let [assyKey, stats] of Object.entries(collectedData)) {
+                        let assyNo = stats.originalAssy;
+                        let curDurations = stats.durations;
+                        if (curDurations.length >= 20) {
+                            let sum = curDurations.reduce((a,b)=>a+b, 0);
+                            let mean = sum / curDurations.length;
+                            let sqDiffs = curDurations.map(d => Math.pow(d - mean, 2));
+                            let stdDev = Math.sqrt(sqDiffs.reduce((a,b)=>a+b, 0) / curDurations.length);
+                            
+                            let lowerBound = mean - stdDev;
+                            let upperBound = mean + stdDev;
+                            let cleanData = curDurations.filter(d => d >= lowerBound && d <= upperBound);
+                            if(cleanData.length === 0) cleanData = curDurations;
+                            
+                            let cleanSum = cleanData.reduce((a,b)=>a+b, 0);
+                            let avgUmh = Number((cleanSum / cleanData.length).toFixed(2));
                             let safeAssy = assyNo.replace(/\//g, '_');
                             
                             let assyRef = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy);
                             batch.update(assyRef, { 
-                                umh: avgUmh, // Ganti 0 dengan UMH Rata-rata Aktual!
-                                autoCount: firebase.firestore.FieldValue.delete(), // Hapus rekam jejak
+                                umh: avgUmh,
+                                autoDurations: firebase.firestore.FieldValue.delete(),
+                                autoCount: firebase.firestore.FieldValue.delete(),
                                 autoTotalMin: firebase.firestore.FieldValue.delete(),
                                 last_edited: new Date().toISOString().split('T')[0]
                             });
 
-                            // Sinkronisasi Lokal ke Tabel Admin saat ini juga
                             let mIdx = this.masterAssy.findIndex(a => a.no_assy === assyNo);
                             if (mIdx > -1) this.masterAssy[mIdx].umh = avgUmh;
 
@@ -3849,6 +4246,7 @@
                     let row = { 
                         "NRP": m.id, 
                         "Nama Manpower": m.nama, 
+                        "Masa Kerja": app.calculateMasaKerja(m.join_date),
                         "Line": m.line 
                     };
                     
@@ -3892,16 +4290,22 @@
                 }
                 
                 let exportData = this.currentFilteredTransactions.map(h => {
-                    // Ekstrak Nama MP
                     let mps = h.mps || [];
-                    let mpStr = mps.map(m => m ? (m.nama || String(m)) : '-').join(', ');
                     
-                    // Format Tanggal dan Waktu
+                    // Tambahkan Masa Kerja ke Detail Ekspor
+                    let mpStr = mps.map(m => {
+                        if(!m) return '-';
+                        let mId = m.id || String(m);
+                        let mNama = m.nama || mId;
+                        let mInfo = app.masterMP.find(x => x.id === mId);
+                        let mk = mInfo ? app.calculateMasaKerja(mInfo.join_date) : '-';
+                        return `${mNama} (MK: ${mk})`;
+                    }).join(', ');
+                    
                     let finishedTime = h.finishedAt?.seconds ? new Date(h.finishedAt.seconds * 1000) : new Date(h.finishedAt);
                     let dateStr = finishedTime.toISOString().split('T')[0];
                     let timeStr = finishedTime.toLocaleTimeString('id-ID');
 
-                    // Kalkulasi Durasi Target & Aktual (Format JJ:MM:DD persis seperti di web)
                     let batchMultiplier = h.isBatch ? (h.batchSize || 1) : 1;
                     let mpsLength = mps.length > 0 ? mps.length : 1;
                     
@@ -3913,8 +4317,9 @@
                     let actualSec = Math.floor(actualMin * 60);
                     let actualHms = `${String(Math.floor(actualSec/3600)).padStart(2,'0')}:${String(Math.floor((actualSec%3600)/60)).padStart(2,'0')}:${String(actualSec%60).padStart(2,'0')}`;
                     
-                    // Rasio
-                    let ratioPct = actualMin > 0 ? (targetMin / actualMin) * 100 : 100;
+                    // Rasio & Pembatasan
+                    let ratioPctRaw = actualMin > 0 ? (targetMin / actualMin) * 100 : 150;
+                    let ratioPct = Math.min(150, Math.max(30, ratioPctRaw));
 
                     // Logika Breakdown Downtime & Pending
                     let totalDtMs = 0; let totalPdMs = 0;
@@ -4000,23 +4405,39 @@
                 setTimeout(() => document.getElementById('admin-auth-id').focus(), 100);
             },
 
-            verifyAdminAuth: function() {
+            verifyAdminAuth: async function() {
                 let lisensi = document.getElementById('admin-auth-id').value.trim().toUpperCase();
                 let pass = document.getElementById('admin-auth-pass').value;
 
-                if (lisensi === this.leader.lisensi && pass === this.leader.pass) {
-                    let now = new Date();
-                    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-                    let gmt7 = new Date(utc + (3600000 * 7));
-                    let h = gmt7.getHours();
-                    let isAllowed = (h >= 7 && h < 9) || (h >= 13 && h < 14) || (h >= 16 && h < 18) || (h >= 22 || h < 7);
-                    
-                    //if (!isAllowed) {
-                    //    this.showToast("Akses Super Admin dikunci. Hanya dibuka jam 07-09, 13-14, 16-18, 22-07 WIB.", "error");
-                    //    return;
-                    //}
+                let validLeader = this.masterLeader.find(l => l.lisensi === lisensi && l.pass === pass);
+                
+                if (!validLeader && this.db) {
+                    try {
+                        const getDocPromise = this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_leader').doc(lisensi).get();
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Firebase')), 3000));
+                        
+                        const doc = await Promise.race([getDocPromise, timeoutPromise]);
+                        
+                        if (doc && doc.exists) {
+                            let ld = doc.data();
+                            if (ld.pass === pass) { validLeader = ld; this.masterLeader.unshift(ld); }
+                        }
+                    } catch(e) {}
+                }
+
+                if (validLeader) {
+                    if (!this.leader) {
+                        this.leader = validLeader; 
+                        this.shift = validLeader.shift;
+                        document.getElementById('header-shift').innerText = validLeader.shift;
+                        document.getElementById('header-leader').innerText = validLeader.nama;
+                        document.getElementById('header-line').innerText = validLeader.line;
+                        this.setupRealtimeListeners();
+                    }
 
                     this.closeModal('modal-admin-auth');
+                    
+                    document.getElementById('login-screen').classList.add('hide');
                     document.getElementById('main-dashboard').classList.add('hide');
                     document.getElementById('admin-dashboard').classList.remove('hide');
                     
@@ -4024,7 +4445,6 @@
                         document.getElementById('flt-date-start').value = this.getProductionDay(Date.now());
                     }
 
-                    // Logika Caching: Jika sudah ada data ter-display sebelumnya, langsung tampilkan tanpa loading state kosong
                     if (this.adminHistoryReports && this.adminHistoryReports.length > 0) {
                         let emptyStateEl = document.getElementById('admin-empty-state');
                         if (emptyStateEl) emptyStateEl.classList.add('hide');
@@ -4034,14 +4454,13 @@
                     }
                     this.showToast("Akses Admin Diberikan", "success");
                 } else {
-                    this.showToast("Lisensi atau Password tidak cocok dengan sesi berjalan!", "error");
+                    this.showToast("Lisensi atau Password Admin Salah!", "error");
                 }
             },
 
             closeAdmin: function() { 
                 document.getElementById('admin-dashboard').classList.add('hide'); 
                 document.getElementById('main-dashboard').classList.remove('hide'); 
-                // Tidak ada lagi clear value login screen, karena admin dibuka dari main dashboard
             },
 
             closeModal: function(id) { document.getElementById(id).classList.add('hide'); },
