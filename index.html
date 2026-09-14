@@ -150,7 +150,7 @@
                 </div>
                 <div class="login-title-small"><span class="red-e">E</span>-lectronic Daily Report</div>
                 <div class="login-title-large">PROSES<br>ASSEMBLING</div>
-                <div class="login-version">V.1.6.30</div>
+                <div class="login-version">V.1.9.14</div>
             </div>
             
             <!-- Kanan: Form Card -->
@@ -191,7 +191,7 @@
                     </div>
                 </div>
                 
-                <span class="px-2.5 py-1 bg-slate-800 text-white text-[9px] font-bold tracking-widest rounded-full shadow-sm">v.0.5.8</span>
+                <span class="px-2.5 py-1 bg-slate-800 text-white text-[9px] font-bold tracking-widest rounded-full shadow-sm">v.1.9.14</span>
                 
                 <!-- Grup Tombol Navigasi -->
                 <div class="absolute -top-3 -right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -201,41 +201,42 @@
                 </div>
             </div>
             
+            <!-- Konten Patch Notes Ringkas & Padat -->
             <div class="patch-content space-y-3 h-[180px] overflow-y-auto pr-2 custom-scrollbar text-xs font-semibold text-slate-600 transition-all duration-500">
                 
+                <!-- SEKSI: FITUR BARU -->
                 <div class="text-[9px] font-extrabold text-blue-600 tracking-wider uppercase pt-1">★ Fitur Baru</div>
                 
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Detail Manpower Report:</strong> Klik nama karyawan di Rekap MP untuk melihat histori performa harian (Target vs Output) & unduh Excel secara individu.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Export Pintar (Retroaktif):</strong> Perhitungan Target di Excel kini otomatis menarik nilai UMH terbaru di Master Data, sehingga transaksi masa lalu yang UMH-nya 0 akan otomatis terkalkulasi ulang saat di-export.</p>
                 </div>
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Tombol Pintas (Downtime → Pending) dan (Pending → Scan Out):</strong> Fitur pemindahan cepat unit dari Downtime ke Pending <span class="text-slate-400 font-mono">[→]</span>, dan Scan Out langsung dari daftar Pending <span class="text-teal-600 font-mono">[🏁]</span>.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Kolom Analisis Baru:</strong> Penambahan kolom "Customer" dan "Jumlah MP" pada berkas hasil unduhan Excel.</p>
                 </div>
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-check-circle text-blue-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Kalibrasi UMH (Single & Batch):</strong> Tombol kuning "Auto" pada Edit Master Assy untuk menghitung standar UMH secara otomatis berdasarkan data riwayat 3 bulan. Klik mode edit Assy untuk menyesuaikan UMH otomatis untuk Assy spesifik.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Katalog Customer:</strong> Tabel Master Assy di Panel Admin kini dilengkapi input nama Customer beserta fitur pencariannya.</p>
                 </div>
 
-                <div class="text-[9px] font-extrabold text-amber-600 tracking-wider uppercase pt-2 border-t border-slate-100">🔄 Update Sistem</div>
+                <!-- SEKSI: PENYEMPURNAAN -->
+                <div class="text-[9px] font-extrabold text-amber-600 tracking-wider uppercase pt-2 border-t border-slate-100">🔄 Penyempurnaan Sistem</div>
 
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Jam Cut-Off menjadi 07:00 WIB (sebelumnya 07:30 WIB):</strong> Waktu pergantian buku laporan harian dimajukan agar sinkron dengan jam aktual operasional pergantian shift kerja.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Terminologi Industri:</strong> Penamaan kolom durasi di Excel diubah menjadi standar pabrik: "Cycle Time Target" & "Cycle Time Actual".</p>
                 </div>
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Perhitungan Batas Rasio (30% - 150%):</strong> Batas rasio efisiensi dikunci untuk mencegah kerusakan grafik performa total line akibat anomali atau salah scan di lapangan.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">Identitas SOP:</strong> Pencantuman Nomor Dokumen Resmi EDR (F-PRD-HA-025) pada *header* atas aplikasi.</p>
                 </div>
                 <div class="flex gap-2.5 items-start">
                     <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Perhitungan UMH menggunakan Standar Deviasi:</strong> Sistem otomatis mendeteksi dan mengeliminasi data pengerjaan tidak wajar (*outliers*) sebelum menentukan standar waktu.</p>
+                    <p class="leading-relaxed"><strong class="text-slate-800">UI Patch Notes:</strong> Jendela info *update* ini kini dapat dilipat (*slide-out*) ke tepi layar agar tidak menutupi kotak login.</p>
                 </div>
-                <div class="flex gap-2.5 items-start">
-                    <i class="fas fa-arrow-alt-circle-right text-amber-500 mt-0.5 text-[11px] shrink-0"></i>
-                    <p class="leading-relaxed"><strong class="text-slate-800">Penambahan Kolom Masa Kerja pada Report Excel:</strong> Berkas unduhan (Detail Transaksi & Rekap MP) kini otomatis menampilkan lama kerja (*tenure*) operator untuk analisa SDM.</p>
-                </div>
+                
+            </div>
                 
             </div>
         </div>
@@ -245,10 +246,17 @@
     <div id="main-dashboard" class="flex-1 flex flex-col h-full hide">
         <header class="bg-white flex flex-col shrink-0 border-b border-slate-200">
             <div class="flex justify-between items-center px-6 py-4 shadow-sm z-10 relative">
-                <h1 class="text-3xl font-black text-slate-900 tracking-tighter flex items-center drop-shadow-sm">
-                    <img src="img/banshu-logo.png" alt="Logo" class="w-10 h-10 object-contain mr-3 drop-shadow-md">
-                    PROSES <span class="text-blue-600 ml-2">ASSEMBLING</span>
-                </h1>
+<div class="flex items-center gap-3">
+                    <img src="img/banshu-logo.png" alt="Logo" class="w-10 h-10 object-contain drop-shadow-md">
+                    <div class="flex flex-col">
+                        <h1 class="text-3xl font-black text-slate-900 tracking-tighter drop-shadow-sm leading-none">
+                            PROSES <span class="text-blue-600">ASSEMBLING</span>
+                        </h1>
+                        <div>
+                            <i></i>NO. DOKUMEN: F-PRD-HA-025
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="flex items-center gap-3">
                     <button onclick="app.toggleIstirahat()" id="btn-istirahat" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded font-medium text-xs flex items-center gap-1 shadow-sm transition">
@@ -586,7 +594,7 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold">No. Assy</th><th class="px-4 py-2 font-bold">CCT</th><th class="px-4 py-2 font-bold">UMH(m)</th><th class="px-4 py-2 font-bold">Last Edited</th><th class="px-4 py-2">Aksi</th></tr></thead><tbody id="master-assy-admin-tbody" class="divide-y divide-slate-100"></tbody></table>
+                            <table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-white text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="px-4 py-2 font-bold align-top">Customer<br><input type="text" id="flt-col-mas-cust" oninput="app.renderMasterAssyAdmin()" placeholder="Filter..." class="mt-1 w-full text-[10px] font-normal px-1 py-0.5 border border-slate-300 rounded outline-none focus:border-blue-400 text-slate-700 bg-white"></th><th class="px-4 py-2 font-bold align-top">No. Assy</th><th class="px-4 py-2 font-bold align-top">CCT</th><th class="px-4 py-2 font-bold align-top">UMH(m)</th><th class="px-4 py-2 font-bold align-top">Last Edited</th><th class="px-4 py-2 align-top">Aksi</th></tr></thead><tbody id="master-assy-admin-tbody" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -669,6 +677,7 @@
         <div class="bg-white p-6 rounded-xl shadow-xl w-80">
             <h3 class="font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-box text-blue-500 mr-1"></i> Tambah Master Assy</h3>
             <div class="space-y-3 mb-5">
+                <div><label class="text-[10px] font-bold text-slate-500 block mb-1">CUSTOMER</label><input type="text" id="m-add-assy-cust" class="w-full px-3 py-2 border rounded text-sm font-bold uppercase focus:ring-1 focus:ring-blue-500 outline-none" placeholder="Ex: HITACHI"></div>
                 <div><label class="text-[10px] font-bold text-slate-500 block mb-1">NO ASSY</label><input type="text" id="m-add-assy-no" class="w-full px-3 py-2 border rounded text-sm font-mono uppercase focus:ring-1 focus:ring-blue-500 outline-none"></div>
                 <div class="flex gap-3">
                     <div class="flex-1"><label class="text-[10px] font-bold text-slate-500 block mb-1">CCT</label><input type="number" id="m-add-assy-cct" class="w-full px-3 py-2 border rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"></div>
@@ -3276,8 +3285,9 @@ openMpDetailModal: function(pKey, mk) {
             
             renderMasterAssyAdmin: function() {
                 let src = document.getElementById('src-mas-assy-admin').value.trim().toUpperCase();
+                let custFlt = (document.getElementById('flt-col-mas-cust')?.value || '').trim().toUpperCase();
                 const tb = document.getElementById('master-assy-admin-tbody'); 
-                let filtered = this.masterAssy.filter(a => a.no_assy.toUpperCase().includes(src));
+                let filtered = this.masterAssy.filter(a => a.no_assy.toUpperCase().includes(src) && (a.customer || '').toUpperCase().includes(custFlt));
                 
                 let totalData = filtered.length;
                 let maxPage = Math.ceil(totalData / 50) || 1;
@@ -3286,9 +3296,9 @@ openMpDetailModal: function(pKey, mk) {
 
                 let html = '';
                 paginated.forEach(a => {
-                    html += `<tr><td class="px-4 py-2 font-mono font-bold text-blue-600">${a.no_assy}</td><td class="px-4 py-2 font-mono">${a.cct}</td><td class="px-4 py-2 font-mono">${a.umh}</td><td class="px-4 py-2 text-[10px] text-slate-400">${a.last_edited||'-'}</td><td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('ASSY','${a.no_assy}')" class="text-blue-500 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('ASSY','${a.no_assy}')" class="text-red-400 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td></tr>`;
+                    html += `<tr class="hover:bg-blue-50"><td class="px-4 py-2 font-bold text-slate-700">${a.customer || '-'}</td><td class="px-4 py-2 font-mono font-bold text-blue-600">${a.no_assy}</td><td class="px-4 py-2 font-mono">${a.cct}</td><td class="px-4 py-2 font-mono">${a.umh}</td><td class="px-4 py-2 text-[10px] text-slate-400">${a.last_edited||'-'}</td><td class="px-4 py-2 flex gap-2"><button onclick="app.openEditMasterModal('ASSY','${a.no_assy}')" class="text-blue-500 bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button><button onclick="app.delMaster('ASSY','${a.no_assy}')" class="text-red-400 bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
-                tb.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center italic text-slate-400">Data tidak ditemukan</td></tr>';
+                tb.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center italic text-slate-400">Data tidak ditemukan</td></tr>';
 
                 let oldPage = document.getElementById('admin-mas-assy-page'); if(oldPage) oldPage.remove();
                 if (totalData > 0) {
@@ -3503,7 +3513,7 @@ openMpDetailModal: function(pKey, mk) {
             openEditMasterModal: function(type, id) {
                 this.editTmp = { type, id };
                 let form = document.getElementById('edit-master-form');
-                if(type==='ASSY') { let item = this.masterAssy.find(x=>x.no_assy===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500 mb-1 block">ID ASSY</label><input type="text" id="e-id" value="${item.no_assy}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">CCT</label><input type="number" id="e-cct" value="${item.cct}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">UMH (Menit)</label><div class="flex gap-2"><input type="number" id="e-umh" value="${item.umh}" class="flex-1 border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"><button onclick="app.calibrateSingleAssy(event, '${item.no_assy}')" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-3 rounded text-[11px] font-bold border border-amber-200 transition shadow-sm flex items-center gap-1" title="Kalkulasi otomatis UMH dari riwayat 30 hari"><i class="fas fa-magic"></i> Auto</button></div></div>`; }
+                if(type==='ASSY') { let item = this.masterAssy.find(x=>x.no_assy===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500 mb-1 block">CUSTOMER</label><input type="text" id="e-cust" value="${item.customer || ''}" class="w-full border p-2 rounded text-sm uppercase font-bold" placeholder="Kosongkan jika tidak ada"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">ID ASSY</label><input type="text" id="e-id" value="${item.no_assy}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">CCT</label><input type="number" id="e-cct" value="${item.cct}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">UMH (Menit)</label><div class="flex gap-2"><input type="number" id="e-umh" value="${item.umh}" class="flex-1 border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"><button onclick="app.calibrateSingleAssy(event, '${item.no_assy}')" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-3 rounded text-[11px] font-bold border border-amber-200 transition shadow-sm flex items-center gap-1" title="Kalkulasi otomatis UMH dari riwayat 30 hari"><i class="fas fa-magic"></i> Auto</button></div></div>`; }
                 else if(type==='MP') { let item = this.masterMP.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">NRP</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Join Date</label><input type="date" id="e-join" value="${item.join_date}" class="w-full border p-2 rounded text-sm"></div>`; }
                 else if(type==='LEADER') { let item = this.masterLeader.find(x=>x.lisensi===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">Lisensi</label><input type="text" id="e-id" value="${item.lisensi}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Nama</label><input type="text" id="e-nama" value="${item.nama}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Password</label><input type="text" id="e-pass" value="${item.pass}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Line</label><input type="text" id="e-line" value="${item.line}" class="w-full border p-2 rounded text-sm"></div><div><label class="text-xs font-bold text-slate-500">Shift</label><input type="text" id="e-shift" value="${item.shift}" class="w-full border p-2 rounded text-sm"></div>`; }
                 else if(type==='LINE') { let item = this.masterLine.find(x=>x.id===id); form.innerHTML = `<div><label class="text-xs font-bold text-slate-500">ID Line</label><input type="text" id="e-id" value="${item.id}" class="w-full border p-2 rounded text-sm uppercase"></div><div><label class="text-xs font-bold text-slate-500">Target CCT / Hari</label><input type="number" id="e-target" value="${item.target}" class="w-full border p-2 rounded text-sm"></div>`; }
@@ -3524,9 +3534,10 @@ openMpDetailModal: function(pKey, mk) {
 
                 if(t==='ASSY') { 
                     idField='no_assy'; 
+                    let cust = document.getElementById('e-cust').value.trim().toUpperCase();
                     let safeCct = Math.min(Number(document.getElementById('e-cct').value), 99999);
                     let safeUmh = Math.min(Number(document.getElementById('e-umh').value), 99999);
-                    nObj = { no_assy: newId, cct: safeCct, umh: safeUmh, last_edited: dateStr }; 
+                    nObj = { customer: cust, no_assy: newId, cct: safeCct, umh: safeUmh, last_edited: dateStr }; 
                     collName = 'master_assy'; 
                 }
                 else if(t==='MP') { 
@@ -3832,18 +3843,17 @@ calibrateSingleAssy: async function(event, assyNo) {
 
             openMasterAddModal: function(type, context = 'MASTER') {
                 this.modalAddContext = context;
-                if(type==='ASSY') { ['m-add-assy-no','m-add-assy-cct','m-add-assy-umh'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-assy').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-assy-no').focus(), 100); }
+                if(type==='ASSY') { ['m-add-assy-cust','m-add-assy-no','m-add-assy-cct','m-add-assy-umh'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-assy').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-assy-cust').focus(), 100); }
                 if(type==='MP') { ['m-add-mp-nrp','m-add-mp-nama','m-add-mp-join'].forEach(id=>document.getElementById(id).value=''); document.getElementById('modal-add-mp').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-mp-nrp').focus(), 100); }
                 if(type==='LEADER') { ['m-add-ld-id','m-add-ld-pass','m-add-ld-nama','m-add-ld-line'].forEach(id=>document.getElementById(id).value=''); document.getElementById('m-add-ld-shift').value='A'; document.getElementById('modal-add-leader').classList.remove('hide'); setTimeout(()=>document.getElementById('m-add-ld-id').focus(), 100); }
             },
             
             saveNewMasterAssy: async function() {
-                let no = document.getElementById('m-add-assy-no').value.trim().toUpperCase(); let cct = document.getElementById('m-add-assy-cct').value; let umh = document.getElementById('m-add-assy-umh').value;
+                let cust = document.getElementById('m-add-assy-cust').value.trim().toUpperCase(); let no = document.getElementById('m-add-assy-no').value.trim().toUpperCase(); let cct = document.getElementById('m-add-assy-cct').value; let umh = document.getElementById('m-add-assy-umh').value;
                 if(!no || !cct || !umh) { this.showToast("Isi semua data Assy!", "warning"); return; }
-                // Poka-Yoke: Cegah scan barcode nyasar dengan membatasi maksimal input
                 let safeCct = Math.min(Number(cct), 99999);
                 let safeUmh = Math.min(Number(umh), 99999);
-                let newItem = { no_assy: no, cct: safeCct, umh: safeUmh, last_edited: new Date().toISOString().split('T')[0] };
+                let newItem = { customer: cust, no_assy: no, cct: safeCct, umh: safeUmh, last_edited: new Date().toISOString().split('T')[0] };
                 
                 if (this.db) {
                     let safeNo = no.replace(/\//g, '_');
@@ -4074,16 +4084,21 @@ calibrateSingleAssy: async function(event, assyNo) {
                 let exportData = filteredData.map(h => {
                     let mps = h.mps || [];
                     let mpStr = mps.map(m => m ? (m.nama || String(m)) : '-').join(', ');
+                    let mpsLength = mps.length > 0 ? mps.length : 1;
+
+                    let currentAssyData = app.masterAssy.find(x => String(x.no_assy).toUpperCase() === String(h.noAssy).toUpperCase()) || {};
+                    let customerName = currentAssyData.customer || '-';
                     
-                    // SUSUNAN KOLOM EXCEL (Persis 100% dengan tampilan Web Realtime Report Modal)
                     return {
                         "Waktu Selesai": new Date(h.finishedAt).toLocaleString('id-ID'),
                         "Leader Penanggungjawab": h.leaderName || '-',
+                        "Customer": customerName,
                         "Serial Number": h.sn,
                         "Keterangan": h.isModifikasi ? "Assy Modifikasi" : "-",
                         "No Assy": h.noAssy,
                         "Output CCT": (Number(h.cct) > 999999) ? 0 : (Number(Number(h.cct).toFixed(1)) || 0),
                         "Line Area": h.targetLine || '-',
+                        "Jumlah MP": mpsLength,
                         "MP Terlibat": mpStr,
                         "Durasi Aktif (m)": Number((h.durationMin || 0).toFixed(2)),
                         "Downtime (m)": Number((h.downtimeMin || 0).toFixed(2)),
@@ -4292,7 +4307,11 @@ calibrateSingleAssy: async function(event, assyNo) {
                 let exportData = this.currentFilteredTransactions.map(h => {
                     let mps = h.mps || [];
                     
-                    // Tambahkan Masa Kerja ke Detail Ekspor
+                    // FITUR BARU: Ambil UMH Terbaru & Customer dari Master Assy (Timpa data historis)
+                    let currentAssyData = app.masterAssy.find(x => String(x.no_assy).toUpperCase() === String(h.noAssy).toUpperCase()) || {};
+                    let liveUmh = currentAssyData.umh || h.baseUmh || 0;
+                    let customerName = currentAssyData.customer || '-';
+
                     let mpStr = mps.map(m => {
                         if(!m) return '-';
                         let mId = m.id || String(m);
@@ -4309,7 +4328,8 @@ calibrateSingleAssy: async function(event, assyNo) {
                     let batchMultiplier = h.isBatch ? (h.batchSize || 1) : 1;
                     let mpsLength = mps.length > 0 ? mps.length : 1;
                     
-                    let targetMin = ((h.baseUmh || 0) * batchMultiplier) / mpsLength;
+                    // Kalkulasi dinamis Cycle Time Target memakai UMH yang paling Update (liveUmh)
+                    let targetMin = (liveUmh * batchMultiplier) / mpsLength;
                     let targetSec = Math.floor(targetMin * 60);
                     let targetHms = `${String(Math.floor(targetSec/3600)).padStart(2,'0')}:${String(Math.floor((targetSec%3600)/60)).padStart(2,'0')}:${String(targetSec%60).padStart(2,'0')}`;
                     
@@ -4317,11 +4337,10 @@ calibrateSingleAssy: async function(event, assyNo) {
                     let actualSec = Math.floor(actualMin * 60);
                     let actualHms = `${String(Math.floor(actualSec/3600)).padStart(2,'0')}:${String(Math.floor((actualSec%3600)/60)).padStart(2,'0')}:${String(actualSec%60).padStart(2,'0')}`;
                     
-                    // Rasio & Pembatasan
+                    // Rasio & Pembatasan dengan target cycle time baru
                     let ratioPctRaw = actualMin > 0 ? (targetMin / actualMin) * 100 : 150;
                     let ratioPct = Math.min(150, Math.max(30, ratioPctRaw));
 
-                    // Logika Breakdown Downtime & Pending
                     let totalDtMs = 0; let totalPdMs = 0;
                     let logKendala = [];
                     if (h.downtimes && Array.isArray(h.downtimes)) {
@@ -4340,30 +4359,30 @@ calibrateSingleAssy: async function(event, assyNo) {
                     let totalLossSec = Math.floor((totalDtMs + totalPdMs) / 1000);
                     let lossHms = `${String(Math.floor(totalLossSec/3600)).padStart(2,'0')}:${String(Math.floor((totalLossSec%3600)/60)).padStart(2,'0')}:${String(totalLossSec%60).padStart(2,'0')}`;
 
-                    // QC Extract
                     let qcStr = h.qc ? [
                         h.qc.dim ? 'OK' : '-', h.qc.mark ? 'OK' : '-', h.qc.spot ? 'OK' : '-',
                         h.qc.clip ? 'OK' : '-', h.qc.tap ? 'OK' : '-', h.qc.tpo ? 'OK' : '-'
                     ] : ['-','-','-','-','-','-'];
 
-                    // SUSUNAN KOLOM EXCEL (Mengembalikan 6 Kolom QC & Menambah Kolom Modifikasi)
+                    // STRUKTUR KOLOM EXCEL BARU
                     return {
                         "Tanggal": dateStr,
                         "Waktu Selesai": timeStr,
                         "Serial Number": h.sn,
                         "Keterangan": h.isModifikasi ? "Assy Modifikasi" : "-",
+                        "Customer": customerName,
                         "No Assy": h.noAssy,
                         "WP": h.wp || '-',
                         "Line Output": h.targetLine || h.lineOutput || '-',
                         "Shift": h.shift || '-',
                         "Leader Penanggungjawab": h.leaderName || '-',
+                        "Jumlah MP": mpsLength,
                         "Manpower / Tim": mpStr,
                         "CCT": (Number(h.cct) > 999999) ? 0 : (Number(h.cct) || 0),
-                        "Durasi Target": targetHms,
-                        "Durasi Aktual": actualHms,
+                        "Cycle Time Target": targetHms,
+                        "Cycle Time Actual": actualHms,
                         "Rasio (%)": `${ratioPct.toFixed(1)}%`,
-                        "Status Target": h.finalStatus || '-',
-                        "Status Target": h.finalStatus || '-',
+                        "Status Target": ratioPct >= 100 ? "OK" : "OVERTIME",
                         "Total Loss Time": lossHms,
                         "Rincian Log Kendala": logKendala.length > 0 ? logKendala.join(' | ') : 'Tidak ada catatan',
                         "QC Dimensi": qcStr[0],
@@ -4476,9 +4495,9 @@ calibrateSingleAssy: async function(event, assyNo) {
                         
                         json.forEach(async row => {
                             if(type === 'ASSY') {
-                                let no = row['ASSY'] || row['Assy']; let c = row['CCT'] || row['cct']; let u = row['UMH'] || row['umh'];
+                                let cust = row['Customer'] || row['CUSTOMER'] || row['customer'] || '-'; let no = row['ASSY'] || row['Assy']; let c = row['CCT'] || row['cct']; let u = row['UMH'] || row['umh'];
                                 if(no && c!==undefined && u!==undefined) {
-                                    let nObj = {no_assy: String(no).trim(), cct: Number(c), umh: Number(u), last_edited: dStr};
+                                    let nObj = {customer: String(cust).trim().toUpperCase(), no_assy: String(no).trim(), cct: Number(c), umh: Number(u), last_edited: dStr};
                                     let safeAssy = nObj.no_assy.replace(/\//g, '_');
                                     if (this.db) await this.db.collection('artifacts').doc(this.appId).collection('public').doc('data').collection('master_assy').doc(safeAssy).set(nObj);
                                     sc++;
