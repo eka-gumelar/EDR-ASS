@@ -2960,46 +2960,41 @@ moveDowntimeToPending: async function(id) {
                     let dKey = day.date;
                     let line = day.targetLine || '-';
                     
-                    // Ekstrak data MP yang sudah terkumpul (Rollup) dari hari tersebut
                     Object.keys(day).forEach(key => {
                         if(key.startsWith('mp_') && key.endsWith('_nama')) {
                             let mId = key.split('_')[1];
                             let mNama = day[key];
                             
-                            // PENGAMAN DATA KORUP E+24
-                            let cct = day[`mp_${mId}_cct`] || 0;
-                            if (cct > 999999) cct = 0;
+                            let safeCct = day[`mp_${mId}_cct`] || 0;
+                            if (safeCct > 999999) safeCct = 0;
                             
                             let rPct = day[`mp_${mId}_totRasio`] || 0;
                             let countTrx = day[`mp_${mId}_trxCount`] || 0;
                             
-                            let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
-                            let joinDate = mInfo.join_date || '-';
-
-                            // Terapkan Filter Search Box yang ada di atas tabel MP
-                            if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
-                            if(fLine && !line.toLowerCase().includes(fLine)) return;
+                            // PERUBAHAN: Pengelompokan murni hanya berdasarkan ID (NRP), bukan per Line lagi
+                            let pKey = mId; 
                             
-                            let pKey = `${mId}-${line}`;
                             if(!pivot[pKey]) { 
+                                let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
+                                let joinDate = mInfo.join_date || '-';
                                 pivot[pKey] = { 
-                                    nama: mNama, id: mId, join_date: joinDate, line: line, 
+                                    nama: mNama, id: mId, join_date: joinDate, lines: new Set(), 
                                     totalCct: 0, totRasio: 0, countTrx: 0, days: {} 
                                 }; 
                             }
+                            // Tambahkan nama Line ke dalam set agar bisa digabung nanti
+                            pivot[pKey].lines.add(line);
+                            
                             if(!pivot[pKey].days[dKey]) {
                                 pivot[pKey].days[dKey] = { cct: 0, totRasio: 0, countTrx: 0 };
                             }
                             
-                            // AKUMULASI CERDAS: Tetap catat CCT (Output) bagaimanapun kondisinya
-                            pivot[pKey].days[dKey].cct += cct;
-                            pivot[pKey].totalCct += cct; 
+                            pivot[pKey].days[dKey].cct += safeCct;
+                            pivot[pKey].totalCct += safeCct; 
 
-                            // LOGIKA TARGET 0: Hanya gabungkan ke Rasio jika unit tersebut punya Target (>0)
                             if (rPct > 0) {
                                 pivot[pKey].days[dKey].totRasio += rPct;
                                 pivot[pKey].days[dKey].countTrx += countTrx;
-                                
                                 pivot[pKey].totRasio += rPct; 
                                 pivot[pKey].countTrx += countTrx; 
                             }
@@ -3007,63 +3002,38 @@ moveDowntimeToPending: async function(id) {
                     });
                 });
 
-                let html = `<table class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max">
-                    <thead class="bg-slate-100 text-slate-600 shadow-sm border-b-2 border-slate-200">
-                        <tr>
-                            <th class="p-2 font-bold sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[16rem] align-bottom">
-                                <div class="mb-2">Manpower Detail</div>
-                                <div class="flex gap-2">
-                                    <input type="text" id="flt-rmp-nama" value="${this.rekapMpFilterVals.nama}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.nama=this.value; app.renderRekapMP()" placeholder="Filter Nama/NRP..." class="w-full text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
-                                    <input type="text" id="flt-rmp-line" value="${this.rekapMpFilterVals.line}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.line=this.value; app.renderRekapMP()" placeholder="Filter Line..." class="w-20 text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
-                                </div>
-                            </th>`;
-                
-                // HEADER: RENTANG TANGGAL (Garis Ditebalkan border-r-2 border-slate-300)
-                dateKeys.forEach(dk => { 
-                    html += `<th class="p-0 font-bold text-center border-r-2 border-slate-300 bg-slate-50 align-top min-w-[160px]">
-                        <div class="pt-1.5 pb-1 border-b border-slate-200 text-slate-700 text-[11px]">${this.formatDateShort(new Date(dk))}</div>
-                        <div class="grid grid-cols-3 text-[9px] text-slate-500 bg-slate-100/50">
-                            <div class="py-1 border-r border-slate-200">Target</div>
-                            <div class="py-1 border-r border-slate-200 text-blue-600">Output</div>
-                            <div class="py-1">Rasio</div>
-                        </div>
-                    </th>`; 
-                });
-                
-                // HEADER: TOTAL KESELURUHAN
-                html += `<th class="p-0 font-bold text-center bg-indigo-100 sticky right-0 z-20 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] align-top min-w-[170px] border-l-2 border-indigo-300">
-                        <div class="pt-1.5 pb-1 border-b border-indigo-200 text-indigo-900 text-[11px]">Total Keseluruhan</div>
-                        <div class="grid grid-cols-3 text-[9px] text-indigo-700 bg-indigo-50/50">
-                            <div class="py-1 border-r border-indigo-200">Target</div>
-                            <div class="py-1 border-r border-indigo-200 text-indigo-900">Output</div>
-                            <div class="py-1">Rasio</div>
-                        </div>
-                    </th>
-                </tr></thead><tbody class="bg-white divide-y divide-slate-100">`;
-                
-                if(Object.keys(pivot).length === 0) {
-                    html += `<tr><td colspan="${dateKeys.length + 2}" class="px-4 py-12 text-center text-slate-400 italic">Tidak ada data untuk rentang waktu/filter ini.</td></tr>`;
+                // Terapkan Filter LOKAL setelah data dikelompokkan
+                let pivotArray = Object.values(pivot).filter(m => {
+                    let mLines = Array.from(m.lines).join(', ').toLowerCase();
+                    let mNamaId = (m.nama + ' ' + m.id).toLowerCase();
+                    if(fNama && !mNamaId.includes(fNama)) return false;
+                    if(fLine && !mLines.includes(fLine)) return false;
+                    return true;
+                }).sort((a,b) => b.totalCct - a.totalCct);
+
+                let bodyHtml = '';
+                if(pivotArray.length === 0) {
+                    bodyHtml = `<tr><td colspan="${dateKeys.length + 2}" class="px-4 py-12 text-center text-slate-400 italic">Tidak ada data untuk rentang waktu/filter ini.</td></tr>`;
                 } else {
-                    Object.values(pivot).sort((a,b)=>b.totalCct-a.totalCct).forEach(m => {
+                    pivotArray.forEach(m => {
                         let mk = app.calculateMasaKerja(m.join_date);
+                        let lineStr = Array.from(m.lines).join(', '); // Gabungkan semua Line tempat dia bekerja
                         
-                        // KALKULASI TOTAL KESELURUHAN MP TERSEBUT
                         let tOutput = m.totalCct;
                         let tAvgRasio = m.countTrx > 0 ? (m.totRasio / m.countTrx) : 0;
                         let tTarget = tAvgRasio > 0 ? (tOutput * 100) / tAvgRasio : 0;
                         let tCol = tAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-600';
 
-                        html += `<tr class="hover:bg-blue-50 transition-colors group">
-                            <td class="px-4 py-2 sticky left-0 bg-white group-hover:bg-blue-50 border-r-2 border-slate-300 z-10 w-64 shadow-[2px_0_5px_rgba(0,0,0,0.02)] cursor-pointer" onclick="app.openMpDetailModal('${m.id}-${m.line}', '${mk}')" title="Klik untuk lihat rekap performa detail">
+                        bodyHtml += `<tr class="hover:bg-blue-50 transition-colors group">
+                            <td class="px-4 py-2 sticky left-0 bg-white group-hover:bg-blue-50 border-r-2 border-slate-300 z-10 w-64 shadow-[2px_0_5px_rgba(0,0,0,0.02)] cursor-pointer" onclick="app.openMpDetailModal('${m.id}', '${mk}')" title="Klik untuk lihat rekap performa detail">
                                 <div class="font-bold text-blue-600 hover:text-blue-800 underline decoration-blue-300 underline-offset-2 transition-colors">${m.nama || '-'} <i class="fas fa-external-link-alt text-[8px] ml-1 opacity-50"></i></div>
                                 <div class="text-[9px] text-slate-500 mt-1 flex flex-wrap items-center gap-1">
                                     <span class="font-mono bg-slate-100 border border-slate-200 px-1 rounded text-slate-600">${m.id || '-'}</span> 
-                                    <span>| Line: <span class="font-bold text-slate-700">${m.line || '-'}</span></span> 
+                                    <span>| Line: <span class="font-bold text-slate-700">${lineStr}</span></span> 
                                     <span>| MK: <span class="text-teal-600 font-bold">${mk || '-'}</span></span>
                                 </div>
                             </td>`;
                         
-                        // ISI DATA HARIAN (Lebih rapat dengan text-[10px] dan py-2)
                         dateKeys.forEach(dk => { 
                             let dayData = m.days[dk];
                             if (dayData) {
@@ -3072,7 +3042,7 @@ moveDowntimeToPending: async function(id) {
                                 let dTarget = dAvgRasio > 0 ? (dOutput * 100) / dAvgRasio : 0;
                                 let rCol = dAvgRasio >= 100 ? 'text-emerald-600' : 'text-red-500';
 
-                                html += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
+                                bodyHtml += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
                                     <div class="grid grid-cols-3 text-center h-full items-center">
                                         <div class="py-2 border-r border-slate-100 text-slate-500 text-[10px]">${dTarget > 0 ? dTarget.toFixed(1) : '-'}</div>
                                         <div class="py-2 border-r border-slate-100 font-bold text-blue-600 text-[10px]">${dOutput.toFixed(1)}</div>
@@ -3080,7 +3050,7 @@ moveDowntimeToPending: async function(id) {
                                     </div>
                                 </td>`;
                             } else {
-                                html += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
+                                bodyHtml += `<td class="p-0 border-r-2 border-slate-300 font-mono align-middle">
                                     <div class="grid grid-cols-3 text-center h-full items-center text-slate-300">
                                         <div class="py-2 border-r border-slate-100">-</div>
                                         <div class="py-2 border-r border-slate-100">-</div>
@@ -3090,8 +3060,7 @@ moveDowntimeToPending: async function(id) {
                             }
                         });
                         
-                        // ISI DATA TOTAL KESELURUHAN (Kanan Sticky)
-                        html += `<td class="p-0 bg-indigo-50 sticky right-0 z-10 align-middle shadow-[-2px_0_5px_rgba(0,0,0,0.05)] border-l-2 border-indigo-300">
+                        bodyHtml += `<td class="p-0 bg-indigo-50 sticky right-0 z-10 align-middle shadow-[-2px_0_5px_rgba(0,0,0,0.05)] border-l-2 border-indigo-300">
                             <div class="grid grid-cols-3 text-center h-full items-center font-mono">
                                 <div class="py-2 border-r border-indigo-100 text-indigo-500 font-semibold text-[11px]">${tTarget > 0 ? tTarget.toFixed(1) : '-'}</div>
                                 <div class="py-2 border-r border-indigo-100 font-black text-indigo-700 text-[11px]">${tOutput.toFixed(1)}</div>
@@ -3100,17 +3069,54 @@ moveDowntimeToPending: async function(id) {
                         </td></tr>`;
                     });
                 }
-                html += `</tbody></table>`; 
-                container.innerHTML = html;
-                
-                // Simpan Pivot untuk digunakan di Modal Detail
+
+                // FIX FOKUS KURSOR: Jangan hancurkan tabel jika header (Tanggal) tidak berubah
+                let dateKeysStr = dateKeys.join(',');
+                let isSameHeader = this.lastRmpDateKeys === dateKeysStr && document.getElementById('rmp-table');
+
+                if (isSameHeader) {
+                    // Update murni hanya Tbody-nya saja
+                    document.getElementById('rmp-tbody').innerHTML = bodyHtml;
+                } else {
+                    // Bangun ulang tabel utuh jika tanggal berubah
+                    let headHtml = `
+                        <tr>
+                            <th class="p-2 font-bold sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[16rem] align-bottom">
+                                <div class="mb-2">Manpower Detail</div>
+                                <div class="flex gap-2">
+                                    <input type="text" id="flt-rmp-nama" value="${this.rekapMpFilterVals.nama}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.nama=this.value; app.renderRekapMP()" placeholder="Filter Nama/NRP..." class="w-full text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                    <input type="text" id="flt-rmp-line" value="${this.rekapMpFilterVals.line}" oninput="if(!app.rekapMpFilterVals) app.rekapMpFilterVals={nama:'',line:''}; app.rekapMpFilterVals.line=this.value; app.renderRekapMP()" placeholder="Filter Line..." class="w-20 text-[10px] p-1.5 border border-slate-300 rounded font-normal text-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
+                                </div>
+                            </th>`;
+                    
+                    dateKeys.forEach(dk => { 
+                        headHtml += `<th class="p-0 font-bold text-center border-r-2 border-slate-300 bg-slate-50 align-top min-w-[160px]">
+                            <div class="pt-1.5 pb-1 border-b border-slate-200 text-slate-700 text-[11px]">${this.formatDateShort(new Date(dk))}</div>
+                            <div class="grid grid-cols-3 text-[9px] text-slate-500 bg-slate-100/50">
+                                <div class="py-1 border-r border-slate-200">Target</div>
+                                <div class="py-1 border-r border-slate-200 text-blue-600">Output</div>
+                                <div class="py-1">Rasio</div>
+                            </div>
+                        </th>`; 
+                    });
+                    
+                    headHtml += `<th class="p-0 font-bold text-center bg-indigo-100 sticky right-0 z-20 shadow-[-2px_0_5px_rgba(0,0,0,0.05)] align-top min-w-[170px] border-l-2 border-indigo-300">
+                            <div class="pt-1.5 pb-1 border-b border-indigo-200 text-indigo-900 text-[11px]">Total Keseluruhan</div>
+                            <div class="grid grid-cols-3 text-[9px] text-indigo-700 bg-indigo-50/50">
+                                <div class="py-1 border-r border-indigo-200">Target</div>
+                                <div class="py-1 border-r border-indigo-200 text-indigo-900">Output</div>
+                                <div class="py-1">Rasio</div>
+                            </div>
+                        </th>
+                    </tr>`;
+
+                    container.innerHTML = `<table id="rmp-table" class="w-full text-left border-collapse whitespace-nowrap text-xs min-w-max"><thead id="rmp-thead" class="bg-slate-100 text-slate-600 shadow-sm border-b-2 border-slate-200">${headHtml}</thead><tbody id="rmp-tbody" class="bg-white divide-y divide-slate-100">${bodyHtml}</tbody></table>`;
+                    this.lastRmpDateKeys = dateKeysStr;
+                }
+
+                // Simpan Pivot untuk Modal
                 this.currentRekapMpPivot = pivot;
                 this.currentRekapMpDateKeys = dateKeys;
-                
-                if(document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('flt-rmp')) {
-                    let focusedId = document.activeElement.id;
-                    setTimeout(() => { let el = document.getElementById(focusedId); if(el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
-                }
             },
 
 
@@ -3121,14 +3127,13 @@ openMpDetailModal: function(pKey, mk) {
                 document.getElementById('dmp-nama').innerText = m.nama;
                 document.getElementById('dmp-nik').innerText = m.id;
                 document.getElementById('dmp-mk').innerText = mk;
-                document.getElementById('dmp-line').innerText = m.line;
+                document.getElementById('dmp-line').innerText = Array.from(m.lines).join(', ');
                 
                 let tbody = document.getElementById('dmp-tbody');
                 tbody.innerHTML = '';
                 
                 this.currentMpDetailExport = { m: m, keys: this.currentRekapMpDateKeys, mk: mk };
                 
-                // Iterasi tanggal sudah otomatis terurut dari terdahulu ke terbaru (A-Z)
                 this.currentRekapMpDateKeys.forEach(dk => {
                     let dayData = m.days[dk];
                     if(dayData && dayData.cct > 0) {
@@ -4224,29 +4229,29 @@ calibrateSingleAssy: async function(event, assyNo) {
                         if(key.startsWith('mp_') && key.endsWith('_nama')) {
                             let mId = key.split('_')[1];
                             let mNama = day[key];
-                            if(fNama && !mNama.toLowerCase().includes(fNama) && !mId.toLowerCase().includes(fNama)) return;
-                            if(fLine && !line.toLowerCase().includes(fLine)) return;
                             
-                            let pKey = `${mId}-${line}`;
-                            if(!pivot[pKey]) { 
-                                pivot[pKey] = { 
-                                    nama: mNama, id: mId, line: line, 
-                                    totalCct: 0, totRasio: 0, countTrx: 0, days: {} 
-                                }; 
-                            }
-                            if(!pivot[pKey].days[dKey]) pivot[pKey].days[dKey] = { cct: 0, totRasio: 0, countTrx: 0 };
-                            
-                            // PENGAMAN DATA KORUP E+24
                             let safeCct = day[`mp_${mId}_cct`] || 0;
                             if (safeCct > 999999) safeCct = 0;
                             
-                            // Akumulasi
+                            let rPct = day[`mp_${mId}_totRasio`] || 0;
+                            let countTrx = day[`mp_${mId}_trxCount`] || 0;
+                            
+                            let pKey = mId; // GABUNGAN BERDASARKAN ID SAJA
+                            if(!pivot[pKey]) { 
+                                let mInfo = this.masterMP.find(x => x && x.id === mId) || {};
+                                let joinDate = mInfo.join_date || '-';
+                                pivot[pKey] = { 
+                                    nama: mNama, id: mId, join_date: joinDate, lines: new Set(), 
+                                    totalCct: 0, totRasio: 0, countTrx: 0, days: {} 
+                                }; 
+                            }
+                            pivot[pKey].lines.add(line);
+                            
+                            if(!pivot[pKey].days[dKey]) pivot[pKey].days[dKey] = { cct: 0, totRasio: 0, countTrx: 0 };
+                            
                             pivot[pKey].days[dKey].cct += safeCct;
                             pivot[pKey].totalCct += safeCct;
                             
-                            // Logika Rasio (Sama dengan renderRekapMP)
-                            let rPct = day[`mp_${mId}_totRasio`] || 0;
-                            let countTrx = day[`mp_${mId}_trxCount`] || 0;
                             if (rPct > 0) {
                                 pivot[pKey].days[dKey].totRasio += rPct;
                                 pivot[pKey].days[dKey].countTrx += countTrx;
@@ -4257,15 +4262,22 @@ calibrateSingleAssy: async function(event, assyNo) {
                     });
                 });
 
-                let exportData = Object.values(pivot).sort((a,b)=>b.totalCct-a.totalCct).map(m => {
+                let pivotArray = Object.values(pivot).filter(m => {
+                    let mLines = Array.from(m.lines).join(', ').toLowerCase();
+                    let mNamaId = (m.nama + ' ' + m.id).toLowerCase();
+                    if(fNama && !mNamaId.includes(fNama)) return false;
+                    if(fLine && !mLines.includes(fLine)) return false;
+                    return true;
+                }).sort((a,b)=>b.totalCct-a.totalCct);
+
+                let exportData = pivotArray.map(m => {
                     let row = { 
                         "NRP": m.id, 
                         "Nama Manpower": m.nama, 
                         "Masa Kerja": app.calculateMasaKerja(m.join_date),
-                        "Line": m.line 
+                        "Line": Array.from(m.lines).join(', ') 
                     };
                     
-                    // Loop tanggal untuk memasukkan kolom Target, Output, dan Rasio
                     dateKeys.forEach(dk => {
                         let dayData = m.days[dk];
                         if (dayData) {
@@ -4280,7 +4292,6 @@ calibrateSingleAssy: async function(event, assyNo) {
                         }
                     });
 
-                    // Total Keseluruhan
                     let tOutput = m.totalCct;
                     let tAvgRasio = m.countTrx > 0 ? (m.totRasio / m.countTrx) : 0;
                     let tTarget = tAvgRasio > 0 ? (tOutput * 100) / tAvgRasio : 0;
@@ -4291,6 +4302,10 @@ calibrateSingleAssy: async function(event, assyNo) {
                     
                     return row;
                 });
+
+                if(exportData.length === 0) {
+                    this.showToast("Tidak ada data untuk diekspor.", "warning"); return;
+                }
 
                 let ws = XLSX.utils.json_to_sheet(exportData);
                 let wb = XLSX.utils.book_new();
